@@ -104,13 +104,21 @@ material) or be deleted too — your choice.
 
 ## Step F — Update the Numan client's built-in trust root
 
-**WSL commands:** in a checkout of `tonythethompson/numan`:
+**WSL commands:** in a checkout of `tonythethompson/numan`. Use
+`scripts/update-official-trust-root.sh` (in that repo) instead of hand-editing
+`src/core/official_registry.rs` — it points straight at this repo's
+`keys/official.pub` so you never retype the public key, validates it decodes
+to 32 bytes, refuses to touch an already-provisioned trust root without
+`--force`, prints a diff, and runs `cargo test official_registry` for you.
+It only ever handles the public key; it never asks for or touches the
+private key.
 
 ```bash
 git checkout -b update-official-trust-root
-# edit src/core/official_registry.rs: set the real key_id, public_key_b64,
-# and hosted registry URL to match keys/official.pub from Step C
-cargo test official_registry
+./scripts/update-official-trust-root.sh \
+  --from-pub-json /path/to/numan-registry/keys/official.pub \
+  --url https://tonythethompson.github.io/numan-registry/index.json
+# review the diff and cargo test output the script prints, then:
 git add src/core/official_registry.rs
 git commit -m "Set production official-registry trust root"
 git push -u origin update-official-trust-root

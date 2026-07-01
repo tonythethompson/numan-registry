@@ -131,9 +131,13 @@ the three files above, and terminal output showing only public material.
    the file is well-formed and no longer a placeholder.
 4. After this PR merges, open a **separate** pull request against
    `tonythethompson/numan` to update the built-in trust root in
-   `src/core/official_registry.rs` with the same `key_id` and
-   `public_key_b64`. Do this only after the public key is merged here — the
-   client PR should reference this repository's commit.
+   `src/core/official_registry.rs`. Use that repo's
+   `scripts/update-official-trust-root.sh --from-pub-json keys/official.pub`
+   instead of hand-editing the file — it reads the `key_id` and
+   `public_key_b64` straight from this repo's committed file, validates them,
+   and runs `cargo test official_registry` for you. Do this only after the
+   public key is merged here — the client PR should reference this
+   repository's commit.
 
 **Expected outcome:** `keys/official.pub` on `main` contains the real key id
 and public key; CI is green.
