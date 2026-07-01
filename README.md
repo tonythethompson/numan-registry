@@ -13,7 +13,8 @@ This registry is currently in **staging / fixture-only** mode. The production si
 ```text
 .
 ├── docs/
-│   └── key-provisioning.md      # Maintainer key-provisioning instructions
+│   ├── key-provisioning.md            # WSL-first maintainer key-provisioning instructions
+│   └── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
 ├── keys/
 │   └── official.pub               # Committed public key placeholder
 ├── registry/
@@ -22,10 +23,15 @@ This registry is currently in **staging / fixture-only** mode. The production si
 ├── schemas/
 │   └── index-v1.json              # JSON schema for index.json
 ├── scripts/
-│   └── validate.py                # Index + signature validator
+│   ├── validate.py                    # Index + signature validator
+│   ├── ci-sign.py                     # CI signer (used by staging/production workflows)
+│   ├── provision-production-key.sh    # WSL keypair generator / public-key verifier
+│   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
+│   └── scan_for_secrets.py            # CI scan for probable private-key material
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
-    └── production.yml             # Deploy production index from protected environment
+    ├── production.yml             # Deploy production index from protected environment
+    └── repo-safety.yml            # Secret scan + preflight checks on every push/PR
 ```
 
 ## Schema
@@ -48,7 +54,7 @@ The `signature` value is an Ed25519 signature over the **canonical JSON bytes** 
 
 ## Key management
 
-The registry private key is **never** committed, printed, or handled by coding agents. See `docs/key-provisioning.md` for the manual maintainer process.
+The registry private key is **never** committed, printed, or handled by coding agents. See `docs/key-provisioning.md` for the manual, WSL-first maintainer process, and `docs/production-cutover-checklist.md` for the full cutover runbook with rollback steps. `scripts/provision-production-key.sh` generates the keypair locally and never prints the private key.
 
 ## Environments
 

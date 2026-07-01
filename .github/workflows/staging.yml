@@ -49,9 +49,29 @@ jobs:
               serialization.NoEncryption()
           )).decode()
 
+          # Mask the ephemeral private key in logs even though it's a
+          # throwaway staging key with no production trust value.
+          print(f"::add-mask::{priv_b64}")
+
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'public_key={pub_b64}\n')
               f.write(f'private_key={priv_b64}\n')
+          PY
+
+      - name: Validate index schema before signing
+        run: |
+          python - <<'PY'
+          import json
+
+          import jsonschema
+
+          with open("registry/index.json", "r", encoding="utf-8") as f:
+              index = json.load(f)
+          with open("schemas/index-v1.json", "r", encoding="utf-8") as f:
+              schema = json.load(f)
+
+          jsonschema.validate(index, schema)
+          print("OK: index schema is valid prior to signing")
           PY
 
       - name: Sign fixture index with ephemeral key
