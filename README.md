@@ -14,7 +14,8 @@ This registry is currently in **staging / fixture-only** mode. The production si
 .
 ├── docs/
 │   ├── key-provisioning.md            # WSL-first maintainer key-provisioning instructions
-│   └── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
+│   ├── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
+│   └── key-rotation-checklist.md      # Rotation runbook: successor-key ordering, propagation wait, rollback
 ├── keys/
 │   └── official.pub               # Committed public key placeholder
 ├── registry/

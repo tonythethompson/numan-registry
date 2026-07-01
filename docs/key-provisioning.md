@@ -219,25 +219,16 @@ python3 scripts/validate.py \
 
 ## Key rotation
 
-To rotate to a new key later:
+Rotating to a new key later reuses `scripts/provision-production-key.sh` and
+`scripts/update-official-trust-root.sh` — there's no separate rotation
+tooling. Follow `docs/key-rotation-checklist.md` step by step; it covers the
+successor-declaration ordering, the propagation wait, and rollback for a
+rotation gone wrong or a suspected exposure mid-rotation.
 
-1. Run `scripts/provision-production-key.sh` again (new timestamp, new
-   `official-YYYY-MM-01` id for the new month) to generate a new keypair.
-2. Add the new public key as a successor in the registry index's `trust`
-   section, and sign that declaration with the **current** (old) key.
-3. Publish an index signed by the current key that includes the successor
-   declaration.
-4. Update `keys/official.pub` and the Numan client's built-in trust root to
-   the new public key, and update the `production` environment secret to the
-   new private key.
-5. Once the new key is trusted, remove the old key from the index's `trust`
-   section and retire it (delete its vault entry once you're certain it's no
-   longer needed for any signed-but-unpublished index).
-
-A new key never becomes trusted merely by signing an index — it must be
-introduced by a signed successor declaration from an already-trusted key.
-This rule is enforced by client and CI verification and must not be
-weakened.
+The one rule that document exists to enforce: a new key never becomes
+trusted merely by signing an index — it must be introduced by a signed
+successor declaration from an already-trusted key. This is enforced by
+client and CI verification and must not be weakened.
 
 ## Final stop-and-review checklist
 
