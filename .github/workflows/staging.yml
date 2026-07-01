@@ -1,0 +1,87 @@
+name: Staging registry
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: registry-staging
+  cancel-in-progress: false
+
+jobs:
+  validate-and-stage:
+    name: Validate and stage registry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cryptography jsonschema
+
+      - name: Generate ephemeral staging keypair and sign index
+        id: sign
+        run: |
+          python <<'PY'
+          import base64
+          import os
+          from cryptography.hazmat.primitives import serialization
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+          private_key = Ed25519PrivateKey.generate()
+          public_key = private_key.public_key()
+          pub_b64 = base64.b64encode(public_key.public_bytes(
+              serialization.Encoding.Raw, serialization.PublicFormat.Raw
+          )).decode()
+          priv_b64 = base64.b64encode(private_key.private_bytes(
+              serialization.Encoding.Raw,
+              serialization.PrivateFormat.Raw,
+              serialization.NoEncryption()
+          )).decode()
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'public_key={pub_b64}\n')
+              f.write(f'private_key={priv_b64}\n')
+          PY
+
+      - name: Sign fixture index with ephemeral key
+        run: |
+          python scripts/ci-sign.py \
+            --index registry/index.json \
+            --sig registry/index.json.sig \
+            --key-id staging-ephemeral \
+            --priv-b64 "${{ steps.sign.outputs.private_key }}"
+
+      - name: Validate with ephemeral public key
+        run: |
+          printf '%s' '{"key_id":"staging-ephemeral","public_key_b64":"${{ steps.sign.outputs.public_key }}"}' > staging-key.pub.json
+          python scripts/validate.py \
+            --index registry/index.json \
+            --sig registry/index.json.sig \
+            --pub staging-key.pub.json \
+            --schema schemas/index-v1.json \
+            --skip-artifacts
+
+      - name: Clean staging key file
+        if: always()
+        run: |
+          rm -f staging-key.pub.json
+
+      - name: Stage to gh-pages/staging
+        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./registry
+          destination_dir: staging
+          keep_files: false

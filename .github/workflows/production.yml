@@ -1,0 +1,66 @@
+name: Production registry
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for production deploy"
+        required: true
+
+concurrency:
+  group: registry-production
+  cancel-in-progress: false
+
+jobs:
+  validate-and-publish:
+    name: Validate and publish production registry
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cryptography jsonschema
+
+      - name: Require production signing secret
+        run: |
+          if [ -z "${NUMAN_REGISTRY_PRIVATE_KEY}" ]; then
+            echo "FAIL: NUMAN_REGISTRY_PRIVATE_KEY is not set in the production environment."
+            echo "The maintainer must manually provision the production key before deploying."
+            exit 1
+          fi
+          echo "OK: production signing secret is present"
+        env:
+          NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
+
+      - name: Sign production index
+        run: |
+          python scripts/ci-sign.py \
+            --index registry/index.json \
+            --sig registry/index.json.sig \
+            --key-id official-2026-01 \
+            --priv-b64 "${NUMAN_REGISTRY_PRIVATE_KEY}"
+        env:
+          NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
+
+      - name: Validate with committed public key
+        run: |
+          python scripts/validate.py \
+            --index registry/index.json \
+            --sig registry/index.json.sig \
+            --pub keys/official.pub \
+            --schema schemas/index-v1.json
+
+      - name: Publish to gh-pages root
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./registry
+          destination_dir: ""
+          keep_files: false

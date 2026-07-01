@@ -1,0 +1,5 @@
+{
+  "key_id": "official-placeholder",
+  "public_key_b64": "PLACEHOLDER",
+  "note": "This is a placeholder. The maintainer will replace it with the real production public key after manually provisioning the private key."
+}

@@ -1,2 +1,64 @@
-# numan-registry
-Official curated registry for Numan
+# Numan Official Registry
+
+Curated registry index for the [Numan](https://github.com/tonythethompson/numan) Nushell package manager.
+
+This repository is **not** the package manager itself. It publishes the signed registry index that Numan clients download, verify, and install from.
+
+## Status
+
+This registry is currently in **staging / fixture-only** mode. The production signing key has not been provisioned yet, and the seed packages listed here are placeholders. Do not rely on the current index for production installs.
+
+## Layout
+
+```text
+.
+├── docs/
+│   └── key-provisioning.md      # Maintainer key-provisioning instructions
+├── keys/
+│   └── official.pub               # Committed public key placeholder
+├── registry/
+│   ├── index.json                 # Signed registry index
+│   └── index.json.sig             # Detached signature envelope
+├── schemas/
+│   └── index-v1.json              # JSON schema for index.json
+├── scripts/
+│   └── validate.py                # Index + signature validator
+└── .github/workflows/
+    ├── staging.yml                # Deploy staging index with ephemeral key
+    └── production.yml             # Deploy production index from protected environment
+```
+
+## Schema
+
+The registry index is JSON with a required top-level `schema_version` of `1`. The canonical JSON form (sorted object keys, compact encoding, no whitespace) is what is signed and digested. See `schemas/index-v1.json` and the Numan source `src/core/official_registry.rs` for the exact canonicalization rules.
+
+## Signing
+
+The detached signature file `registry/index.json.sig` is a JSON envelope:
+
+```json
+{
+  "key_id": "official-YYYY-MM",
+  "algorithm": "ed25519",
+  "signature": "base64..."
+}
+```
+
+The `signature` value is an Ed25519 signature over the **canonical JSON bytes** of `registry/index.json`. The SHA-256 of those canonical bytes is the `index_sha256` that Numan clients record in their lockfiles.
+
+## Key management
+
+The registry private key is **never** committed, printed, or handled by coding agents. See `docs/key-provisioning.md` for the manual maintainer process.
+
+## Environments
+
+- **Staging**: deployed automatically from the default branch using an ephemeral CI-generated key or a separate staging secret. Used for schema and tooling validation.
+- **Production**: deployed only from a protected GitHub Actions environment that requires manual approval and the `NUMAN_REGISTRY_PRIVATE_KEY` secret.
+
+## Validation
+
+```bash
+python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
+```
+
+The CI validator also downloads and verifies artifact digests for non-fixture entries.
