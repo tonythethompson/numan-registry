@@ -259,7 +259,7 @@ def main():
         f.write("\n")
 
     print(f"\nWrote {index_path}. Review the diff before committing:")
-    print(f"  git -C \"{REPO_ROOT}\" --no-pager diff -- {index_path.relative_to(REPO_ROOT)}")
+    print(f"  git -C \"{REPO_ROOT}\" --no-pager diff -- \"{index_path.resolve()}\"")
     print(
         "\nNote: this does not sign the index. Signing happens via the "
         "staging/production workflow, same as any other index change."
