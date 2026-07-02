@@ -7,6 +7,9 @@ on:
         description: "Reason for production deploy"
         required: true
 
+permissions:
+  contents: write  # required for peaceiris/actions-gh-pages to push the gh-pages branch
+
 concurrency:
   group: registry-production
   cancel-in-progress: false
@@ -40,13 +43,13 @@ jobs:
             echo "      of secret values or key material being surfaced in the log."
             exit 1
           fi
+          echo "OK: debug logging is not enabled for this run"
         env:
           # RUNNER_DEBUG is the runtime signal GitHub sets when either debug
           # secret below is enabled. Checked directly too, in case that
           # propagation ever changes -- belt and suspenders.
           STEP_DEBUG_SECRET: ${{ secrets.ACTIONS_STEP_DEBUG }}
           RUNNER_DEBUG_SECRET: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
-          echo "OK: debug logging is not enabled for this run"
 
       - name: Require production signing secret
         run: |
