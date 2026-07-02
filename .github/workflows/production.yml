@@ -33,12 +33,19 @@ jobs:
 
       - name: Guard against debug tracing
         run: |
-          if [ "${RUNNER_DEBUG:-}" = "1" ]; then
-            echo "FAIL: RUNNER_DEBUG is enabled for this run. Re-run without debug logging"
-            echo "      before deploying production; debug logging increases the risk of"
-            echo "      secret values or key material being surfaced in the log."
+          if [ "${RUNNER_DEBUG:-}" = "1" ] || [ "${STEP_DEBUG_SECRET:-}" = "true" ] || [ "${RUNNER_DEBUG_SECRET:-}" = "true" ]; then
+            echo "FAIL: Debug logging is enabled for this run (RUNNER_DEBUG, or the"
+            echo "      ACTIONS_STEP_DEBUG / ACTIONS_RUNNER_DEBUG secret, is set). Disable"
+            echo "      debug logging before deploying production; it increases the risk"
+            echo "      of secret values or key material being surfaced in the log."
             exit 1
           fi
+        env:
+          # RUNNER_DEBUG is the runtime signal GitHub sets when either debug
+          # secret below is enabled. Checked directly too, in case that
+          # propagation ever changes -- belt and suspenders.
+          STEP_DEBUG_SECRET: ${{ secrets.ACTIONS_STEP_DEBUG }}
+          RUNNER_DEBUG_SECRET: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
           echo "OK: debug logging is not enabled for this run"
 
       - name: Require production signing secret

@@ -37,6 +37,7 @@ DEBUG_TRACE_PATTERNS = [
     re.compile(r"\bset\s+-\w*x\w*\b"),
     re.compile(r"\bset\s+-o\s+xtrace\b"),
     re.compile(r"ACTIONS_STEP_DEBUG\s*:\s*true", re.IGNORECASE),
+    re.compile(r"ACTIONS_RUNNER_DEBUG\s*:\s*true", re.IGNORECASE),
     re.compile(r"RUNNER_DEBUG\s*:\s*1"),
 ]
 

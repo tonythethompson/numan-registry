@@ -118,7 +118,11 @@ if public_key_b64 == "PLACEHOLDER":
     print(f"FAIL: {path} is still a placeholder")
     sys.exit(1)
 
-raw = base64.b64decode(public_key_b64)
+try:
+    raw = base64.b64decode(public_key_b64, validate=True)
+except Exception as exc:
+    print(f"FAIL: public_key_b64 in {path} is not valid base64: {exc}")
+    sys.exit(1)
 if len(raw) != 32:
     print(f"FAIL: public key must decode to 32 bytes, got {len(raw)}")
     sys.exit(1)
@@ -145,6 +149,10 @@ if [[ -e "${OUT_DIR}" && "${FORCE}" -ne 1 ]]; then
   echo "       Re-run with --force to overwrite, or remove it first." >&2
   exit 1
 fi
+
+# Restrictive umask so the private key file is never briefly group/world
+# readable between creation and the chmod below, even transiently.
+umask 077
 
 mkdir -p "${OUT_DIR}"
 
