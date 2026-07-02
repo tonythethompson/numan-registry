@@ -42,7 +42,7 @@
         "owner": "vyadh",
         "name": "nutest"
       },
-      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here.",
+      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. The artifact URL points at a byte-identical mirror of upstream's v1.1.0 tag archive hosted on this registry, not upstream's own auto-generated archive endpoint, since GitHub does not guarantee those stay byte-stable over time and upstream has no uploaded release asset to pin against instead.",
       "repo": "https://github.com/vyadh/nutest",
       "type": "module",
       "tags": [
@@ -58,7 +58,7 @@
           ],
           "artifact": {
             "kind": "archive",
-            "url": "https://github.com/vyadh/nutest/archive/refs/tags/v1.1.0.zip",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-vyadh-nutest-v1.1.0/nutest-1.1.0.zip",
             "sha256": "f33b4892509a7328bd3d8648ffe1cd5b4b541f2492783c9d9f3f81b5fd7c2c79",
             "entry": "nutest/mod.nu",
             "archive_root": "nutest-1.1.0"
