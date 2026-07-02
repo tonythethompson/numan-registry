@@ -112,7 +112,7 @@
         "owner": "vyadh",
         "name": "nutest"
       },
-      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture.",
+      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here.",
       "repo": "https://github.com/vyadh/nutest",
       "type": "module",
       "tags": [
@@ -135,7 +135,7 @@
           },
           "activation": {
             "kind": "nu-module",
-            "import": "module"
+            "import": "all"
           }
         }
       ]
