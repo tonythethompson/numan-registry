@@ -129,15 +129,24 @@ the three files above, and terminal output showing only public material.
 3. Open a pull request against `tonythethompson/numan-registry` with just
    this change. `scripts/preflight.py` runs in CI on this PR and confirms
    the file is well-formed and no longer a placeholder.
-4. After this PR merges, open a **separate** pull request against
-   `tonythethompson/numan` to update the built-in trust root in
-   `src/core/official_registry.rs`. Use that repo's
+4. After this PR merges, update the built-in trust root in
+   `tonythethompson/numan`'s `src/core/official_registry.rs`. Do this only
+   after the public key is merged here. Use that repo's
    `scripts/update-official-trust-root.sh --from-pub-json keys/official.pub`
    instead of hand-editing the file — it reads the `key_id` and
    `public_key_b64` straight from this repo's committed file, validates them,
-   and runs `cargo test official_registry` for you. Do this only after the
-   public key is merged here — the client PR should reference this
-   repository's commit.
+   and runs `cargo test official_registry` for you.
+
+   **Where this change lands depends on whether `official_registry.rs` is
+   already merged to `numan`'s `master`:**
+   - If `master` already has it: branch off `master` and open a normal,
+     genuinely separate PR.
+   - If it only exists on an unmerged PR (as of the first production
+     cutover, that's PR #23): branch off *that PR's own branch* and push
+     the commit there, extending it — a new PR based on `master` would
+     duplicate that PR's own not-yet-merged changes to the same file
+     instead of building on them. Reference this repository's commit in
+     the commit message either way.
 
 **Expected outcome:** `keys/official.pub` on `main` contains the real key id
 and public key; CI is green.
