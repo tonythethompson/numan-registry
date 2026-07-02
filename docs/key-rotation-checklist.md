@@ -102,14 +102,17 @@ beyond "has it been long enough."
    ```bash
    ./scripts/update-official-trust-root.sh \
      --from-pub-json /path/to/numan-registry/keys/official.pub \
-     --url https://tonythethompson.github.io/numan-registry/index.json \
      --force
    ```
 
    `--force` is required here because the trust root is already
-   non-placeholder from the first cutover. Review the diff and the
-   `cargo test official_registry` output the script prints, then open a PR
-   as usual.
+   non-placeholder from the first cutover. Omit `--url` unless the hosted
+   registry URL is actually changing as part of this rotation (it normally
+   isn't) — pass it only when you need to update `production_url` too,
+   same as during first-time provisioning. Review the diff and the
+   `cargo test official_registry` output the script prints, then push the
+   commit per the branching guidance in
+   `docs/production-cutover-checklist.md` Step F, and open a PR as usual.
 4. Dispatch the **Production registry** workflow again.
 
 **Expected outcome:** the published `registry/index.json.sig` now has the
