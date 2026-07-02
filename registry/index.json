@@ -1,78 +1,8 @@
 {
   "schema_version": 1,
   "updated_at": "2026-07-02T02:57:54Z",
-  "registry_revision": "fixture-2026-07-01",
+  "registry_revision": "seed-2026-07-02",
   "packages": [
-    {
-      "id": {
-        "owner": "numan-fixture",
-        "name": "example-plugin"
-      },
-      "description": "Fixture plugin record for registry validation only. Not a real package.",
-      "repo": "https://github.com/tonythethompson/numan",
-      "type": "plugin",
-      "tags": [
-        "fixture",
-        "plugin"
-      ],
-      "versions": [
-        {
-          "version": "0.0.0-fixture",
-          "nu_version": "0.111.x",
-          "verified_with": [],
-          "artifact": {
-            "kind": "binary",
-            "targets": {
-              "x86_64-pc-windows-msvc": {
-                "url": "https://example.com/numan-fixture/example-plugin/0.0.0-fixture/windows.zip",
-                "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                "executable_path": "nu_plugin_example.exe"
-              },
-              "x86_64-unknown-linux-gnu": {
-                "url": "https://example.com/numan-fixture/example-plugin/0.0.0-fixture/linux.tar.gz",
-                "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                "executable_path": "nu_plugin_example"
-              },
-              "x86_64-apple-darwin": {
-                "url": "https://example.com/numan-fixture/example-plugin/0.0.0-fixture/macos.tar.gz",
-                "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-                "executable_path": "nu_plugin_example"
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": {
-        "owner": "numan-fixture",
-        "name": "example-module"
-      },
-      "description": "Fixture module record for registry validation only. Not a real package.",
-      "repo": "https://github.com/tonythethompson/numan",
-      "type": "module",
-      "tags": [
-        "fixture",
-        "module"
-      ],
-      "versions": [
-        {
-          "version": "0.0.0-fixture",
-          "nu_version": "*",
-          "verified_with": [],
-          "artifact": {
-            "kind": "archive",
-            "url": "https://example.com/numan-fixture/example-module/0.0.0-fixture/module.zip",
-            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-            "entry": "mod.nu"
-          },
-          "activation": {
-            "kind": "nu-module",
-            "import": "module"
-          }
-        }
-      ]
-    },
     {
       "id": {
         "owner": "abusch",
