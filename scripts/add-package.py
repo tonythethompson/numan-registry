@@ -38,8 +38,17 @@ Spec format (archive artifact, e.g. a module):
       "type": "module", "tags": ["module"],
       "version": "1.0.0", "nu_version": "*",
       "artifact": {"kind": "archive", "url": "https://.../module.zip", "entry": "mod.nu"},
-      "activation": {"kind": "nu-module", "import": "module"}
+      "activation": {"kind": "nu-module", "import": "all"}
     }
+
+Note: a "mod.nu" entry must use "import": "all". Numan's activation
+imports the entry file directly (`use "<entry>"`), not the containing
+directory, so Nu's directory-name-becomes-module-name convention for
+mod.nu doesn't apply here -- "import": "module" would activate under
+a module literally named "mod", not the package name. Use "import":
+"module" only when the entry file is NOT named mod.nu (its own
+filename becomes the module name in that case, which is what you
+want).
 
 `artifact.kind: "source"` is not supported yet — source builds are a
 deferred Phase 5 item on the client per CLAUDE.md; an entry this script
