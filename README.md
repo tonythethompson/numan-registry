@@ -28,7 +28,8 @@ This registry is currently in **staging / fixture-only** mode. The production si
 │   ├── ci-sign.py                     # CI signer (used by staging/production workflows)
 │   ├── provision-production-key.sh    # WSL keypair generator / public-key verifier
 │   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
-│   └── scan_for_secrets.py            # CI scan for probable private-key material
+│   ├── scan_for_secrets.py            # CI scan for probable private-key material
+│   └── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
     ├── production.yml             # Deploy production index from protected environment
