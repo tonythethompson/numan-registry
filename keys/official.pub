@@ -1,5 +1,5 @@
 {
-  "key_id": "official-placeholder",
-  "public_key_b64": "PLACEHOLDER",
-  "note": "This is a placeholder. The maintainer will replace it with the real production public key after manually provisioning the private key."
+  "key_id": "official-2026-07-01",
+  "public_key_b64": "1F0STZT/Fk4OiP/7Hqs3/MurixBKoe7GYVoCto2/mCc=",
+  "note": "Production public key for the Numan official registry."
 }
