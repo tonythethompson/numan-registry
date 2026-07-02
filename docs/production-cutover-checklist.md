@@ -113,22 +113,46 @@ to 32 bytes, refuses to touch an already-provisioned trust root without
 It only ever handles the public key; it never asks for or touches the
 private key.
 
+**Check first whether `src/core/official_registry.rs` exists on `master`
+yet.** For the first production cutover it doesn't — it (and this script)
+only exist on the not-yet-merged PR that introduced them (PR #23, as of
+this writing). Branching from `master` in that case would recreate PR #23's
+own unmerged changes to that file instead of building on them. Branch from
+whichever ref actually has the file:
+
 ```bash
-git checkout -b update-official-trust-root
+# If official_registry.rs is already on master:
+git checkout -b update-official-trust-root origin/master
+# If it only exists on an open PR (e.g. #23), branch from that PR's own
+# branch instead, and push back to it directly -- don't target master:
+git fetch origin <pr-branch-name>
+git checkout -b update-official-trust-root origin/<pr-branch-name>
+
 ./scripts/update-official-trust-root.sh \
-  --from-pub-json /path/to/numan-registry/keys/official.pub \
-  --url https://tonythethompson.github.io/numan-registry/index.json
+  --from-pub-json /path/to/numan-registry/keys/official.pub
 # review the diff and cargo test output the script prints, then:
 git add src/core/official_registry.rs
 git commit -m "Set production official-registry trust root"
+
+# If you branched from master:
 git push -u origin update-official-trust-root
 gh pr create --fill --base master
+
+# If you branched from an open PR's branch, push straight back to it
+# instead of opening a new PR:
+git push origin update-official-trust-root:<pr-branch-name>
 ```
 
 **GitHub Settings path:** none for this step.
 
-**Expected outcome:** a new PR against `numan` (separate from PR #23) with
-`cargo test official_registry` passing.
+**Expected outcome:** either a new PR against `numan` targeting `master`, or
+a new commit on the existing PR that introduces the trust-root file (e.g.
+PR #23) -- whichever applies -- with `cargo test official_registry` passing.
+If the official-registry test suite has a test asserting the built-in root
+is still a placeholder, expect to update it too: that assertion is
+correctly inverted once a real key is set (see how
+`official_registry_is_placeholder` became
+`official_registry_is_not_placeholder` in the first real cutover).
 
 ## Step G — Dispatch the production workflow
 
