@@ -110,7 +110,13 @@ Package.resolved
 .remember/
 .opencode/
 
-# Private signing keys (NEVER include in context)
-keys/*.key
-keys/*.pem
-keys/*.priv
+# Generated key-provisioning output — must never be included in context
+/provisioning/
+
+# Defense in depth: any private-key-shaped file, anywhere in the repo
+*.key
+*.pem
+*-private
+*-private.*
+*_private_key*
+*.priv
