@@ -258,8 +258,16 @@ def main():
         json.dump(index, f, indent=2)
         f.write("\n")
 
+    resolved = index_path.resolve()
+    try:
+        diff_target = resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        # index_path lives outside REPO_ROOT (e.g. --index pointed elsewhere);
+        # fall back to the absolute path rather than a bogus relative one.
+        diff_target = resolved
+
     print(f"\nWrote {index_path}. Review the diff before committing:")
-    print(f"  git -C \"{REPO_ROOT}\" --no-pager diff -- \"{index_path.resolve()}\"")
+    print(f"  git -C \"{REPO_ROOT}\" --no-pager diff -- \"{diff_target}\"")
     print(
         "\nNote: this does not sign the index. Signing happens via the "
         "staging/production workflow, same as any other index change."
