@@ -83,6 +83,26 @@ REQUIRED_TOP_FIELDS = (
 )
 VALID_TYPES = ("plugin", "module", "script", "completion")
 
+# Must match ArchiveFormat::from_url in tonythethompson/numan's
+# src/install/extract.rs. A target URL with any other extension will fail
+# to install with "Cannot determine archive format" -- checked here because
+# a real seed entry shipped with .tar.xz targets and nobody caught it until
+# a reviewer actually traced it through the client's install path.
+SUPPORTED_ARCHIVE_SUFFIXES = (".zip", ".tar.gz", ".tgz", ".tar")
+
+
+def check_archive_format_supported(url, label):
+    lower = url.lower()
+    if not any(lower.endswith(suffix) for suffix in SUPPORTED_ARCHIVE_SUFFIXES):
+        print(
+            f"FAIL: {label} url '{url}' does not end in a format Numan's "
+            f"installer supports ({', '.join(SUPPORTED_ARCHIVE_SUFFIXES)}). "
+            "It would fail to install with 'Cannot determine archive format'. "
+            "Either the upstream release needs a differently-packaged asset, "
+            "or this target should be dropped from the entry."
+        )
+        sys.exit(1)
+
 
 def download_and_hash(url):
     print(f"  downloading {url} ...", file=sys.stderr)
@@ -117,6 +137,7 @@ def build_artifact(spec_artifact):
             if not url or not executable_path:
                 print(f"FAIL: target '{triple}' requires 'url' and 'executable_path'")
                 sys.exit(1)
+            check_archive_format_supported(url, f"target '{triple}'")
             sha256 = download_and_hash(url)
             built_targets[triple] = {
                 "url": url,
@@ -130,6 +151,7 @@ def build_artifact(spec_artifact):
         if not url:
             print("FAIL: artifact.kind 'archive' requires 'url'")
             sys.exit(1)
+        check_archive_format_supported(url, "artifact")
         sha256 = download_and_hash(url)
         artifact = {"kind": "archive", "url": url, "sha256": sha256}
         for optional in ("entry", "archive_root", "include"):
@@ -141,6 +163,28 @@ def build_artifact(spec_artifact):
     sys.exit(1)
 
 
+def check_module_import_mode(spec_artifact, activation):
+    if not activation or activation.get("kind") != "nu-module":
+        return
+    entry = spec_artifact.get("entry")
+    import_mode = activation.get("import", "module")
+    if entry and Path(entry).name == "mod.nu" and import_mode == "module":
+        print(
+            "FAIL: entry is a 'mod.nu' file with activation.import 'module'. "
+            "Numan's activation renders this as `use \"<entry file>\"` (a "
+            "file-form import), not `use \"<containing dir>\"`. Nu's "
+            "directory-name-becomes-module-name convention for mod.nu only "
+            "applies to the directory form, so this would activate as a "
+            "module named 'mod', not the package name -- e.g. `mod run-tests` "
+            "instead of the upstream-documented `nutest run-tests`. "
+            "Verified empirically on real Nu; this is not a hypothetical. "
+            "Set activation.import to 'all' instead (commands import "
+            "unprefixed), or use a differently-named entry file if the "
+            "package doesn't need mod.nu's directory-scoping behavior."
+        )
+        sys.exit(1)
+
+
 def build_version_entry(spec):
     version_entry = {
         "version": spec["version"],
@@ -148,6 +192,8 @@ def build_version_entry(spec):
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    if "activation" in spec:
+        check_module_import_mode(spec["artifact"], spec["activation"])
     version_entry["artifact"] = build_artifact(spec["artifact"])
     if "activation" in spec:
         version_entry["activation"] = spec["activation"]
