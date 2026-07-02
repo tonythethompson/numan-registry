@@ -2,7 +2,7 @@
 # Data-only repository: JSON registry index, schemas, signing keys, and CI scripts.
 # Preserve registry data, schemas, docs, scripts, and CI configuration.
 
-# Python dependencies and caches
+# Dependency directories and caches
 /node_modules/
 **/node_modules/
 /vendor/
