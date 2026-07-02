@@ -96,17 +96,42 @@ def check_key_id_consistency(pub_key_id):
     sig_key_id = sig.get("key_id")
     sig_signature = sig.get("signature")
 
-    sig_is_placeholder = sig_key_id in PLACEHOLDER_KEY_IDS or sig_signature in PLACEHOLDER_VALUES
+    sig_id_is_placeholder = sig_key_id in PLACEHOLDER_KEY_IDS
+    sig_value_is_placeholder = sig_signature in PLACEHOLDER_VALUES
     pub_is_placeholder = pub_key_id is None
 
-    if pub_is_placeholder and sig_is_placeholder:
-        print(f"OK: {PUB_PATH} and {SIG_PATH} are both still placeholders (consistent)")
+    if sig_id_is_placeholder and sig_value_is_placeholder:
+        # Nothing has been signed yet. This is fine whether or not the
+        # public key has already been committed -- the real cutover flow
+        # commits keys/official.pub first (its own small PR, no private key
+        # involved), and signing only happens later, once the production
+        # environment secret exists and the Production registry workflow
+        # runs. Requiring both to move together would make the documented
+        # sequential flow permanently fail preflight.
+        print(f"OK: {SIG_PATH} is still a placeholder (nothing signed yet)")
         return errors
 
-    if pub_is_placeholder != sig_is_placeholder:
+    if sig_id_is_placeholder != sig_value_is_placeholder:
+        # Exactly one of key_id/signature is still a placeholder -- a
+        # half-updated envelope that can never verify against any trust
+        # root. Must not be silently treated as "nothing signed yet".
         errors.append(
-            f"key_id consistency: one of {PUB_PATH} / {SIG_PATH} has moved past the "
-            "placeholder and the other has not — commit and sign together."
+            f"{SIG_PATH} has an inconsistent placeholder state: "
+            f"key_id={sig_key_id!r} "
+            f"({'placeholder' if sig_id_is_placeholder else 'real'}), "
+            f"signature={'PLACEHOLDER' if sig_value_is_placeholder else '<real>'} "
+            "-- both fields must be placeholder together, or both real."
+        )
+        return errors
+
+    # sig is fully non-placeholder: something was actually signed. Its
+    # key_id must match the currently-committed public key, or the index
+    # was signed with a key that isn't (or is no longer) the trust root.
+    if pub_is_placeholder:
+        errors.append(
+            f"{SIG_PATH} is signed with key_id {sig_key_id!r} but {PUB_PATH} is "
+            "still a placeholder -- the signing key was never committed as "
+            "the trust root."
         )
         return errors
 
