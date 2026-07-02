@@ -99,14 +99,25 @@ def check_key_id_consistency(pub_key_id):
     sig_is_placeholder = sig_key_id in PLACEHOLDER_KEY_IDS or sig_signature in PLACEHOLDER_VALUES
     pub_is_placeholder = pub_key_id is None
 
-    if pub_is_placeholder and sig_is_placeholder:
-        print(f"OK: {PUB_PATH} and {SIG_PATH} are both still placeholders (consistent)")
+    if sig_is_placeholder:
+        # Nothing has been signed yet. This is fine whether or not the
+        # public key has already been committed -- the real cutover flow
+        # commits keys/official.pub first (its own small PR, no private key
+        # involved), and signing only happens later, once the production
+        # environment secret exists and the Production registry workflow
+        # runs. Requiring both to move together would make the documented
+        # sequential flow permanently fail preflight.
+        print(f"OK: {SIG_PATH} is still a placeholder (nothing signed yet)")
         return errors
 
-    if pub_is_placeholder != sig_is_placeholder:
+    # sig is non-placeholder: something was actually signed. Its key_id
+    # must match the currently-committed public key, or the index was
+    # signed with a key that isn't (or is no longer) the trust root.
+    if pub_is_placeholder:
         errors.append(
-            f"key_id consistency: one of {PUB_PATH} / {SIG_PATH} has moved past the "
-            "placeholder and the other has not — commit and sign together."
+            f"{SIG_PATH} is signed with key_id {sig_key_id!r} but {PUB_PATH} is "
+            "still a placeholder -- the signing key was never committed as "
+            "the trust root."
         )
         return errors
 
