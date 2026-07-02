@@ -6,7 +6,7 @@ This repository is **not** the package manager itself. It publishes the signed r
 
 ## Status
 
-This registry is currently in **staging / fixture-only** mode. The production signing key has not been provisioned yet, and the seed packages listed here are placeholders. Do not rely on the current index for production installs.
+This registry is currently in **staging** mode: `registry/index.json` has real, verified seed packages (see below), but the production signing key has not been provisioned yet, so nothing here is signed for production trust. Do not rely on the current index for production installs until `docs/production-cutover-checklist.md` is complete.
 
 ## Layout
 
