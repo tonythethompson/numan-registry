@@ -16,6 +16,9 @@ jobs:
     name: Validate and publish production registry
     runs-on: ubuntu-latest
     environment: production
+    # Belt-and-suspenders alongside the environment's own branch protection
+    # rule (Settings > Environments > production > Deployment branches).
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +31,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install cryptography jsonschema
 
+      - name: Guard against debug tracing
+        run: |
+          if [ "${RUNNER_DEBUG:-}" = "1" ] || [ "${STEP_DEBUG_SECRET:-}" = "true" ] || [ "${RUNNER_DEBUG_SECRET:-}" = "true" ]; then
+            echo "FAIL: Debug logging is enabled for this run (RUNNER_DEBUG, or the"
+            echo "      ACTIONS_STEP_DEBUG / ACTIONS_RUNNER_DEBUG secret, is set). Disable"
+            echo "      debug logging before deploying production; it increases the risk"
+            echo "      of secret values or key material being surfaced in the log."
+            exit 1
+          fi
+        env:
+          # RUNNER_DEBUG is the runtime signal GitHub sets when either debug
+          # secret below is enabled. Checked directly too, in case that
+          # propagation ever changes -- belt and suspenders.
+          STEP_DEBUG_SECRET: ${{ secrets.ACTIONS_STEP_DEBUG }}
+          RUNNER_DEBUG_SECRET: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
+          echo "OK: debug logging is not enabled for this run"
+
       - name: Require production signing secret
         run: |
           if [ -z "${NUMAN_REGISTRY_PRIVATE_KEY}" ]; then
@@ -39,17 +59,48 @@ jobs:
         env:
           NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
 
+      - name: Validate index schema before signing
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+
+          import jsonschema
+
+          with open("registry/index.json", "r", encoding="utf-8") as f:
+              index = json.load(f)
+          with open("schemas/index-v1.json", "r", encoding="utf-8") as f:
+              schema = json.load(f)
+
+          jsonschema.validate(index, schema)
+          if index.get("schema_version") != 1:
+              print(f"FAIL: schema_version must be 1, got {index.get('schema_version')}")
+              sys.exit(1)
+          print("OK: index schema is valid prior to signing")
+          PY
+
+      - name: Read key_id from committed public key
+        id: key_id
+        run: |
+          KEY_ID=$(python -c "import json; print(json.load(open('keys/official.pub'))['key_id'])")
+          if [ "${KEY_ID}" = "official-placeholder" ]; then
+            echo "FAIL: keys/official.pub is still a placeholder. Provision the production"
+            echo "      key per docs/key-provisioning.md before running this workflow."
+            exit 1
+          fi
+          echo "key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
+
       - name: Sign production index
         run: |
           python scripts/ci-sign.py \
             --index registry/index.json \
             --sig registry/index.json.sig \
-            --key-id official-2026-01 \
+            --key-id "${{ steps.key_id.outputs.key_id }}" \
             --priv-b64 "${NUMAN_REGISTRY_PRIVATE_KEY}"
         env:
           NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
 
-      - name: Validate with committed public key
+      - name: Validate signed index with committed public key
         run: |
           python scripts/validate.py \
             --index registry/index.json \

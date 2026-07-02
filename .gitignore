@@ -1,0 +1,13 @@
+# Generated key-provisioning output — must never be committed.
+/provisioning/
+
+# Defense in depth: any private-key-shaped file, anywhere in the repo.
+*.key
+*.pem
+*-private
+*-private.*
+*_private_key*
+
+# Python bytecode cache
+__pycache__/
+*.pyc
