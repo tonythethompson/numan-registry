@@ -106,6 +106,11 @@
                 "sha256": "56f3a71bf0681e3754cf06863aa8b89af53219af785f57a08b2d9f3a68ec4edd",
                 "executable_path": "nu_plugin_semver-x86_64-unknown-linux-musl/nu_plugin_semver"
               },
+              "x86_64-unknown-linux-musl": {
+                "url": "https://github.com/abusch/nu_plugin_semver/releases/download/v0.11.17/nu_plugin_semver-x86_64-unknown-linux-musl.tar.xz",
+                "sha256": "56f3a71bf0681e3754cf06863aa8b89af53219af785f57a08b2d9f3a68ec4edd",
+                "executable_path": "nu_plugin_semver-x86_64-unknown-linux-musl/nu_plugin_semver"
+              },
               "aarch64-unknown-linux-gnu": {
                 "url": "https://github.com/abusch/nu_plugin_semver/releases/download/v0.11.17/nu_plugin_semver-aarch64-unknown-linux-gnu.tar.xz",
                 "sha256": "36b7d416f28158c646ef0d23495de5928e09323e3157739e2491fa7055091839",
