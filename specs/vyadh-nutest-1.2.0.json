@@ -1,7 +1,7 @@
 {
   "owner": "vyadh",
   "name": "nutest",
-  "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. Artifact URL points at upstream's uploaded release asset (nutest-X.Y.Z.zip), which is byte-stable for hash pinning.",
+  "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. v1.1.0 uses a registry-hosted mirror of upstream's tag archive; v1.2.0+ uses upstream's uploaded release assets for byte-stable hash pinning.",
   "repo": "https://github.com/vyadh/nutest",
   "type": "module",
   "tags": ["module", "testing"],
