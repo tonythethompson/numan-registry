@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-05T22:18:20Z",
+  "updated_at": "2026-07-05T22:39:54Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -111,7 +111,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-amtoine-nu-git-manager-0.8.0/nu-git-manager-0.8.0.zip",
-            "sha256": "4dd798ca47a3c2f2603a14067898d53b25b6bb6b8d90114f5d8b0d8404767342",
+            "sha256": "2f2f3544fc3ee8dd93a46463f599b931ac4aea1913400a600e1a8c4b6c49d8af",
             "entry": "pkgs/nu-git-manager/nu-git-manager/mod.nu",
             "archive_root": "nu-git-manager-0.8.0"
           },
@@ -146,7 +146,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-tesujimath-bash-env-nushell-0.19.0/bash-env-nushell-0.19.0.zip",
-            "sha256": "d037b46dac8e3ae9163d7c7dd032c400c260addfde1aa380fa0bcef1bdf8063b",
+            "sha256": "16df0d879cb98926b60e1b55f80d74f706a94f684c511351f2fce4732927d6ee",
             "entry": "bash-env.nu",
             "archive_root": "bash-env-nushell-0.19.0"
           },
@@ -180,7 +180,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-dotnu-0.0.18/dotnu-0.0.18.zip",
-            "sha256": "32059e91858732a5dcc894f19f5a625478a265b624742cbf56e4c900e4ae992b",
+            "sha256": "61320c343f7485695d798bbcc0b7a23bcd2178602840b55448ba67ce5f331f5f",
             "entry": "dotnu/mod.nu",
             "archive_root": "dotnu-0.0.18"
           },
@@ -215,7 +215,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-numd-0.4.0/numd-0.4.0.zip",
-            "sha256": "d878316d29d0bc33167f55f97cd3b970e74e39f262fe8a6841447dd658cba1d4",
+            "sha256": "7c3e12b3ce67d1bf95a0d0cf1bf6113163cc368ff62b4e4635c3af27fb4d4450",
             "entry": "numd/mod.nu",
             "archive_root": "numd-0.4.0"
           },
@@ -250,7 +250,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-nu-hooks-0.1.0/nu-hooks-0.1.0.zip",
-            "sha256": "916072c5668dee36ea17b107f101416d24d69dc1da02891701796165ecf2d06c",
+            "sha256": "39ae391a011f4d3c1ae50e3c6780c81d80925f04e5ef37913eef46f7e169aa25",
             "archive_root": "nu-hooks-0.1.0"
           }
         }
@@ -279,7 +279,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-custom-completions-f04cb44/custom-completions-f04cb44.zip",
-            "sha256": "81eab3b0355cc5e66aaadf1cab9a706097f6dc215e4e1e288f31e92329d55a17",
+            "sha256": "129aae69c4e6b5531e9a17a611a5e56bf82475db04117bcf8f0a26bf92d863d9",
             "archive_root": "custom-completions-f04cb44"
           }
         }

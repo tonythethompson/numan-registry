@@ -22,9 +22,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Zip epoch used for all entries so rebuilds of the same source ref produce
+# identical bytes (required for hash-pinned registry mirrors).
+FIXED_ZIP_DT = (1980, 1, 1, 0, 0, 0)
+FIXED_FILE_MODE = 0o644
 
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
@@ -36,7 +42,7 @@ def clone_at_ref(repo: str, ref: str, workdir: Path) -> Path:
     clone_dir = workdir / "src"
     if clone_dir.exists():
         shutil.rmtree(clone_dir)
-    run(["git", "clone", "--depth", "1", "--branch", ref, repo, str(clone_dir)])
+    run(["git", "clone", "--depth", "1", "--branch", ref, "--", repo, str(clone_dir)])
     return clone_dir
 
 
@@ -44,8 +50,11 @@ def clone_at_commit(repo: str, commit: str, workdir: Path) -> Path:
     clone_dir = workdir / "src"
     if clone_dir.exists():
         shutil.rmtree(clone_dir)
-    run(["git", "clone", repo, str(clone_dir)])
-    run(["git", "checkout", commit], cwd=clone_dir)
+    clone_dir.mkdir(parents=True)
+    run(["git", "init", "-q"], cwd=clone_dir)
+    run(["git", "remote", "add", "origin", repo], cwd=clone_dir)
+    run(["git", "fetch", "--depth", "1", "origin", commit], cwd=clone_dir)
+    run(["git", "checkout", "-q", "FETCH_HEAD"], cwd=clone_dir)
     return clone_dir
 
 
@@ -63,7 +72,7 @@ def copy_paths(src_root: Path, rel_paths: list[str], dest_root: Path) -> None:
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
         else:
-            shutil.copy2(src, dest)
+            shutil.copy(src, dest)
 
 
 def make_zip(source_dir: Path, output: Path) -> str:
@@ -71,12 +80,19 @@ def make_zip(source_dir: Path, output: Path) -> str:
     if output.exists():
         output.unlink()
     root_name = source_dir.name
-    shutil.make_archive(
-        str(output.with_suffix("")),
-        "zip",
-        root_dir=str(source_dir.parent),
-        base_dir=root_name,
-    )
+    entries: list[tuple[Path, str]] = []
+    for path in sorted(source_dir.rglob("*")):
+        if path.is_file():
+            rel = path.relative_to(source_dir).as_posix()
+            entries.append((path, f"{root_name}/{rel}"))
+
+    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path, arcname in entries:
+            info = zipfile.ZipInfo(arcname)
+            info.date_time = FIXED_ZIP_DT
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = (FIXED_FILE_MODE & 0xFFFF) << 16
+            zf.writestr(info, path.read_bytes())
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     print(f"OK: wrote {output} ({output.stat().st_size} bytes)", file=sys.stderr)
     print(f"OK: sha256={digest}", file=sys.stderr)
