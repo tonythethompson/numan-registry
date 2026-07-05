@@ -17,6 +17,7 @@ This registry is currently in **staging** mode: `registry/index.json` has real, 
 │   ├── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
 │   ├── key-rotation-checklist.md      # Rotation runbook: successor-key ordering, propagation wait, rollback
 │   └── intake-candidates.md           # Running intake list (ready / mirror / blocked)
+│   └── upstream-release-outreach.md   # Plan to contact mirrored upstreams for release assets
 ├── keys/
 │   └── official.pub               # Committed public key placeholder
 ├── registry/
