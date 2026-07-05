@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-05T21:22:00Z",
+  "updated_at": "2026-07-05T22:20:00Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -84,6 +84,137 @@
           "activation": {
             "kind": "nu-module",
             "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell-works",
+        "name": "nu_plugin_nw_ulid"
+      },
+      "description": "Nushell plugin for ULID generation, parsing, and manipulation. Full cross-platform release assets in Numan-supported formats (.tar.gz and .zip).",
+      "repo": "https://github.com/nushell-works/nu_plugin_nw_ulid",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "ulid",
+        "utility"
+      ],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "nu_version": ">=0.111.0 <0.112.0",
+          "verified_with": [
+            "0.111.0"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-aarch64.tar.gz",
+                "sha256": "732ce012c1f034c219b743bd03570be3a8fd76ac75234fc33181852898e2be9f",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-x86_64.tar.gz",
+                "sha256": "877eaa8d245dff8f7450d6d55c4bd462dc8fea0659e267237226880104ae1c20",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-aarch64.tar.gz",
+                "sha256": "6531604ede3b534daf8de9fadfca1716b14f7f50a66d9e7cff940ffc7df4a3fe",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-x86_64.tar.gz",
+                "sha256": "a7c8d814581da11ee147f61674f1af68588885c20a7869da6639e9eb60da9b42",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-windows-x86_64.zip",
+                "sha256": "ad31d02d87f4169f0a3755b76a565d4f7643ba059b17c6eb84c2a549da390240",
+                "executable_path": "nu_plugin_nw_ulid.exe"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "SuaveIV",
+        "name": "nu_plugin_audio"
+      },
+      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Partial platform support: Windows and Linux aarch64 only \u2014 upstream publishes macOS and x86_64-linux as .tar.xz, which Numan does not install yet.",
+      "repo": "https://github.com/SuaveIV/nu_plugin_audio",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "audio",
+        "linux-aarch64-only",
+        "partial-platform"
+      ],
+      "versions": [
+        {
+          "version": "0.2.8",
+          "nu_version": ">=0.113.1 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.8/nu_plugin_audio-x86_64-pc-windows-msvc.zip",
+                "sha256": "3e29d79d20700314f13c1a7984d43a34a2aa2b5b78f4c34e84b4d858b32ba7b2",
+                "executable_path": "nu_plugin_audio.exe"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.8/nu_plugin_audio-v0.2.8-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "61b70acd249d71f8e87163f1be830628ad1342ae2ec180c36006f819207504f0",
+                "executable_path": "nu_plugin_audio"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_file"
+      },
+      "description": "Nushell plugin that inspects a file and returns information based on its magic number. Windows-only for now: upstream publishes macOS and Linux as .tar.xz, which Numan's installer does not support yet.",
+      "repo": "https://github.com/fdncred/nu_plugin_file",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "file",
+        "magic-number",
+        "windows-only"
+      ],
+      "versions": [
+        {
+          "version": "0.25.2",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/fdncred/nu_plugin_file/releases/download/v0.25.2/nu_plugin_file-x86_64-pc-windows-msvc.zip",
+                "sha256": "a6908c1f895b291133969a256aa932b64cbac7ba1b8142716c767223aa8fc6b4",
+                "executable_path": "nu_plugin_file.exe"
+              },
+              "aarch64-pc-windows-msvc": {
+                "url": "https://github.com/fdncred/nu_plugin_file/releases/download/v0.25.2/nu_plugin_file-aarch64-pc-windows-msvc.zip",
+                "sha256": "aea553a76fc7bdd30fe9d6f2d11876244ba29cca2690cbafe470563c32e9932a",
+                "executable_path": "nu_plugin_file.exe"
+              }
+            }
           }
         }
       ]
