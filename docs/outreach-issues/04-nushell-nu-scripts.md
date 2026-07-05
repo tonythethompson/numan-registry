@@ -1,25 +1,20 @@
-Not a bug — a packaging / policy question for package-manager consumers.
+`nu_scripts` is a different beast from the single-module repos we've been onboarding — wanted to ask how you think about **release artifacts** before we assume the wrong model.
 
-[Numan](https://github.com/tonythethompson/numan) is a Nushell package manager that verifies installs with sha256-pinned artifacts. We've added two entries sourced from this repo (pinned at commit `f04cb44`):
+Context: [Numan](https://github.com/tonythethompson/numan) (package manager, hash-verified installs) now lists two slices of this repo, both pinned at **`f04cb44`**:
 
-- `nushell/nu-hooks` v0.1.0 — registry mirror of the `nu-hooks/` tree
-- `nushell/custom-completions` v0.1.0-f04cb44 — registry mirror of `custom-completions/`
+| Registry name | What we packaged |
+|---------------|------------------|
+| `nushell/nu-hooks@0.1.0` | the `nu-hooks/` tree |
+| `nushell/custom-completions@0.1.0-f04cb44` | `custom-completions/` |
 
-Both use **registry-hosted mirrors** because there are no uploaded release zips for these paths today, and GitHub's auto-generated `/archive/refs/tags/…` / `/archive/{commit}.zip` endpoints are not guaranteed byte-stable for hash pinning.
+nupm already consumes this repo via **git revision pins**, which fits a monorepo. Numan wants a downloadable artifact per entry, so we built mirrors on our side rather than using `/archive/{commit}.zip` (same byte-stability concerns as tag archives).
 
-**Question:** Is there appetite for uploaded release assets for individual nupm-style packages in this monorepo? For example:
+**What I'm trying to learn:**
 
-```text
-nu-hooks-0.1.0.zip
-└── nu-hooks-0.1.0/
-    └── nu-hooks/
-        …
-```
+1. **nu-hooks** — hooks are individual `.nu` files under subdirs, no top-level `mod.nu`. Is a subfolder zip on releases something you'd ever want, or should git pins remain the canonical distribution?
 
-and/or periodic snapshot zips of `custom-completions/`?
+2. **custom-completions** — big, churny tree. Periodic snapshot releases? Split repo? Or "registry mirrors forever" is expected for this kind of content?
 
-We know this repo is structured differently from single-module repos — not asking for a workflow PR without maintainer buy-in. Mostly wondering whether subfolder release assets fit your release model, or if git pins (as nupm uses today) are the intended long-term path.
+Not looking for a drive-by Actions PR — this repo's release story is yours. Mostly want to know if we're fighting the grain by mirroring, or if there's a lightweight convention you'd prefer (even if it's "please keep mirroring").
 
-Our mirrors are not blocking anything on our end. If the answer is "git pins only," that's useful to know and we'll keep mirroring those paths.
-
-Related precedent: [vyadh/nutest#29](https://github.com/vyadh/nutest/issues/29) (upstream added `nutest-X.Y.Z.zip` in v1.2.0 after a similar ask).
+For reference, a single-module upstream recently added an uploaded zip after a similar conversation: [nutest#29](https://github.com/vyadh/nutest/issues/29) → [v1.2.0 asset](https://github.com/vyadh/nutest/releases/tag/v1.2.0).

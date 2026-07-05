@@ -1,22 +1,18 @@
-Not a bug — a packaging suggestion for package-manager consumers.
+`bash-env-nushell` has effectively replaced the old `nu_plugin_bash_env` path for a lot of people — we're pointing new installs at the module instead of the plugin.
 
-[Numan](https://github.com/tonythethompson/numan) is a Nushell package manager that verifies installs with sha256-pinned artifacts. We've added `tesujimath/bash-env-nushell` v0.19.0 to the [official registry](https://github.com/tonythethompson/numan-registry) using a **registry-hosted mirror** of tag `0.19.0`, because there is no uploaded release zip today.
+I'm listing **0.19.0** in the [Numan registry](https://github.com/tonythethompson/numan-registry). Because there's no release asset on the tag yet, we packaged the repo root ourselves and host that zip on our registry releases. It works, but I'd rather pin against something you own.
 
-GitHub's auto-generated `/archive/refs/tags/…` zipballs are not guaranteed byte-stable over time, which breaks hash-pinned installs if GitHub changes archive generation.
+The specific thing that makes me nervous about *not* having an uploaded asset: consumers that record `sha256(url)` will pick GitHub's auto-generated tag archive if we don't have anything else, and those archives aren't promised to stay byte-stable. One infrastructure change on GitHub's side and every pinned install looks corrupt.
 
-**Would you be open to attaching a zip as an uploaded release asset on future tags?** Suggested layout:
+If you're open to it, an uploaded **`bash-env-nushell-{version}.zip`** on future tags would be ideal — flat layout is fine:
 
 ```text
-bash-env-nushell-0.19.0.zip
-└── bash-env-nushell-0.19.0/
-    ├── bash-env.nu
-    ├── README.md
-    ├── LICENSE
-    …
+bash-env-nushell-0.19.0/
+├── bash-env.nu      # our entry point (not mod.nu — intentional)
+├── README.md
+└── …
 ```
 
-(Entry file is `bash-env.nu`, not `mod.nu` — that's fine for our activation path.)
+Totally fine if you'd rather not maintain release artifacts; we'll keep mirroring. Separate note: we already tell users they need `bash-env-json` on PATH — not asking you to bundle that.
 
-We're mirroring the exact bytes ourselves for now, so this isn't blocking. Happy to open a PR with a small tag-triggered release workflow if you'd like one.
-
-Note: we document that `bash-env-json` must be on PATH separately — not part of this ask.
+Happy to contribute a tag → zip GitHub Action if that lowers the maintenance cost.

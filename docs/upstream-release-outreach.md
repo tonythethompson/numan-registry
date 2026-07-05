@@ -61,7 +61,7 @@ Optional PR: GitHub Actions workflow on tag push that runs `git archive` or a sm
 | Issue vs PR | **Issue** — offer PR for release workflow after they agree on layout |
 | Tone | Peer nupm/Numan maintainer; reference nupm.nuon layout they already publish |
 
-**Issue title:** `Consider uploaded release zip for nupm/Numan hash-pinned installs`
+**Issue title:** `Release zip for pkgs/nu-git-manager on tags?`
 
 **Key points:**
 
@@ -143,27 +143,9 @@ Two registry entries from one monorepo:
 
 ---
 
-## Issue template (adapt per repo)
+## Issue bodies
 
-Ready-to-post drafts: [`docs/outreach-issues/`](outreach-issues/README.md)
-
-```markdown
-Not a bug — a packaging suggestion for package-manager consumers.
-
-[Numan](https://github.com/tonythethompson/numan) is a Nushell package manager that verifies installs with sha256-pinned artifacts. We've added `{owner}/{name}` to the [official registry](https://github.com/tonythethompson/numan-registry) using a **registry-hosted mirror** of tag `{version}` because there is no uploaded release zip today.
-
-GitHub's auto-generated `/archive/refs/tags/…` zipballs are not guaranteed byte-stable over time, which breaks hash-pinned installs if GitHub changes archive generation.
-
-**Would you be open to attaching a zip (or tar.gz) as an uploaded release asset on future tags?** Example layout:
-
-    {name}-{version}.zip
-    └── {name}-{version}/
-        └── … module files …
-
-We're mirroring the exact bytes ourselves for now, so this is not blocking — but upstream assets would help nupm/Numan and any other hash-pinned consumer.
-
-Happy to open a PR adding a small GitHub Actions release workflow (similar to [nutest v1.2.0](https://github.com/vyadh/nutest/releases/tag/v1.2.0)) if useful.
-```
+Ready-to-post drafts live in [`docs/outreach-issues/`](outreach-issues/README.md) — **one file per repo**, written for that maintainer's context (not a shared template). Skim before posting; tweak if their CONTRIBUTING or release habits differ.
 
 **Closing:** Keep it short if they ship — thank-you only (see nutest follow-up).
 

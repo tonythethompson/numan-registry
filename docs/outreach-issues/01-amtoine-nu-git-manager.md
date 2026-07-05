@@ -1,22 +1,15 @@
-Not a bug — a packaging suggestion for package-manager consumers.
+Hi — I'm adding NGM to the [Numan](https://github.com/tonythethompson/numan) registry (same general idea as nupm: install from a curated index, verify artifacts by hash).
 
-[Numan](https://github.com/tonythethompson/numan) is a Nushell package manager that verifies installs with sha256-pinned artifacts. We've added `amtoine/nu-git-manager` v0.8.0 to the [official registry](https://github.com/tonythethompson/numan-registry) using a **registry-hosted mirror** of tag `0.8.0`, because the release today has no uploaded zip asset.
+You're already listed in the [nupm registry](https://github.com/nushell/nupm) with git pins on `pkgs/nu-git-manager`. For Numan I need something with stable bytes per tag, so right now we're hosting a mirror of **0.8.0** ourselves (`pkgs/nu-git-manager/` zipped as `nu-git-manager-0.8.0.zip`).
 
-GitHub's auto-generated `/archive/refs/tags/…` zipballs are not guaranteed byte-stable over time, which breaks hash-pinned installs if GitHub changes archive generation.
+The awkward part is GitHub's tag archive URLs — `/archive/refs/tags/0.8.0.zip` and friends — aren't something I'd trust to stay byte-identical forever. GitHub has changed how those archives are built before, and hash-pinned installs break silently when the bytes drift.
 
-**Would you be open to attaching a zip as an uploaded release asset on future tags?** Suggested layout (matches how we mirror `pkgs/nu-git-manager/` today):
+**Would you consider uploading a zip on release tags?** Something like:
 
 ```text
 nu-git-manager-0.8.0.zip
 └── nu-git-manager-0.8.0/
-    └── pkgs/
-        └── nu-git-manager/
-            ├── nupm.nuon
-            └── nu-git-manager/
-                └── mod.nu
-            …
+    └── pkgs/nu-git-manager/   # same tree nupm already points at
 ```
 
-You're already in the [nupm registry](https://github.com/nushell/nupm) with git pins — an uploaded zip would help Numan and any other consumer that pins artifact hashes.
-
-We're mirroring the exact bytes ourselves for now, so this isn't blocking anything on our end. Happy to open a PR adding a small GitHub Actions release workflow (similar to [nutest v1.2.0](https://github.com/vyadh/nutest/releases/tag/v1.2.0)) if that would be useful.
+No rush on our side — the mirror works. If a uploaded asset is something you'd want, I can send a PR for a tiny release workflow (vyadh did this for [nutest](https://github.com/vyadh/nutest/releases/tag/v1.2.0) and it was straightforward).
