@@ -31,6 +31,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # identical bytes (required for hash-pinned registry mirrors).
 FIXED_ZIP_DT = (1980, 1, 1, 0, 0, 0)
 FIXED_FILE_MODE = 0o644
+VCS_DIR_NAMES = frozenset({".git", ".hg", ".svn"})
+
+
+def ignore_vcs_metadata(_directory: str, names: list[str]) -> set[str]:
+    return {name for name in names if name in VCS_DIR_NAMES}
 
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
@@ -70,7 +75,7 @@ def copy_paths(src_root: Path, rel_paths: list[str], dest_root: Path) -> None:
         if src.is_dir():
             if dest.exists():
                 shutil.rmtree(dest)
-            shutil.copytree(src, dest)
+            shutil.copytree(src, dest, ignore=ignore_vcs_metadata)
         else:
             shutil.copy(src, dest)
 
@@ -82,9 +87,12 @@ def make_zip(source_dir: Path, output: Path) -> str:
     root_name = source_dir.name
     entries: list[tuple[Path, str]] = []
     for path in sorted(source_dir.rglob("*")):
-        if path.is_file():
-            rel = path.relative_to(source_dir).as_posix()
-            entries.append((path, f"{root_name}/{rel}"))
+        if not path.is_file():
+            continue
+        if VCS_DIR_NAMES.intersection(path.parts):
+            continue
+        rel = path.relative_to(source_dir).as_posix()
+        entries.append((path, f"{root_name}/{rel}"))
 
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for path, arcname in entries:
