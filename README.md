@@ -16,9 +16,12 @@ This registry is currently in **staging** mode: `registry/index.json` has real, 
 │   ├── key-provisioning.md            # WSL-first maintainer key-provisioning instructions
 │   ├── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
 │   ├── key-rotation-checklist.md      # Rotation runbook: successor-key ordering, propagation wait, rollback
-│   ├── intake-candidates.md           # Running intake list (ready / mirror / blocked)
-│   ├── upstream-release-outreach.md   # Plan to contact mirrored upstreams for release assets
+│   ├── intake-candidates.md           # Running intake list (auto-synced; edit intake-state.json)
+│   ├── intake-state.json              # Machine-readable intake catalog (source for sync)
+│   ├── upstream-release-outreach.md   # Outreach plan + tracker (tracker auto-synced)
 │   └── outreach-issues/               # Copy-paste GitHub issue drafts for upstream contact
+├── .cursor/
+│   └── hooks.json                     # Agent hooks: auto-sync intake docs after edits/gh/stop
 ├── keys/
 │   └── official.pub               # Committed public key placeholder
 ├── registry/
@@ -33,7 +36,8 @@ This registry is currently in **staging** mode: `registry/index.json` has real, 
 │   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
 │   ├── scan_for_secrets.py            # CI scan for probable private-key material
 │   ├── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
-│   └── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
+│   ├── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
+│   └── sync-intake-candidates.py      # Regenerate intake-candidates.md from state + gh
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
     ├── production.yml             # Deploy production index from protected environment

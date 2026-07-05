@@ -179,12 +179,12 @@ When a maintainer says yes, PR should include:
 
 | Upstream | Issue/PR | Opened | Response | Upstream asset shipped | Registry switched |
 |----------|----------|--------|----------|------------------------|-------------------|
-| amtoine/nu-git-manager | | | | | |
-| tesujimath/bash-env-nushell | | | | | |
-| nushell-prophet/dotnu | | | | | |
-| nushell-prophet/numd | | | | | |
-| nushell/nu_scripts (nu-hooks) | | | | | |
-| nushell/nu_scripts (completions) | | | | | |
+| amtoine/nu-git-manager |  |  |  |  | mirror only |
+| tesujimath/bash-env-nushell |  |  |  |  | mirror only |
+| nushell-prophet/dotnu |  |  |  |  | mirror only |
+| nushell-prophet/numd |  |  |  |  | mirror only |
+| nushell/nu_scripts (nu-hooks) |  |  |  |  | mirror only |
+| nushell/nu_scripts (custom-completions) |  |  |  |  | mirror only |
 
 ---
 
