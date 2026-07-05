@@ -1,0 +1,16 @@
+{
+  "owner": "nushell",
+  "name": "nu-hooks",
+  "description": "Official Nushell hook scripts from nu_scripts (direnv, autojump, command_not_found, etc.). Registry-hosted mirror of nu_scripts @ f04cb44. Install-only for now: no single mod.nu entry; per-hook activation is manual.",
+  "repo": "https://github.com/nushell/nu_scripts",
+  "type": "module",
+  "tags": ["module", "hooks", "mirror", "install-only"],
+  "version": "0.1.0",
+  "nu_version": "*",
+  "verified_with": ["0.113.1"],
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-nu-hooks-0.1.0/nu-hooks-0.1.0.zip",
+    "archive_root": "nu-hooks-0.1.0"
+  }
+}

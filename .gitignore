@@ -11,3 +11,6 @@
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# Local mirror zip build output (uploaded as GitHub release assets)
+/mirrors/

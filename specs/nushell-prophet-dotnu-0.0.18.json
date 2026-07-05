@@ -1,0 +1,21 @@
+{
+  "owner": "nushell-prophet",
+  "name": "dotnu",
+  "description": "Tools for Nushell module developers. Registry-hosted mirror of upstream tag 0.0.18.",
+  "repo": "https://github.com/nushell-prophet/dotnu",
+  "type": "module",
+  "tags": ["module", "developer-tools", "mirror"],
+  "version": "0.0.18",
+  "nu_version": "*",
+  "verified_with": ["0.113.1"],
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-dotnu-0.0.18/dotnu-0.0.18.zip",
+    "entry": "dotnu/mod.nu",
+    "archive_root": "dotnu-0.0.18"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}

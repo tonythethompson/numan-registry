@@ -15,7 +15,8 @@ This registry is currently in **staging** mode: `registry/index.json` has real, 
 ├── docs/
 │   ├── key-provisioning.md            # WSL-first maintainer key-provisioning instructions
 │   ├── production-cutover-checklist.md # Step-by-step cutover runbook with rollback steps
-│   └── key-rotation-checklist.md      # Rotation runbook: successor-key ordering, propagation wait, rollback
+│   ├── key-rotation-checklist.md      # Rotation runbook: successor-key ordering, propagation wait, rollback
+│   └── intake-candidates.md           # Running intake list (ready / mirror / blocked)
 ├── keys/
 │   └── official.pub               # Committed public key placeholder
 ├── registry/
@@ -29,7 +30,8 @@ This registry is currently in **staging** mode: `registry/index.json` has real, 
 │   ├── provision-production-key.sh    # WSL keypair generator / public-key verifier
 │   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
 │   ├── scan_for_secrets.py            # CI scan for probable private-key material
-│   └── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
+│   ├── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
+│   └── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
     ├── production.yml             # Deploy production index from protected environment
