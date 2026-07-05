@@ -31,6 +31,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # identical bytes (required for hash-pinned registry mirrors).
 FIXED_ZIP_DT = (1980, 1, 1, 0, 0, 0)
 FIXED_FILE_MODE = 0o644
+# Unix (3) in every zip central directory — Windows defaults to 0 and changes sha256.
+FIXED_ZIP_CREATE_SYSTEM = 3
 VCS_DIR_NAMES = frozenset({".git", ".hg", ".svn"})
 
 
@@ -99,6 +101,7 @@ def make_zip(source_dir: Path, output: Path) -> str:
             info = zipfile.ZipInfo(arcname)
             info.date_time = FIXED_ZIP_DT
             info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = FIXED_ZIP_CREATE_SYSTEM
             info.external_attr = (FIXED_FILE_MODE & 0xFFFF) << 16
             zf.writestr(info, path.read_bytes())
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
