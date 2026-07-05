@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-02T02:57:54Z",
+  "updated_at": "2026-07-05T21:16:26Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -42,7 +42,7 @@
         "owner": "vyadh",
         "name": "nutest"
       },
-      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. The artifact URL points at a byte-identical mirror of upstream's v1.1.0 tag archive hosted on this registry, not upstream's own auto-generated archive endpoint, since GitHub does not guarantee those stay byte-stable over time and upstream has no uploaded release asset to pin against instead.",
+      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. Artifact URL points at upstream's uploaded release asset (nutest-X.Y.Z.zip), which is byte-stable for hash pinning.",
       "repo": "https://github.com/vyadh/nutest",
       "type": "module",
       "tags": [
@@ -62,6 +62,24 @@
             "sha256": "f33b4892509a7328bd3d8648ffe1cd5b4b541f2492783c9d9f3f81b5fd7c2c79",
             "entry": "nutest/mod.nu",
             "archive_root": "nutest-1.1.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        },
+        {
+          "version": "1.2.0",
+          "nu_version": ">=0.114.0",
+          "verified_with": [
+            "0.114.0"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/vyadh/nutest/releases/download/v1.2.0/nutest-1.2.0.zip",
+            "sha256": "55d45a66cd2505f73df797c51a064b4d416a4500023afd356562c0d9b85322bb",
+            "entry": "nutest/mod.nu",
+            "archive_root": "nutest-1.2.0"
           },
           "activation": {
             "kind": "nu-module",
