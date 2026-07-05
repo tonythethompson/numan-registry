@@ -4,7 +4,7 @@ Running list of packages evaluated for the official Numan registry. Updated as p
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
-**Currently in registry:** `abusch/nu_plugin_semver`, `vyadh/nutest` (1.1.0 mirror + 1.2.0 upstream). Pending open PRs may add more.
+**Currently in registry:** `abusch/nu_plugin_semver`, `vyadh/nutest` (1.1.0 mirror + 1.2.0 upstream), plugin batch from [#11](https://github.com/tonythethompson/numan-registry/pull/11), mirror batch from [#12](https://github.com/tonythethompson/numan-registry/pull/12).
 
 ---
 
@@ -14,9 +14,9 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 
 | Package | Type | Version | Platforms | Status |
 |---------|------|---------|-----------|--------|
-| [`nushell-works/nu_plugin_nw_ulid`](https://github.com/nushell-works/nu_plugin_nw_ulid) | plugin | v0.2.0 | linux, macOS, Windows (full matrix) | pending [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
-| [`SuaveIV/nu_plugin_audio`](https://github.com/SuaveIV/nu_plugin_audio) | plugin | v0.2.8 | Windows + Linux aarch64 | pending [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
-| [`fdncred/nu_plugin_file`](https://github.com/fdncred/nu_plugin_file) | plugin | v0.25.2 | Windows x64 + arm64 | pending [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
+| [`nushell-works/nu_plugin_nw_ulid`](https://github.com/nushell-works/nu_plugin_nw_ulid) | plugin | v0.2.0 | linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`) | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
+| [`SuaveIV/nu_plugin_audio`](https://github.com/SuaveIV/nu_plugin_audio) | plugin | v0.2.8 | Windows zip + Linux aarch64 tar.gz (mac/x64-linux are tar.xz) | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) — partial platforms |
+| [`fdncred/nu_plugin_file`](https://github.com/fdncred/nu_plugin_file) | plugin | v0.25.2 | Windows x64 + arm64 zip only | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) — Windows-only |
 
 ---
 
@@ -45,7 +45,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | tar.xz only; no Windows zip |
 | [`fnuttens/nu_plugin_hmac`](https://github.com/fnuttens/nu_plugin_hmac) | Bare binary upload, not zip/tar archive |
 | Most fdncred/abusch cargo-dist plugins | Unix targets ship `.tar.xz`; Windows ships `.zip` |
-| MCP servers / AI agent tooling | Not a Numan package type |
+| MCP servers / AI agent tooling | Not a Numan package type; would need module/script packaging |
 
 ---
 

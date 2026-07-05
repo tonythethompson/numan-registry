@@ -1,0 +1,36 @@
+{
+  "owner": "nushell-works",
+  "name": "nu_plugin_nw_ulid",
+  "description": "Nushell plugin for ULID generation, parsing, and manipulation. Full cross-platform release assets in Numan-supported formats (.tar.gz and .zip).",
+  "repo": "https://github.com/nushell-works/nu_plugin_nw_ulid",
+  "type": "plugin",
+  "tags": ["plugin", "ulid", "utility"],
+  "version": "0.2.0",
+  "nu_version": ">=0.111.0 <0.112.0",
+  "verified_with": ["0.111.0"],
+  "artifact": {
+    "kind": "binary",
+    "targets": {
+      "aarch64-unknown-linux-gnu": {
+        "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-aarch64.tar.gz",
+        "executable_path": "nu_plugin_nw_ulid"
+      },
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-x86_64.tar.gz",
+        "executable_path": "nu_plugin_nw_ulid"
+      },
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-aarch64.tar.gz",
+        "executable_path": "nu_plugin_nw_ulid"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-x86_64.tar.gz",
+        "executable_path": "nu_plugin_nw_ulid"
+      },
+      "x86_64-pc-windows-msvc": {
+        "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-windows-x86_64.zip",
+        "executable_path": "nu_plugin_nw_ulid.exe"
+      }
+    }
+  }
+}
