@@ -14,9 +14,9 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 
 | Package | Type | Version | Platforms | Status |
 |---------|------|---------|-----------|--------|
-| [`nushell-works/nu_plugin_nw_ulid`](https://github.com/nushell-works/nu_plugin_nw_ulid) | plugin | v0.2.0 | linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`) | **adding** — spec in PR |
-| [`SuaveIV/nu_plugin_audio`](https://github.com/SuaveIV/nu_plugin_audio) | plugin | v0.2.8 | Windows zip + Linux aarch64 tar.gz (mac/x64-linux are tar.xz) | **adding** — partial platforms |
-| [`fdncred/nu_plugin_file`](https://github.com/fdncred/nu_plugin_file) | plugin | v0.25.2 | Windows x64 + arm64 zip only | **adding** — Windows-only |
+| [`nushell-works/nu_plugin_nw_ulid`](https://github.com/nushell-works/nu_plugin_nw_ulid) | plugin | v0.2.0 | linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`) | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
+| [`SuaveIV/nu_plugin_audio`](https://github.com/SuaveIV/nu_plugin_audio) | plugin | v0.2.8 | Windows zip + Linux aarch64 tar.gz (mac/x64-linux are tar.xz) | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) — partial platforms |
+| [`fdncred/nu_plugin_file`](https://github.com/fdncred/nu_plugin_file) | plugin | v0.25.2 | Windows x64 + arm64 zip only | added in [#11](https://github.com/tonythethompson/numan-registry/pull/11) — Windows-only |
 
 ---
 
@@ -53,4 +53,4 @@ No compliant upstream release asset today; pack a tag snapshot as a registry-hos
 
 | Date | Change |
 |------|--------|
-| 2026-07-05 | Initial list; start ready-now batch (nw_ulid, nu_plugin_audio, nu_plugin_file) |
+| 2026-07-05 | Initial list; ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
