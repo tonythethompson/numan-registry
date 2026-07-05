@@ -145,6 +145,8 @@ Two registry entries from one monorepo:
 
 ## Issue template (adapt per repo)
 
+Ready-to-post drafts: [`docs/outreach-issues/`](outreach-issues/README.md)
+
 ```markdown
 Not a bug — a packaging suggestion for package-manager consumers.
 
