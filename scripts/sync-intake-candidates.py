@@ -42,7 +42,27 @@ def gh_json(args: list[str]) -> Any | None:
         return None
     if out.returncode != 0 or not out.stdout.strip():
         return None
-    return json.loads(out.stdout)
+    try:
+        return json.loads(out.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def gh_text(args: list[str]) -> str | None:
+    try:
+        out = subprocess.run(
+            ["gh", *args],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return None
+    if out.returncode != 0:
+        return None
+    text = out.stdout.strip()
+    return text or None
 
 
 def load_json(path: Path) -> Any:
@@ -173,7 +193,7 @@ def outreach_status(outreach: dict[str, Any]) -> dict[str, str]:
             "[.[] | {user: .user.login, created_at: .created_at}]",
         ]
     )
-    me = gh_json(["api", "user", "--jq", ".login"])
+    me = gh_text(["api", "user", "--jq", ".login"])
     if comments and me:
         others = [c for c in comments if c.get("user") != me]
         if others:
