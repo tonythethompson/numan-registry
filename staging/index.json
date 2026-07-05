@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-05T21:16:26Z",
+  "registry_revision": "seed-2026-07-02",
+  "packages": [
+    {
+      "id": {
+        "owner": "abusch",
+        "name": "nu_plugin_semver"
+      },
+      "description": "A Nushell plugin to manipulate SemVer versions: parse, compare, sort, bump, and match against version requirements. Windows-only for now: upstream only publishes .tar.xz archives for Linux/macOS, and Numan's installer does not support that format yet.",
+      "repo": "https://github.com/abusch/nu_plugin_semver",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "semver",
+        "versioning",
+        "windows-only"
+      ],
+      "versions": [
+        {
+          "version": "0.11.17",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/abusch/nu_plugin_semver/releases/download/v0.11.17/nu_plugin_semver-x86_64-pc-windows-msvc.zip",
+                "sha256": "da33f99bc91eb741f5eea0f7a7d06f1478cd733989c877859858211658ed117c",
+                "executable_path": "nu_plugin_semver.exe"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "vyadh",
+        "name": "nutest"
+      },
+      "description": "A Nushell test framework: discovers and runs @test-annotated commands with rich reporting and output capture. Commands are imported unprefixed (e.g. `run-tests`, not upstream's documented `nutest run-tests`): Numan's activation currently imports the mod.nu file directly rather than the containing directory, so Nu does not apply its directory-name-to-module-name convention here. Artifact URL points at upstream's uploaded release asset (nutest-X.Y.Z.zip), which is byte-stable for hash pinning.",
+      "repo": "https://github.com/vyadh/nutest",
+      "type": "module",
+      "tags": [
+        "module",
+        "testing"
+      ],
+      "versions": [
+        {
+          "version": "1.1.0",
+          "nu_version": ">=0.103.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-vyadh-nutest-v1.1.0/nutest-1.1.0.zip",
+            "sha256": "f33b4892509a7328bd3d8648ffe1cd5b4b541f2492783c9d9f3f81b5fd7c2c79",
+            "entry": "nutest/mod.nu",
+            "archive_root": "nutest-1.1.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        },
+        {
+          "version": "1.2.0",
+          "nu_version": ">=0.114.0",
+          "verified_with": [
+            "0.114.0"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/vyadh/nutest/releases/download/v1.2.0/nutest-1.2.0.zip",
+            "sha256": "55d45a66cd2505f73df797c51a064b4d416a4500023afd356562c0d9b85322bb",
+            "entry": "nutest/mod.nu",
+            "archive_root": "nutest-1.2.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    }
+  ]
+}
