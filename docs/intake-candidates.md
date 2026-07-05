@@ -26,12 +26,12 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Type | Source | Status |
 |---------|------|--------|--------|
-| [`amtoine/nu-git-manager`](https://github.com/amtoine/nu-git-manager) | module | tag 0.8.0 | added in mirror PR |
-| [`tesujimath/bash-env-nushell`](https://github.com/tesujimath/bash-env-nushell) | module | tag 0.19.0 | added in mirror PR |
-| [`nushell-prophet/dotnu`](https://github.com/nushell-prophet/dotnu) | module | tag 0.0.18 | added in mirror PR |
-| [`nushell-prophet/numd`](https://github.com/nushell-prophet/numd) | module | tag 0.4.0 | added in mirror PR |
-| [`nushell/nu_scripts` → `nu-hooks`](https://github.com/nushell/nu_scripts) | module | commit f04cb44 | added in mirror PR (install-only) |
-| [`nushell/nu_scripts` → custom completions](https://github.com/nushell/nu_scripts/tree/main/custom-completions) | completion | commit f04cb44 | added in mirror PR (install-only) |
+| [`amtoine/nu-git-manager`](https://github.com/amtoine/nu-git-manager) | module | tag 0.8.0 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
+| [`tesujimath/bash-env-nushell`](https://github.com/tesujimath/bash-env-nushell) | module | tag 0.19.0 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
+| [`nushell-prophet/dotnu`](https://github.com/nushell-prophet/dotnu) | module | tag 0.0.18 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
+| [`nushell-prophet/numd`](https://github.com/nushell-prophet/numd) | module | tag 0.4.0 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
+| [`nushell/nu_scripts` → `nu-hooks`](https://github.com/nushell/nu_scripts) | module | commit f04cb44 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) (install-only) |
+| [`nushell/nu_scripts` → custom completions](https://github.com/nushell/nu_scripts/tree/main/custom-completions) | completion | commit f04cb44 | added in [#12](https://github.com/tonythethompson/numan-registry/pull/12) (install-only) |
 
 ---
 
@@ -53,6 +53,6 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
-| 2026-07-05 | Mirror module/completion batch (6 packages) + `build-mirror-zip.py` |
+| 2026-07-05 | Mirror module/completion batch (6 packages) in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
 | 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
 | 2026-07-05 | Initial list |
