@@ -14,3 +14,6 @@ __pycache__/
 
 # Local mirror zip build output (uploaded as GitHub release assets)
 /mirrors/
+
+# Hook runtime artifacts and cache
+/.mrge/
