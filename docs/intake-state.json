@@ -35,6 +35,37 @@
       "repo": "https://github.com/fdncred/nu_plugin_file",
       "spec": "specs/fdncred-nu_plugin_file-0.25.2.json",
       "pr": 11
+    },
+    {
+      "id": "b4nst/nu_plugin_format_pcap",
+      "name": "nu_plugin_format_pcap",
+      "owner": "b4nst",
+      "type": "plugin",
+      "version": "0.1.0",
+      "platforms": "linux, macOS, Windows (full matrix, `.tar.gz`)",
+      "repo": "https://github.com/b4nst/nu_plugin_format_pcap",
+      "spec": "specs/b4nst-nu_plugin_format_pcap-0.1.0.json"
+    },
+    {
+      "id": "alex-kattathra-johnson/nu_plugin_ws",
+      "name": "nu_plugin_ws",
+      "owner": "alex-kattathra-johnson",
+      "type": "plugin",
+      "version": "1.0.6",
+      "platforms": "linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`)",
+      "repo": "https://github.com/alex-kattathra-johnson/nu_plugin_ws",
+      "spec": "specs/alex-kattathra-johnson-nu_plugin_ws-1.0.6.json"
+    },
+    {
+      "id": "Trivernis/nu-plugin-dialog",
+      "name": "nu-plugin-dialog",
+      "owner": "Trivernis",
+      "type": "plugin",
+      "version": "0.1.0",
+      "platforms": "Windows x64 zip only",
+      "note": "Windows-only",
+      "repo": "https://github.com/Trivernis/nu-plugin-dialog",
+      "spec": "specs/Trivernis-nu-plugin-dialog-0.1.0.json"
     }
   ],
   "mirror": [
@@ -136,6 +167,38 @@
         "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
         "search_terms": ["custom-completions", "release", "numan"]
       }
+    },
+    {
+      "id": "SuaveIV/nu_script_wttr",
+      "name": "nu_script_wttr",
+      "owner": "SuaveIV",
+      "type": "script",
+      "version": "0.1.0-main",
+      "source": "branch main",
+      "note": "install-only",
+      "repo": "https://github.com/SuaveIV/nu_script_wttr",
+      "spec": "specs/SuaveIV-nu_script_wttr-0.1.0-main.json"
+    },
+    {
+      "id": "amtoine/nu-git-manager-sugar",
+      "name": "nu-git-manager-sugar",
+      "owner": "amtoine",
+      "type": "module",
+      "version": "0.7.0",
+      "source": "tag 0.7.0",
+      "repo": "https://github.com/amtoine/nu-git-manager",
+      "spec": "specs/amtoine-nu-git-manager-sugar-0.7.0.json"
+    },
+    {
+      "id": "nushell/git-completions",
+      "name": "git-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb44",
+      "note": "install-only",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/git",
+      "spec": "specs/nushell-git-completions-0.1.0-f04cb44.json"
     }
   ],
   "blocked": [
@@ -171,7 +234,7 @@
   "changelog": [
     {
       "date": "2026-07-06",
-      "change": "Filed upstream outreach issues: [bash-env#50](https://github.com/tesujimath/bash-env-nushell/issues/50), [numd#115](https://github.com/nushell-prophet/numd/issues/115) (dotnu+numd), [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266); amtoine/nu-git-manager blocked (repo archived)"
+      "change": "Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions)"
     },
     {
       "date": "2026-07-05",
