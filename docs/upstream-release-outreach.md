@@ -170,7 +170,7 @@ When a maintainer says yes, PR should include:
 
 1. Add spec with upstream URL → `scripts/add-package.py --spec … --write`
 2. Keep mirror version in index **or** deprecate after one release cycle
-3. Update `docs/intake-candidates.md` — move from mirror to ready-now
+3. Update `docs/intake-state.json` — move from mirror to ready-now, then run `python scripts/sync-intake-candidates.py` to regenerate
 4. Comment on upstream issue with brief thanks (no registry internals)
 
 ---
@@ -196,7 +196,7 @@ When a maintainer says yes, PR should include:
 | 2 | `tesujimath/bash-env-nushell` issue |
 | 3 | `nushell-prophet` combined issue (dotnu + numd) |
 | 4 | `nushell/nu_scripts` policy issue (nu-hooks + completions) |
-| Ongoing | PR workflows only when invited; update tracker |
+| Ongoing | PR workflows only when invited; update `docs/intake-state.json` + run sync script |
 
 ---
 

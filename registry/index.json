@@ -346,7 +346,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-numd-0.4.0/numd-0.4.0.zip",
-            "sha256": "7c3e12b3ce67d1bf95a0d0cf1bf6113163cc368ff62b4e4635c3af27fb4d4450",
+            "sha256": "92210374750710fd36bc7cfcaa032b6003785bf1271c50c16393dadd414b35d6",
             "entry": "numd/mod.nu",
             "archive_root": "numd-0.4.0"
           },

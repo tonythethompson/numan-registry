@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -26,6 +27,7 @@ STATE_PATH = REPO_ROOT / "docs" / "intake-state.json"
 OUT_PATH = REPO_ROOT / "docs" / "intake-candidates.md"
 INDEX_PATH = REPO_ROOT / "registry" / "index.json"
 OUTREACH_DOC = REPO_ROOT / "docs" / "upstream-release-outreach.md"
+CHECKSUM_CACHE = REPO_ROOT / ".mrge" / "sync-checksums.json"
 REGISTRY_REPO = "tonythethompson/numan-registry"
 
 
@@ -216,6 +218,7 @@ def package_status(
     entry: dict[str, Any],
     live: dict[str, dict[str, Any]],
     pr_map: dict[int, str | None],
+    outreach_cache: dict[str, dict[str, str]],
 ) -> str:
     pid = entry["id"]
     version = entry.get("version", "")
@@ -252,8 +255,9 @@ def package_status(
 
     outreach = entry.get("outreach")
     if outreach:
-        o = outreach_status(outreach)
-        parts.append(f"outreach: {o['summary']}")
+        o = outreach_cache.get(pid, {})
+        if o:
+            parts.append(f"outreach: {o['summary']}")
 
     if note:
         parts.append(note)
@@ -262,7 +266,10 @@ def package_status(
 
 
 def render_intake_doc(
-    state: dict[str, Any], live: dict[str, dict[str, Any]], index: dict[str, Any]
+    state: dict[str, Any],
+    live: dict[str, dict[str, Any]],
+    index: dict[str, Any],
+    outreach_cache: dict[str, dict[str, str]],
 ) -> str:
     pr_nums = {
         e.get("pr")
@@ -291,7 +298,7 @@ def render_intake_doc(
         "# Registry intake candidates",
         "",
         "Running list of packages evaluated for the official Numan registry.",
-        f"_Auto-synced {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._",
+        f"_Auto-synced {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._",
         "",
         "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
         "",
@@ -309,7 +316,7 @@ def render_intake_doc(
 
     for entry in state.get("ready", []):
         link = f"[`{entry['id']}`]({entry['repo']})"
-        status = package_status(entry, live, pr_map)
+        status = package_status(entry, live, pr_map, outreach_cache)
         lines.append(
             f"| {link} | {entry['type']} | v{entry['version']} | {entry['platforms']} | {status} |"
         )
@@ -330,7 +337,7 @@ def render_intake_doc(
 
     for entry in state.get("mirror", []):
         link = f"[`{entry['id']}`]({entry['repo']})"
-        status = package_status(entry, live, pr_map)
+        status = package_status(entry, live, pr_map, outreach_cache)
         lines.append(
             f"| {link} | {entry['type']} | {entry['source']} | {status} |"
         )
@@ -372,7 +379,11 @@ def render_intake_doc(
     return "\n".join(lines)
 
 
-def update_outreach_tracker(state: dict[str, Any], live: dict[str, dict[str, Any]]) -> bool:
+def update_outreach_tracker(
+    state: dict[str, Any],
+    live: dict[str, dict[str, Any]],
+    outreach_cache: dict[str, dict[str, str]],
+) -> bool:
     if not OUTREACH_DOC.exists():
         return False
 
@@ -395,8 +406,8 @@ def update_outreach_tracker(state: dict[str, Any], live: dict[str, dict[str, Any
             upstream = f"nushell/nu_scripts ({entry['name']})"
         else:
             upstream = entry["id"]
-        o = outreach_status(outreach) if outreach else {}
         pid = entry["id"]
+        o = outreach_cache.get(pid, {})
         switched = ""
         if pid in live and not live[pid].get("mirror"):
             switched = "yes"
@@ -436,24 +447,26 @@ def sync() -> bool:
     index = load_json(INDEX_PATH) if INDEX_PATH.exists() else {"packages": []}
     live = registry_packages(index)
 
-    # Persist auto-discovered issue URLs back into state.
+    outreach_cache: dict[str, dict[str, str]] = {}
+
     for section in ("mirror",):
         for entry in state.get(section, []):
             outreach = entry.get("outreach")
             if outreach:
                 before = outreach.get("issue_url")
-                outreach_status(outreach)
+                status = outreach_status(outreach)
+                outreach_cache[entry["id"]] = status
                 if outreach.get("issue_url") != before:
                     state_dirty = True
 
-    doc = render_intake_doc(state, live, index)
+    doc = render_intake_doc(state, live, index, outreach_cache)
     existing = OUT_PATH.read_text(encoding="utf-8") if OUT_PATH.exists() else ""
     changed = False
     if existing != doc:
         OUT_PATH.write_text(doc, encoding="utf-8", newline="\n")
         changed = True
 
-    if update_outreach_tracker(state, live):
+    if update_outreach_tracker(state, live, outreach_cache):
         changed = True
 
     if state_dirty:
@@ -465,6 +478,39 @@ def sync() -> bool:
         changed = True
 
     return changed
+
+
+def compute_file_checksums(paths: list[Path]) -> dict[str, str]:
+    checksums = {}
+    for path in paths:
+        if path.exists():
+            checksums[str(path.relative_to(REPO_ROOT))] = hashlib.sha256(
+                path.read_bytes()
+            ).hexdigest()
+        else:
+            checksums[str(path.relative_to(REPO_ROOT))] = ""
+    return checksums
+
+
+def files_changed_since_last_sync(paths: list[Path]) -> bool:
+    if not CHECKSUM_CACHE.exists():
+        return True
+
+    try:
+        cached = json.loads(CHECKSUM_CACHE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return True
+
+    current = compute_file_checksums(paths)
+    return current != cached
+
+
+def save_checksums(paths: list[Path]) -> None:
+    checksums = compute_file_checksums(paths)
+    CHECKSUM_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    CHECKSUM_CACHE.write_text(
+        json.dumps(checksums, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
 
 
 def hook_main(hook_name: str) -> int:
@@ -490,7 +536,18 @@ def hook_main(hook_name: str) -> int:
             print("{}")
             return 0
 
+    if hook_name == "stop":
+        watched_files = [STATE_PATH, INDEX_PATH]
+        if not files_changed_since_last_sync(watched_files):
+            print("{}")
+            return 0
+
     changed = sync()
+
+    if hook_name == "stop":
+        watched_files = [STATE_PATH, INDEX_PATH]
+        save_checksums(watched_files)
+
     if hook_name == "stop" and changed:
         print(
             json.dumps(

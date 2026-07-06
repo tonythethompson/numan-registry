@@ -12,4 +12,4 @@ nu-git-manager-0.8.0.zip
     └── pkgs/nu-git-manager/   # same tree nupm already points at
 ```
 
-No rush on our side — the mirror works. If a uploaded asset is something you'd want, I can send a PR for a tiny release workflow (vyadh did this for [nutest](https://github.com/vyadh/nutest/releases/tag/v1.2.0) and it was straightforward).
+No rush on our side — the mirror works. If an uploaded asset is something you'd want, I can send a PR for a tiny release workflow (vyadh did this for [nutest](https://github.com/vyadh/nutest/releases/tag/v1.2.0) and it was straightforward).
