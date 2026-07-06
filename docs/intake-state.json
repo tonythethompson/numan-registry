@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "ready": [
+    {
+      "id": "nushell-works/nu_plugin_nw_ulid",
+      "name": "nu_plugin_nw_ulid",
+      "owner": "nushell-works",
+      "type": "plugin",
+      "version": "0.2.0",
+      "platforms": "linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`)",
+      "repo": "https://github.com/nushell-works/nu_plugin_nw_ulid",
+      "spec": "specs/nushell-works-nu_plugin_nw_ulid-0.2.0.json",
+      "pr": 11
+    },
+    {
+      "id": "SuaveIV/nu_plugin_audio",
+      "name": "nu_plugin_audio",
+      "owner": "SuaveIV",
+      "type": "plugin",
+      "version": "0.2.8",
+      "platforms": "Windows zip + Linux aarch64 tar.gz (mac/x64-linux are tar.xz)",
+      "note": "partial platforms",
+      "repo": "https://github.com/SuaveIV/nu_plugin_audio",
+      "spec": "specs/SuaveIV-nu_plugin_audio-0.2.8.json",
+      "pr": 11
+    },
+    {
+      "id": "fdncred/nu_plugin_file",
+      "name": "nu_plugin_file",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.25.2",
+      "platforms": "Windows x64 + arm64 zip only",
+      "note": "Windows-only",
+      "repo": "https://github.com/fdncred/nu_plugin_file",
+      "spec": "specs/fdncred-nu_plugin_file-0.25.2.json",
+      "pr": 11
+    }
+  ],
+  "mirror": [
+    {
+      "id": "amtoine/nu-git-manager",
+      "name": "nu-git-manager",
+      "owner": "amtoine",
+      "type": "module",
+      "version": "0.8.0",
+      "source": "tag 0.8.0",
+      "repo": "https://github.com/amtoine/nu-git-manager",
+      "spec": "specs/amtoine-nu-git-manager-0.8.0.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "amtoine/nu-git-manager",
+        "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
+        "blocked": "repo archived (read-only); cannot open issues or comments"
+      }
+    },
+    {
+      "id": "tesujimath/bash-env-nushell",
+      "name": "bash-env-nushell",
+      "owner": "tesujimath",
+      "type": "module",
+      "version": "0.19.0",
+      "source": "tag 0.19.0",
+      "repo": "https://github.com/tesujimath/bash-env-nushell",
+      "spec": "specs/tesujimath-bash-env-nushell-0.19.0.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "tesujimath/bash-env-nushell",
+        "issue_url": "https://github.com/tesujimath/bash-env-nushell/issues/50",
+        "search_terms": ["release zip", "numan", "uploaded zip"]
+      }
+    },
+    {
+      "id": "nushell-prophet/dotnu",
+      "name": "dotnu",
+      "owner": "nushell-prophet",
+      "type": "module",
+      "version": "0.0.18",
+      "source": "tag 0.0.18",
+      "repo": "https://github.com/nushell-prophet/dotnu",
+      "spec": "specs/nushell-prophet-dotnu-0.0.18.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "nushell-prophet/numd",
+        "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
+        "search_terms": ["dotnu", "release zip", "numan"],
+        "note": "Track on numd repo (combined outreach draft)"
+      }
+    },
+    {
+      "id": "nushell-prophet/numd",
+      "name": "numd",
+      "owner": "nushell-prophet",
+      "type": "module",
+      "version": "0.4.0",
+      "source": "tag 0.4.0",
+      "repo": "https://github.com/nushell-prophet/numd",
+      "spec": "specs/nushell-prophet-numd-0.4.0.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "nushell-prophet/numd",
+        "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
+        "search_terms": ["release zip", "numan", "dotnu"]
+      }
+    },
+    {
+      "id": "nushell/nu-hooks",
+      "name": "nu-hooks",
+      "owner": "nushell",
+      "type": "module",
+      "version": "0.1.0",
+      "source": "commit f04cb44",
+      "note": "install-only",
+      "repo": "https://github.com/nushell/nu_scripts",
+      "spec": "specs/nushell-nu-hooks-0.1.0.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": ["nu-hooks", "release", "numan", "monorepo"]
+      }
+    },
+    {
+      "id": "nushell/custom-completions",
+      "name": "custom-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb44",
+      "note": "install-only",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions",
+      "spec": "specs/nushell-custom-completions-0.1.0-f04cb44.json",
+      "pr": 12,
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": ["custom-completions", "release", "numan"]
+      }
+    }
+  ],
+  "blocked": [
+    {
+      "id": "idanarye/nu_plugin_skim",
+      "blocker": "v0.29.0 tag exists; release assets empty (dist CI not uploading)"
+    },
+    {
+      "id": "FMotalleb/nu_plugin_clipboard",
+      "blocker": "nupm git-only; no release binaries (and other FMotalleb plugins)"
+    },
+    {
+      "id": "abusch/nu_plugin_semver",
+      "blocker": "mac/linux tar.xz only (in registry as Windows-only)"
+    },
+    {
+      "id": "fennewald/nu_plugin_net",
+      "blocker": "tar.xz only; no Windows zip"
+    },
+    {
+      "id": "fnuttens/nu_plugin_hmac",
+      "blocker": "Bare binary upload, not zip/tar archive"
+    },
+    {
+      "id": "fdncred/abusch cargo-dist plugins",
+      "blocker": "Unix targets ship `.tar.xz`; Windows ships `.zip`"
+    },
+    {
+      "id": "MCP / AI agent tooling",
+      "blocker": "Not a Numan package type; would need module/script packaging"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-07-06",
+      "change": "Filed upstream outreach issues: [bash-env#50](https://github.com/tesujimath/bash-env-nushell/issues/50), [numd#115](https://github.com/nushell-prophet/numd/issues/115) (dotnu+numd), [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266); amtoine/nu-git-manager blocked (repo archived)"
+    },
+    {
+      "date": "2026-07-05",
+      "change": "Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11)"
+    },
+    {
+      "date": "2026-07-05",
+      "change": "Initial list"
+    }
+  ]
+}
