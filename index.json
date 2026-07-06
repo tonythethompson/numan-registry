@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-05T21:22:00Z",
+  "updated_at": "2026-07-05T22:59:19Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -84,6 +84,334 @@
           "activation": {
             "kind": "nu-module",
             "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell-works",
+        "name": "nu_plugin_nw_ulid"
+      },
+      "description": "Nushell plugin for ULID generation, parsing, and manipulation. Full cross-platform release assets in Numan-supported formats (.tar.gz and .zip).",
+      "repo": "https://github.com/nushell-works/nu_plugin_nw_ulid",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "ulid",
+        "utility"
+      ],
+      "versions": [
+        {
+          "version": "0.2.0",
+          "nu_version": ">=0.111.0 <0.112.0",
+          "verified_with": [
+            "0.111.0"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-aarch64.tar.gz",
+                "sha256": "732ce012c1f034c219b743bd03570be3a8fd76ac75234fc33181852898e2be9f",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-linux-x86_64.tar.gz",
+                "sha256": "877eaa8d245dff8f7450d6d55c4bd462dc8fea0659e267237226880104ae1c20",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-aarch64.tar.gz",
+                "sha256": "6531604ede3b534daf8de9fadfca1716b14f7f50a66d9e7cff940ffc7df4a3fe",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-macos-x86_64.tar.gz",
+                "sha256": "a7c8d814581da11ee147f61674f1af68588885c20a7869da6639e9eb60da9b42",
+                "executable_path": "nu_plugin_nw_ulid"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/nushell-works/nu_plugin_nw_ulid/releases/download/v0.2.0/nu_plugin_nw_ulid-v0.2.0-windows-x86_64.zip",
+                "sha256": "ad31d02d87f4169f0a3755b76a565d4f7643ba059b17c6eb84c2a549da390240",
+                "executable_path": "nu_plugin_nw_ulid.exe"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "SuaveIV",
+        "name": "nu_plugin_audio"
+      },
+      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Partial platform support: Windows and Linux aarch64 only \u2014 upstream publishes macOS and x86_64-linux as .tar.xz, which Numan does not install yet.",
+      "repo": "https://github.com/SuaveIV/nu_plugin_audio",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "audio",
+        "linux-aarch64-only",
+        "partial-platform"
+      ],
+      "versions": [
+        {
+          "version": "0.2.8",
+          "nu_version": ">=0.113.1 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.8/nu_plugin_audio-x86_64-pc-windows-msvc.zip",
+                "sha256": "3e29d79d20700314f13c1a7984d43a34a2aa2b5b78f4c34e84b4d858b32ba7b2",
+                "executable_path": "nu_plugin_audio.exe"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.8/nu_plugin_audio-v0.2.8-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "61b70acd249d71f8e87163f1be830628ad1342ae2ec180c36006f819207504f0",
+                "executable_path": "nu_plugin_audio"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_file"
+      },
+      "description": "Nushell plugin that inspects a file and returns information based on its magic number. Windows-only for now: upstream publishes macOS and Linux as .tar.xz, which Numan's installer does not support yet.",
+      "repo": "https://github.com/fdncred/nu_plugin_file",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "file",
+        "magic-number",
+        "windows-only"
+      ],
+      "versions": [
+        {
+          "version": "0.25.2",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/fdncred/nu_plugin_file/releases/download/v0.25.2/nu_plugin_file-x86_64-pc-windows-msvc.zip",
+                "sha256": "a6908c1f895b291133969a256aa932b64cbac7ba1b8142716c767223aa8fc6b4",
+                "executable_path": "nu_plugin_file.exe"
+              },
+              "aarch64-pc-windows-msvc": {
+                "url": "https://github.com/fdncred/nu_plugin_file/releases/download/v0.25.2/nu_plugin_file-aarch64-pc-windows-msvc.zip",
+                "sha256": "aea553a76fc7bdd30fe9d6f2d11876244ba29cca2690cbafe470563c32e9932a",
+                "executable_path": "nu_plugin_file.exe"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "amtoine",
+        "name": "nu-git-manager"
+      },
+      "description": "Git repository management tools for Nushell (prompts, status, utilities). Artifact is a registry-hosted mirror of upstream tag 0.8.0 (pkgs/nu-git-manager); upstream has no uploaded release zip.",
+      "repo": "https://github.com/amtoine/nu-git-manager",
+      "type": "module",
+      "tags": [
+        "module",
+        "git",
+        "mirror"
+      ],
+      "versions": [
+        {
+          "version": "0.8.0",
+          "nu_version": ">=0.92.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-amtoine-nu-git-manager-0.8.0/nu-git-manager-0.8.0.zip",
+            "sha256": "b55bbabf4017794231375a25f65e46240f4ad25dd8077376e3b05ed87e4ff25a",
+            "entry": "pkgs/nu-git-manager/nu-git-manager/mod.nu",
+            "archive_root": "nu-git-manager-0.8.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "tesujimath",
+        "name": "bash-env-nushell"
+      },
+      "description": "Load bash-style .env files and shell functions into Nushell (replacement for deprecated nu_plugin_bash_env). Requires bash-env-json on PATH. Registry-hosted mirror of upstream tag 0.19.0.",
+      "repo": "https://github.com/tesujimath/bash-env-nushell",
+      "type": "module",
+      "tags": [
+        "module",
+        "bash",
+        "env",
+        "mirror"
+      ],
+      "versions": [
+        {
+          "version": "0.19.0",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-tesujimath-bash-env-nushell-0.19.0/bash-env-nushell-0.19.0.zip",
+            "sha256": "81b4ef1661aeda98a2cc87c0604f39ee74122e766af3602ae740a2cfae749f14",
+            "entry": "bash-env.nu",
+            "archive_root": "bash-env-nushell-0.19.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "module"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell-prophet",
+        "name": "dotnu"
+      },
+      "description": "Tools for Nushell module developers. Registry-hosted mirror of upstream tag 0.0.18.",
+      "repo": "https://github.com/nushell-prophet/dotnu",
+      "type": "module",
+      "tags": [
+        "module",
+        "developer-tools",
+        "mirror"
+      ],
+      "versions": [
+        {
+          "version": "0.0.18",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-dotnu-0.0.18/dotnu-0.0.18.zip",
+            "sha256": "2bae9970313e41f90b2100b6cdd5400dde6f8f2518f1c220d214485eedfade9e",
+            "entry": "dotnu/mod.nu",
+            "archive_root": "dotnu-0.0.18"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell-prophet",
+        "name": "numd"
+      },
+      "description": "Reproducible Nushell Markdown documents. Registry-hosted mirror of upstream tag 0.4.0.",
+      "repo": "https://github.com/nushell-prophet/numd",
+      "type": "module",
+      "tags": [
+        "module",
+        "markdown",
+        "literate",
+        "mirror"
+      ],
+      "versions": [
+        {
+          "version": "0.4.0",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-numd-0.4.0/numd-0.4.0.zip",
+            "sha256": "92210374750710fd36bc7cfcaa032b6003785bf1271c50c16393dadd414b35d6",
+            "entry": "numd/mod.nu",
+            "archive_root": "numd-0.4.0"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "nu-hooks"
+      },
+      "description": "Official Nushell hook scripts from nu_scripts (direnv, autojump, command_not_found, etc.). Registry-hosted mirror of nu_scripts @ f04cb44. Install-only for now: no single mod.nu entry; per-hook activation is manual.",
+      "repo": "https://github.com/nushell/nu_scripts",
+      "type": "module",
+      "tags": [
+        "module",
+        "hooks",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-nu-hooks-0.1.0/nu-hooks-0.1.0.zip",
+            "sha256": "28faa2d365da14b5dba1cd439789140a19aea4312e005e0ee0ce265cb93cf57f",
+            "archive_root": "nu-hooks-0.1.0"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "custom-completions"
+      },
+      "description": "Community custom completions from nu_scripts (git, cargo, npm, gh, \u2026). Registry-hosted mirror of nu_scripts/custom-completions @ f04cb44. Install-only: completion activation is deferred in Numan.",
+      "repo": "https://github.com/nushell/nu_scripts",
+      "type": "completion",
+      "tags": [
+        "completion",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-f04cb44",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-custom-completions-f04cb44/custom-completions-f04cb44.zip",
+            "sha256": "0772092c332506d5d556ac06be71c57474ac5bf23de714d5aee9610440b9bebb",
+            "archive_root": "custom-completions-f04cb44"
           }
         }
       ]
