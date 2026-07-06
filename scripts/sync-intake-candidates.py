@@ -133,6 +133,7 @@ def outreach_status(outreach: dict[str, Any]) -> dict[str, str]:
 
     blocked = outreach.get("blocked")
     if blocked:
+        result["issue"] = f"blocked ({blocked})"
         result["summary"] = f"blocked ({blocked})"
         return result
 
