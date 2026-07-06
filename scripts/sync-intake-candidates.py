@@ -410,7 +410,7 @@ def update_outreach_tracker(state: dict[str, Any], live: dict[str, dict[str, Any
                     o.get("issue", ""),
                     o.get("opened", ""),
                     o.get("response", ""),
-                    o.get("upstream_shipped", ""),
+                    ("yes" if pid in live and not live[pid].get("mirror") else ""),
                     switched,
                 ]
             )
