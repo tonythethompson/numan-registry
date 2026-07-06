@@ -410,7 +410,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-custom-completions-f04cb44/custom-completions-f04cb44.zip",
-            "sha256": "129aae69c4e6b5531e9a17a611a5e56bf82475db04117bcf8f0a26bf92d863d9",
+            "sha256": "0772092c332506d5d556ac06be71c57474ac5bf23de714d5aee9610440b9bebb",
             "archive_root": "custom-completions-f04cb44"
           }
         }
