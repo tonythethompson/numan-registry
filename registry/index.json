@@ -381,7 +381,7 @@
           "artifact": {
             "kind": "archive",
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-nu-hooks-0.1.0/nu-hooks-0.1.0.zip",
-            "sha256": "39ae391a011f4d3c1ae50e3c6780c81d80925f04e5ef37913eef46f7e169aa25",
+            "sha256": "28faa2d365da14b5dba1cd439789140a19aea4312e005e0ee0ce265cb93cf57f",
             "archive_root": "nu-hooks-0.1.0"
           }
         }
