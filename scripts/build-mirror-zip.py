@@ -40,6 +40,36 @@ def ignore_vcs_metadata(_directory: str, names: list[str]) -> set[str]:
     return {name for name in names if name in VCS_DIR_NAMES}
 
 
+def assert_mirror_paths_safe(src_root: Path, rel_paths: list[str]) -> None:
+    """Reject symlinks and paths that resolve outside the clone."""
+    root = src_root.resolve()
+    for rel in rel_paths:
+        src = (src_root / rel).resolve()
+        try:
+            src.relative_to(root)
+        except ValueError:
+            print(f"FAIL: path '{rel}' resolves outside clone ({src})")
+            sys.exit(1)
+        if src.is_symlink():
+            print(f"FAIL: symlink not allowed in mirror source: {rel}")
+            sys.exit(1)
+        if src.is_dir():
+            for child in src.rglob("*"):
+                if child.is_symlink():
+                    child_rel = child.relative_to(root)
+                    print(f"FAIL: symlink not allowed in mirror source: {child_rel}")
+                    sys.exit(1)
+                try:
+                    child.resolve().relative_to(root)
+                except ValueError:
+                    child_rel = child.relative_to(root)
+                    print(f"FAIL: path resolves outside clone: {child_rel}")
+                    sys.exit(1)
+        elif not src.is_file():
+            print(f"FAIL: path '{rel}' is not a regular file or directory")
+            sys.exit(1)
+
+
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     print(f"  $ {' '.join(cmd)}", file=sys.stderr)
     subprocess.run(cmd, cwd=cwd, check=True)
@@ -77,7 +107,7 @@ def copy_paths(src_root: Path, rel_paths: list[str], dest_root: Path) -> None:
         if src.is_dir():
             if dest.exists():
                 shutil.rmtree(dest)
-            shutil.copytree(src, dest, ignore=ignore_vcs_metadata)
+            shutil.copytree(src, dest, ignore=ignore_vcs_metadata, symlinks=False)
         else:
             shutil.copy(src, dest)
 
@@ -89,6 +119,8 @@ def make_zip(source_dir: Path, output: Path) -> str:
     root_name = source_dir.name
     entries: list[tuple[Path, str]] = []
     for path in sorted(source_dir.rglob("*")):
+        if path.is_symlink():
+            continue
         if not path.is_file():
             continue
         if VCS_DIR_NAMES.intersection(path.parts):
@@ -141,6 +173,7 @@ def main() -> int:
     staging = workdir / "staging" / args.archive_root
     if staging.exists():
         shutil.rmtree(staging.parent)
+    assert_mirror_paths_safe(src_root, args.paths)
     copy_paths(src_root, args.paths, staging)
 
     make_zip(staging, args.output)
