@@ -50,7 +50,8 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "amtoine/nu-git-manager",
-        "search_terms": ["release zip", "numan", "mirror", "byte-stable"]
+        "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
+        "blocked": "repo archived (read-only); cannot open issues or comments"
       }
     },
     {
@@ -65,6 +66,7 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "tesujimath/bash-env-nushell",
+        "issue_url": "https://github.com/tesujimath/bash-env-nushell/issues/50",
         "search_terms": ["release zip", "numan", "uploaded zip"]
       }
     },
@@ -80,6 +82,7 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "nushell-prophet/numd",
+        "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
         "search_terms": ["dotnu", "release zip", "numan"],
         "note": "Track on numd repo (combined outreach draft)"
       }
@@ -96,6 +99,7 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "nushell-prophet/numd",
+        "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
         "search_terms": ["release zip", "numan", "dotnu"]
       }
     },
@@ -112,6 +116,7 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
         "search_terms": ["nu-hooks", "release", "numan", "monorepo"]
       }
     },
@@ -128,6 +133,7 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
         "search_terms": ["custom-completions", "release", "numan"]
       }
     }
@@ -164,8 +170,8 @@
   ],
   "changelog": [
     {
-      "date": "2026-07-05",
-      "change": "Mirror module/completion batch (6 packages) in [#12](https://github.com/tonythethompson/numan-registry/pull/12)"
+      "date": "2026-07-06",
+      "change": "Filed upstream outreach issues: [bash-env#50](https://github.com/tesujimath/bash-env-nushell/issues/50), [numd#115](https://github.com/nushell-prophet/numd/issues/115) (dotnu+numd), [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266); amtoine/nu-git-manager blocked (repo archived)"
     },
     {
       "date": "2026-07-05",

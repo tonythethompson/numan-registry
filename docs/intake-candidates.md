@@ -27,12 +27,12 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Type | Source | Status |
 |---------|------|--------|--------|
-| [`amtoine/nu-git-manager`](https://github.com/amtoine/nu-git-manager) | module | tag 0.8.0 | live (registry mirror) — outreach: outreach pending |
-| [`tesujimath/bash-env-nushell`](https://github.com/tesujimath/bash-env-nushell) | module | tag 0.19.0 | live (registry mirror) — outreach: outreach pending |
-| [`nushell-prophet/dotnu`](https://github.com/nushell-prophet/dotnu) | module | tag 0.0.18 | live (registry mirror) — outreach: outreach pending |
-| [`nushell-prophet/numd`](https://github.com/nushell-prophet/numd) | module | tag 0.4.0 | live (registry mirror) — outreach: outreach pending |
-| [`nushell/nu-hooks`](https://github.com/nushell/nu_scripts) | module | commit f04cb44 | live (registry mirror) — outreach: outreach pending — install-only |
-| [`nushell/custom-completions`](https://github.com/nushell/nu_scripts/tree/main/custom-completions) | completion | commit f04cb44 | live (registry mirror) — outreach: outreach pending — install-only |
+| [`amtoine/nu-git-manager`](https://github.com/amtoine/nu-git-manager) | module | tag 0.8.0 | live (registry mirror) — outreach: blocked (repo archived (read-only); cannot open issues or comments) |
+| [`tesujimath/bash-env-nushell`](https://github.com/tesujimath/bash-env-nushell) | module | tag 0.19.0 | live (registry mirror) — outreach: issue open (tesujimath/bash-env-nushell#50) |
+| [`nushell-prophet/dotnu`](https://github.com/nushell-prophet/dotnu) | module | tag 0.0.18 | live (registry mirror) — outreach: issue open (nushell-prophet/numd#115) |
+| [`nushell-prophet/numd`](https://github.com/nushell-prophet/numd) | module | tag 0.4.0 | live (registry mirror) — outreach: issue open (nushell-prophet/numd#115) |
+| [`nushell/nu-hooks`](https://github.com/nushell/nu_scripts) | module | commit f04cb44 | live (registry mirror) — outreach: issue open (nushell/nu_scripts#1266) — install-only |
+| [`nushell/custom-completions`](https://github.com/nushell/nu_scripts/tree/main/custom-completions) | completion | commit f04cb44 | live (registry mirror) — outreach: issue open (nushell/nu_scripts#1266) — install-only |
 
 ---
 
@@ -54,6 +54,6 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
-| 2026-07-05 | Mirror module/completion batch (6 packages) in [#12](https://github.com/tonythethompson/numan-registry/pull/12) |
+| 2026-07-06 | Filed upstream outreach issues: [bash-env#50](https://github.com/tesujimath/bash-env-nushell/issues/50), [numd#115](https://github.com/nushell-prophet/numd/issues/115) (dotnu+numd), [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266); amtoine/nu-git-manager blocked (repo archived) |
 | 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
 | 2026-07-05 | Initial list |

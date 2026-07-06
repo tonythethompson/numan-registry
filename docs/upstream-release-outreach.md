@@ -180,11 +180,11 @@ When a maintainer says yes, PR should include:
 | Upstream | Issue/PR | Opened | Response | Upstream asset shipped | Registry switched |
 |----------|----------|--------|----------|------------------------|-------------------|
 | amtoine/nu-git-manager |  |  |  |  | mirror only |
-| tesujimath/bash-env-nushell |  |  |  |  | mirror only |
-| nushell-prophet/dotnu |  |  |  |  | mirror only |
-| nushell-prophet/numd |  |  |  |  | mirror only |
-| nushell/nu_scripts (nu-hooks) |  |  |  |  | mirror only |
-| nushell/nu_scripts (custom-completions) |  |  |  |  | mirror only |
+| tesujimath/bash-env-nushell | [#50](https://github.com/tesujimath/bash-env-nushell/issues/50) | 2026-07-06 | awaiting |  | mirror only |
+| nushell-prophet/dotnu | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
+| nushell-prophet/numd | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
+| nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
+| nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
 
 ---
 

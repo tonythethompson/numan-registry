@@ -131,6 +131,11 @@ def outreach_status(outreach: dict[str, Any]) -> dict[str, str]:
     if not repo:
         return result
 
+    blocked = outreach.get("blocked")
+    if blocked:
+        result["summary"] = f"blocked ({blocked})"
+        return result
+
     issue_url = outreach.get("issue_url")
     issue_number: int | None = None
     if issue_url:
