@@ -1,0 +1,32 @@
+{
+  "owner": "alex-kattathra-johnson",
+  "name": "nu_plugin_ws",
+  "description": "Nushell plugin for streaming output from WebSocket endpoints. Full cross-platform release assets in Numan-supported formats (.tar.gz and .zip).",
+  "repo": "https://github.com/alex-kattathra-johnson/nu_plugin_ws",
+  "type": "plugin",
+  "tags": ["plugin", "websocket", "network"],
+  "version": "1.0.6",
+  "nu_version": ">=0.107.0 <0.108.0",
+  "verified_with": ["0.107.0"],
+  "artifact": {
+    "kind": "binary",
+    "targets": {
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/alex-kattathra-johnson/nu_plugin_ws/releases/download/v1.0.6/nu_plugin_ws-v1.0.6-aarch64-apple-darwin.tar.gz",
+        "executable_path": "nu_plugin_ws"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/alex-kattathra-johnson/nu_plugin_ws/releases/download/v1.0.6/nu_plugin_ws-v1.0.6-x86_64-apple-darwin.tar.gz",
+        "executable_path": "nu_plugin_ws"
+      },
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/alex-kattathra-johnson/nu_plugin_ws/releases/download/v1.0.6/nu_plugin_ws-v1.0.6-x86_64-unknown-linux-gnu.tar.gz",
+        "executable_path": "nu_plugin_ws"
+      },
+      "x86_64-pc-windows-msvc": {
+        "url": "https://github.com/alex-kattathra-johnson/nu_plugin_ws/releases/download/v1.0.6/nu_plugin_ws-v1.0.6-x86_64-pc-windows-msvc.zip",
+        "executable_path": "nu_plugin_ws.exe"
+      }
+    }
+  }
+}

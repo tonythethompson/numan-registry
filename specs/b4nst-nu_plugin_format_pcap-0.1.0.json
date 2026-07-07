@@ -1,0 +1,36 @@
+{
+  "owner": "b4nst",
+  "name": "nu_plugin_format_pcap",
+  "description": "Nushell plugin for parsing pcap (packet capture) files. Full cross-platform release assets in Numan-supported formats (.tar.gz).",
+  "repo": "https://github.com/b4nst/nu_plugin_format_pcap",
+  "type": "plugin",
+  "tags": ["plugin", "pcap", "network"],
+  "version": "0.1.0",
+  "nu_version": ">=0.101.0 <0.102.0",
+  "verified_with": ["0.101.0"],
+  "artifact": {
+    "kind": "binary",
+    "targets": {
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/b4nst/nu_plugin_format_pcap/releases/download/v0.1.0/nu_plugin_format_pcap_0.1.0_darwin_arm64.tar.gz",
+        "executable_path": "nu_plugin_format_pcap"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/b4nst/nu_plugin_format_pcap/releases/download/v0.1.0/nu_plugin_format_pcap_0.1.0_darwin_amd64.tar.gz",
+        "executable_path": "nu_plugin_format_pcap"
+      },
+      "aarch64-unknown-linux-gnu": {
+        "url": "https://github.com/b4nst/nu_plugin_format_pcap/releases/download/v0.1.0/nu_plugin_format_pcap_0.1.0_linux_arm64.tar.gz",
+        "executable_path": "nu_plugin_format_pcap"
+      },
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/b4nst/nu_plugin_format_pcap/releases/download/v0.1.0/nu_plugin_format_pcap_0.1.0_linux_amd64.tar.gz",
+        "executable_path": "nu_plugin_format_pcap"
+      },
+      "x86_64-pc-windows-msvc": {
+        "url": "https://github.com/b4nst/nu_plugin_format_pcap/releases/download/v0.1.0/nu_plugin_format_pcap_0.1.0_windows_amd64.tar.gz",
+        "executable_path": "nu_plugin_format_pcap.exe"
+      }
+    }
+  }
+}
