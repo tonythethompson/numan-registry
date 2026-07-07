@@ -44,10 +44,6 @@ def assert_mirror_paths_safe(src_root: Path, rel_paths: list[str]) -> None:
     """Reject symlinks and paths that resolve outside the clone."""
     root = src_root.resolve()
     for rel in rel_paths:
-def assert_mirror_paths_safe(src_root: Path, rel_paths: list[str]) -> None:
-    """Reject symlinks and paths that resolve outside the clone."""
-    root = src_root.resolve()
-    for rel in rel_paths:
         src_path = src_root / rel
         if src_path.is_symlink():
             print(f"FAIL: symlink not allowed in mirror source: {rel}")
@@ -63,16 +59,6 @@ def assert_mirror_paths_safe(src_root: Path, rel_paths: list[str]) -> None:
                 if child.is_symlink():
                     child_rel = child.relative_to(root)
                     print(f"FAIL: symlink not allowed in mirror source: {child_rel}")
-                    sys.exit(1)
-                try:
-                    child.resolve().relative_to(root)
-                except ValueError:
-                    child_rel = child.relative_to(root)
-                    print(f"FAIL: path resolves outside clone: {child_rel}")
-                    sys.exit(1)
-        elif not src.is_file():
-            print(f"FAIL: path '{rel}' is not a regular file or directory")
-            sys.exit(1)
                     sys.exit(1)
                 try:
                     child.resolve().relative_to(root)
