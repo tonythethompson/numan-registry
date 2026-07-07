@@ -1,0 +1,21 @@
+{
+  "owner": "nushell-prophet",
+  "name": "numd",
+  "description": "Reproducible Nushell Markdown documents. Registry-hosted mirror of upstream tag 0.4.0.",
+  "repo": "https://github.com/nushell-prophet/numd",
+  "type": "module",
+  "tags": ["module", "markdown", "literate", "mirror"],
+  "version": "0.4.0",
+  "nu_version": "*",
+  "verified_with": ["0.113.1"],
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-numd-0.4.0/numd-0.4.0.zip",
+    "entry": "numd/mod.nu",
+    "archive_root": "numd-0.4.0"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}

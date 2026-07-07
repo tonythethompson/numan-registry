@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": "python scripts/sync-intake-candidates.py --hook stop"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": "python scripts/sync-intake-candidates.py --hook afterShellExecution"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python scripts/sync-intake-candidates.py --hook afterFileEdit"
+      }
+    ]
+  }
+}
