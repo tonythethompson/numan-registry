@@ -6,7 +6,7 @@
   "type": "module",
   "tags": ["module", "git", "prompt", "mirror"],
   "version": "0.7.0",
-  "nu_version": ">=0.92.0",
+  "nu_version": ">=0.91.0",
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",

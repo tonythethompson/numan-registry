@@ -187,7 +187,12 @@
       "version": "0.7.0",
       "source": "tag 0.7.0",
       "repo": "https://github.com/amtoine/nu-git-manager",
-      "spec": "specs/amtoine-nu-git-manager-sugar-0.7.0.json"
+      "spec": "specs/amtoine-nu-git-manager-sugar-0.7.0.json",
+      "outreach": {
+        "upstream_repo": "amtoine/nu-git-manager",
+        "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
+        "blocked": "repo archived (read-only); cannot open issues or comments"
+      }
     },
     {
       "id": "nushell/git-completions",
@@ -198,7 +203,12 @@
       "source": "commit f04cb44",
       "note": "install-only",
       "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/git",
-      "spec": "specs/nushell-git-completions-0.1.0-f04cb44.json"
+      "spec": "specs/nushell-git-completions-0.1.0-f04cb44.json",
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": ["git-completions", "release", "numan"]
+      }
     }
   ],
   "blocked": [
