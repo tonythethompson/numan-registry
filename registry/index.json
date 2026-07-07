@@ -474,7 +474,7 @@
         "owner": "alex-kattathra-johnson",
         "name": "nu_plugin_ws"
       },
-      "description": "Nushell plugin for streaming output from WebSocket endpoints. Full cross-platform release assets in Numan-supported formats (.tar.gz and .zip).",
+      "description": "Nushell plugin for streaming output from WebSocket endpoints. Release assets are available for macOS, x86_64 Linux, and x86_64 Windows in Numan-supported formats (.tar.gz and .zip).",
       "repo": "https://github.com/alex-kattathra-johnson/nu_plugin_ws",
       "type": "plugin",
       "tags": [
