@@ -179,12 +179,14 @@ When a maintainer says yes, PR should include:
 
 | Upstream | Issue/PR | Opened | Response | Upstream asset shipped | Registry switched |
 |----------|----------|--------|----------|------------------------|-------------------|
-| amtoine/nu-git-manager |  |  |  |  | mirror only |
-| tesujimath/bash-env-nushell | [#50](https://github.com/tesujimath/bash-env-nushell/issues/50) | 2026-07-06 | awaiting |  | mirror only |
+| amtoine/nu-git-manager | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
 | nushell-prophet/dotnu | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
 | nushell-prophet/numd | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
-| nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
-| nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
+| nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-06) |  | mirror only |
+| nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-06) |  | mirror only |
+| SuaveIV/nu_script_wttr |  |  |  |  | mirror only |
+| amtoine/nu-git-manager-sugar | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
+| nushell/nu_scripts (git-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-06) |  | mirror only |
 
 ---
 
