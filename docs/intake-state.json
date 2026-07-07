@@ -98,7 +98,8 @@
       "outreach": {
         "upstream_repo": "tesujimath/bash-env-nushell",
         "issue_url": "https://github.com/tesujimath/bash-env-nushell/issues/50",
-        "search_terms": ["release zip", "numan", "uploaded zip"]
+        "search_terms": ["release zip", "numan", "uploaded zip"],
+        "resolved": "upstream asset on 0.19.0 release (2026-07-07)"
       }
     },
     {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-06T23:45:55Z",
+  "updated_at": "2026-07-07T01:12:40Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -258,14 +258,13 @@
         "owner": "tesujimath",
         "name": "bash-env-nushell"
       },
-      "description": "Load bash-style .env files and shell functions into Nushell (replacement for deprecated nu_plugin_bash_env). Requires bash-env-json on PATH. Registry-hosted mirror of upstream tag 0.19.0.",
+      "description": "Load bash-style .env files and shell functions into Nushell (replacement for deprecated nu_plugin_bash_env). Requires bash-env-json on PATH. v0.19.0 uses upstream's uploaded release asset (see tesujimath/bash-env-nushell#50).",
       "repo": "https://github.com/tesujimath/bash-env-nushell",
       "type": "module",
       "tags": [
         "module",
         "bash",
-        "env",
-        "mirror"
+        "env"
       ],
       "versions": [
         {
@@ -276,8 +275,8 @@
           ],
           "artifact": {
             "kind": "archive",
-            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-tesujimath-bash-env-nushell-0.19.0/bash-env-nushell-0.19.0.zip",
-            "sha256": "81b4ef1661aeda98a2cc87c0604f39ee74122e766af3602ae740a2cfae749f14",
+            "url": "https://github.com/tesujimath/bash-env-nushell/releases/download/0.19.0/bash-env-nushell-0.19.0.zip",
+            "sha256": "8d5c18b9670fc03d4ea60fd27beb0bd6e4abe1c100d7689d724d93a413758616",
             "entry": "bash-env.nu",
             "archive_root": "bash-env-nushell-0.19.0"
           },
