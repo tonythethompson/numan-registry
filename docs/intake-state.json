@@ -66,6 +66,17 @@
       "note": "Windows-only",
       "repo": "https://github.com/Trivernis/nu-plugin-dialog",
       "spec": "specs/Trivernis-nu-plugin-dialog-0.1.0.json"
+    },
+    {
+      "id": "tesujimath/bash-env-nushell",
+      "name": "bash-env-nushell",
+      "owner": "tesujimath",
+      "type": "module",
+      "version": "0.19.0",
+      "platforms": "upstream uploaded zip on tag 0.19.0",
+      "repo": "https://github.com/tesujimath/bash-env-nushell",
+      "spec": "specs/tesujimath-bash-env-nushell-0.19.0.json",
+      "pr": 12
     }
   ],
   "mirror": [
@@ -83,22 +94,6 @@
         "upstream_repo": "amtoine/nu-git-manager",
         "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
         "blocked": "repo archived (read-only); cannot open issues or comments"
-      }
-    },
-    {
-      "id": "tesujimath/bash-env-nushell",
-      "name": "bash-env-nushell",
-      "owner": "tesujimath",
-      "type": "module",
-      "version": "0.19.0",
-      "source": "tag 0.19.0",
-      "repo": "https://github.com/tesujimath/bash-env-nushell",
-      "spec": "specs/tesujimath-bash-env-nushell-0.19.0.json",
-      "pr": 12,
-      "outreach": {
-        "upstream_repo": "tesujimath/bash-env-nushell",
-        "issue_url": "https://github.com/tesujimath/bash-env-nushell/issues/50",
-        "search_terms": ["release zip", "numan", "uploaded zip"]
       }
     },
     {
@@ -242,6 +237,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-07-10",
+      "change": "Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51)"
+    },
     {
       "date": "2026-07-06",
       "change": "Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions)"

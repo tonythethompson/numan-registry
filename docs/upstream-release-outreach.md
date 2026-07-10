@@ -71,15 +71,15 @@ Optional PR: GitHub Actions workflow on tag push that runs `git archive` or a sm
 
 ---
 
-### 2. `tesujimath/bash-env-nushell` — **Issue first**
+### 2. `tesujimath/bash-env-nushell` — **Resolved**
 
 | Field | Detail |
 |-------|--------|
 | Contact | [@tesujimath](https://github.com/tesujimath) |
-| Current state | Tags (e.g. **0.19.0**); no release assets |
-| Registry mirror | `mirror-tesujimath-bash-env-nushell-0.19.0` |
-| Layout | Flat repo root → `bash-env-nushell-{version}/bash-env.nu` |
-| Issue vs PR | **Issue** — small repo; workflow PR is easy if they want it |
+| Current state | Tag **0.19.0** ships `bash-env-nushell-0.19.0.zip`; [release workflow](https://github.com/tesujimath/bash-env-nushell/blob/main/.github/workflows/release.yaml) for future tags |
+| Registry | Upstream asset (switched from `mirror-tesujimath-bash-env-nushell-0.19.0`) |
+| Layout | `bash-env-nushell-{version}/bash-env.nu` |
+| Outreach | [#50](https://github.com/tesujimath/bash-env-nushell/issues/50), workflow in [#51](https://github.com/tesujimath/bash-env-nushell/pull/51) |
 
 **Key points:**
 
@@ -179,12 +179,14 @@ When a maintainer says yes, PR should include:
 
 | Upstream | Issue/PR | Opened | Response | Upstream asset shipped | Registry switched |
 |----------|----------|--------|----------|------------------------|-------------------|
-| amtoine/nu-git-manager |  |  |  |  | mirror only |
-| tesujimath/bash-env-nushell | [#50](https://github.com/tesujimath/bash-env-nushell/issues/50) | 2026-07-06 | awaiting |  | mirror only |
+| amtoine/nu-git-manager | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
 | nushell-prophet/dotnu | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
 | nushell-prophet/numd | [#115](https://github.com/nushell-prophet/numd/issues/115) | 2026-07-06 | awaiting |  | mirror only |
-| nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
-| nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | awaiting |  | mirror only |
+| nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| SuaveIV/nu_script_wttr |  |  |  |  | mirror only |
+| amtoine/nu-git-manager-sugar | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
+| nushell/nu_scripts (git-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
 
 ---
 
