@@ -1,7 +1,7 @@
 # Registry intake candidates
 
 Running list of packages evaluated for the official Numan registry.
-_Auto-synced 2026-07-07 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
+_Auto-synced 2026-07-11 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
@@ -60,6 +60,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
-| 2026-07-07 | bash-env-nushell moved to ready (upstream asset on 0.19.0; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16)) |
+| 2026-07-10 | Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16)) |
+| 2026-07-06 | Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions) |
 | 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
 | 2026-07-05 | Initial list |
