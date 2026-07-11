@@ -1,0 +1,27 @@
+docs/intake-candidates.md
+  s_1044febd05ebf3::t_e6cdeca7b8666d 4,63-64
+docs/intake-state.json
+  s_1044febd05ebf3::t_3c69c8959b0cd9 241-246
+docs/outreach-issues/README.md
+  s_1044febd05ebf3::t_0dc7a79e1302ab 8
+docs/upstream-release-outreach.md
+  s_1044febd05ebf3::t_49d6374b02ee4e 74,79-82,185-186,189
+registry/index.json
+  s_1044febd05ebf3::t_d51dea0a19bc6f 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "11bcd971c55d5071e72d34abd0bb43c73170ac57",
+  "prompts": {},
+  "sessions": {
+    "s_1044febd05ebf3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3ce1e26d-2e08-4478-92ca-43b8f64b6bea",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    }
+  }
+}
