@@ -38,3 +38,17 @@ jobs:
 
       - name: Run preflight checks
         run: python3 scripts/preflight.py
+
+  numan-parser:
+    name: Parse catalog with Numan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@1.88
+
+      - name: Parse the candidate index with Numan's production parser
+        run: >-
+          cargo run --locked
+          --manifest-path tools/numan-parser-check/Cargo.toml
+          -- registry/index.json

@@ -15,5 +15,8 @@ __pycache__/
 # Local mirror zip build output (uploaded as GitHub release assets)
 /mirrors/
 
+# Isolated build output for the pinned Numan parser compatibility check.
+/tools/numan-parser-check/target/
+
 # Hook runtime artifacts and cache
 /.mrge/

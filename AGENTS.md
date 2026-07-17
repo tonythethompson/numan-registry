@@ -23,10 +23,10 @@ to start — the "application" is the command-line toolchain under `scripts/`.
 
 ### Non-obvious gotchas
 
-- The repo is intentionally in **staging mode**: `registry/index.json.sig` ships a
-  `PLACEHOLDER` signature, so `scripts/validate.py` reports `FAIL: signature ... is
-  still a placeholder` (exit 1) against the committed state. That is expected until
-  the production key is provisioned (see `docs/production-cutover-checklist.md`).
+- The production registry is live. The committed `registry/index.json.sig` still
+  ships a `PLACEHOLDER` because production signing happens only in the protected
+  deployment workflow; GitHub Pages contains the signed production artifact. Do not
+  change that source-tree placeholder or treat it as an unsigned-production fallback.
 - To exercise the full sign→verify path locally, mirror `staging.yml`: generate an
   ephemeral Ed25519 keypair, sign with `scripts/ci-sign.py`, then validate with
   `scripts/validate.py` pointing `--sig`/`--pub` at your temp files. Write these to
