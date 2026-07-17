@@ -1,0 +1,28 @@
+README.md
+  s_31f07daac56a3a::t_5e163883ffe049 9,11
+  s_dbbceab836feee::t_6364eb9e26d995 31-32,77,81-82,84-89,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d1583cacecd44aee2b40e324f313eac1bae13e70",
+  "prompts": {},
+  "sessions": {
+    "s_31f07daac56a3a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "50dc6f04-f298-41f5-bab4-01544f953e2b",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    },
+    "s_dbbceab836feee": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6de1-442c-7240-bf88-60af37237a1b",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    }
+  }
+}
