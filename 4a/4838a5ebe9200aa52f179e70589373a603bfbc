@@ -1,0 +1,31 @@
+.github/workflows/production.yml
+  s_dbbceab836feee::t_42a95628f47957 85-92
+AGENTS.md
+  s_31f07daac56a3a::t_0e0a6fd8bc3f8c 23
+README.md
+  s_dbbceab836feee::t_e9b4db23e3d815 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4a4838a5ebe9200aa52f179e70589373a603bfbc",
+  "prompts": {},
+  "sessions": {
+    "s_31f07daac56a3a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "50dc6f04-f298-41f5-bab4-01544f953e2b",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    },
+    "s_dbbceab836feee": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6de1-442c-7240-bf88-60af37237a1b",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    }
+  }
+}
