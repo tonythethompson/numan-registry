@@ -20,13 +20,14 @@ to start — the "application" is the command-line toolchain under `scripts/`.
 - `python3 scripts/scan_for_secrets.py` — scans git-tracked files for private-key material.
 - `python3 scripts/preflight.py` — key/workflow consistency checks (no network, no secrets).
 - `python3 scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub` — schema + canonical-JSON + Ed25519 signature checks. Add `--skip-artifacts` to avoid network artifact-digest downloads.
+- `cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json` — parse the catalog with Numan's production Rust registry parser (repo-safety + production workflows).
 
 ### Non-obvious gotchas
 
-- The repo is intentionally in **staging mode**: `registry/index.json.sig` ships a
-  `PLACEHOLDER` signature, so `scripts/validate.py` reports `FAIL: signature ... is
-  still a placeholder` (exit 1) against the committed state. That is expected until
-  the production key is provisioned (see `docs/production-cutover-checklist.md`).
+- The production registry is live. The committed `registry/index.json.sig` still
+  ships a `PLACEHOLDER` because production signing happens only in the protected
+  deployment workflow; GitHub Pages contains the signed production artifact. Do not
+  change that source-tree placeholder or treat it as an unsigned-production fallback.
 - To exercise the full sign→verify path locally, mirror `staging.yml`: generate an
   ephemeral Ed25519 keypair, sign with `scripts/ci-sign.py`, then validate with
   `scripts/validate.py` pointing `--sig`/`--pub` at your temp files. Write these to
