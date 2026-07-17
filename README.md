@@ -6,9 +6,9 @@ This repository is **not** the package manager itself. It publishes the signed r
 
 ## Status
 
-The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/) and signed with the `official-2026-07-01` trust root built into Numan.
+The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/). It is signed with the provisioned `official-2026-07-01` trust root (committed in `keys/official.pub` and built into Numan). Clients should use Numan's `official` registry URL, not a checkout of this repo.
 
-This `main` branch is the catalog source. Its committed `registry/index.json.sig` is deliberately a placeholder: the protected production workflow signs the catalog with `NUMAN_REGISTRY_PRIVATE_KEY` and publishes the resulting detached signature to GitHub Pages. Do not use the source-tree signature for an install; use Numan's `official` registry URL.
+This `main` branch is the catalog source. The committed `registry/index.json.sig` remains a deliberate placeholder: real production signatures are created only by the protected production workflow (which holds `NUMAN_REGISTRY_PRIVATE_KEY`) and published to GitHub Pages. Do not treat the source-tree `.sig` as an installable trust artifact.
 
 ## Layout
 
@@ -28,8 +28,8 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 ├── keys/
 │   └── official.pub               # Committed production public key
 ├── registry/
-│   ├── index.json                 # Signed registry index
-│   └── index.json.sig             # Detached signature envelope
+│   ├── index.json                 # Catalog source (signed at publish time)
+│   └── index.json.sig             # Placeholder in-repo; live signed envelope is on GitHub Pages
 ├── schemas/
 │   └── index-v1.json              # JSON schema for index.json
 ├── scripts/
@@ -74,15 +74,22 @@ The registry private key is **never** committed, printed, or handled by coding a
 ## Environments
 
 - **Staging**: deployed automatically from the default branch using an ephemeral CI-generated key. It validates source changes without asserting production trust.
-- **Production**: deployed from `main` only through the protected GitHub Actions environment that requires manual approval and the `NUMAN_REGISTRY_PRIVATE_KEY` secret.
+- **Production**: live. Dispatched from `main` only through the protected GitHub Actions environment that requires manual approval and the provisioned `NUMAN_REGISTRY_PRIVATE_KEY` secret. That workflow parses the catalog with Numan's production parser, signs with the real key, verifies against `keys/official.pub`, and publishes to GitHub Pages.
 
 ## Validation
 
+The committed `registry/index.json.sig` is a placeholder, so validating the source tree against it will fail. To verify the live production artifacts:
+
 ```bash
-python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
+curl -fsSL https://tonythethompson.github.io/numan-registry/index.json -o /tmp/numan-index.json
+curl -fsSL https://tonythethompson.github.io/numan-registry/index.json.sig -o /tmp/numan-index.json.sig
+python scripts/validate.py \
+  --index /tmp/numan-index.json \
+  --sig /tmp/numan-index.json.sig \
+  --pub keys/official.pub
 ```
 
-CI validates the JSON schema, verifies the signed production candidate, downloads and verifies artifact digests for non-fixture entries, and parses the catalog with a pinned revision of Numan's production Rust registry parser.
+CI validates the JSON schema, verifies artifact digests for non-fixture entries, parses the catalog with a pinned revision of Numan's production Rust registry parser, and (on production publish) verifies the freshly signed index against the committed public key.
 
 ## Operations
 
