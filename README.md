@@ -46,7 +46,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
     ├── production.yml             # Deploy production index from protected environment
-    └── repo-safety.yml            # Secret scan + preflight checks on every push/PR
+    └── repo-safety.yml            # Secret scan, preflight, and Numan parser checks on every push/PR
 ```
 
 ## Schema

@@ -82,6 +82,14 @@ jobs:
           print("OK: index schema is valid prior to signing")
           PY
 
+      - uses: dtolnay/rust-toolchain@1.88
+
+      - name: Parse the candidate index with Numan's production parser
+        run: >-
+          cargo run --locked
+          --manifest-path tools/numan-parser-check/Cargo.toml
+          -- registry/index.json
+
       - name: Read key_id from committed public key
         id: key_id
         run: |
