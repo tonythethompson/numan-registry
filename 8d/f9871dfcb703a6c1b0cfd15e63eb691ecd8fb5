@@ -1,0 +1,21 @@
+registry/index.json
+  s_2b89eaf48e0bf9::t_1aea2a3f7227b9 3,849-902
+specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json
+  s_2b89eaf48e0bf9::t_26f7a4f9d5e75c 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "8df9871dfcb703a6c1b0cfd15e63eb691ecd8fb5",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
