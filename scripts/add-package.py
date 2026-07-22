@@ -194,6 +194,35 @@ def check_module_import_mode(spec_artifact, activation):
         sys.exit(1)
 
 
+SOURCE_REQUIRED_KEYS = ("git", "rev", "cargo_name")
+
+
+def copy_source_field(spec, version_entry):
+    """Copy optional `source` provenance onto a version entry.
+
+    Schema (index-v1): required git/rev/cargo_name; optional cargo_lock_sha256.
+    Extracted so unit tests can assert passthrough without downloading artifacts.
+    """
+    if "source" not in spec:
+        return
+    source = spec["source"]
+    if not isinstance(source, dict):
+        print("FAIL: 'source' must be an object with git, rev, and cargo_name")
+        sys.exit(1)
+    missing = [k for k in SOURCE_REQUIRED_KEYS if not source.get(k)]
+    if missing:
+        print(
+            "FAIL: 'source' is missing required field(s): "
+            + ", ".join(missing)
+            + " (need git, rev, cargo_name)"
+        )
+        sys.exit(1)
+    out = {k: source[k] for k in SOURCE_REQUIRED_KEYS}
+    if "cargo_lock_sha256" in source:
+        out["cargo_lock_sha256"] = source["cargo_lock_sha256"]
+    version_entry["source"] = out
+
+
 def build_version_entry(spec):
     version_entry = {
         "version": spec["version"],
@@ -201,6 +230,7 @@ def build_version_entry(spec):
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    copy_source_field(spec, version_entry)
     if "activation" in spec:
         check_module_import_mode(spec["artifact"], spec["activation"])
     version_entry["artifact"] = build_artifact(spec["artifact"])
