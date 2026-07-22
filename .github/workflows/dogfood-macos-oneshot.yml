@@ -1,0 +1,165 @@
+name: One-shot macOS dogfood (Nu 0.113.1)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dogfood:
+    name: macOS arm64 / Nu 0.113.1 official plugins
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Nushell 0.113.1 (aarch64-apple-darwin)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NU_VER=0.113.1
+          NU_ASSET="nu-${NU_VER}-aarch64-apple-darwin.tar.gz"
+          NU_URL="https://github.com/nushell/nushell/releases/download/${NU_VER}/${NU_ASSET}"
+          mkdir -p "$HOME/tools"
+          curl -fsSL -o "/tmp/${NU_ASSET}" "$NU_URL"
+          tar -xzf "/tmp/${NU_ASSET}" -C "$HOME/tools"
+          if [ -x "$HOME/tools/nu-${NU_VER}-aarch64-apple-darwin/nu" ]; then
+            ln -sfn "$HOME/tools/nu-${NU_VER}-aarch64-apple-darwin" "$HOME/tools/nu-${NU_VER}"
+          elif [ -x "$HOME/tools/nu/nu" ]; then
+            ln -sfn "$HOME/tools/nu" "$HOME/tools/nu-${NU_VER}"
+          else
+            NU_BIN=$(find "$HOME/tools" -maxdepth 3 -type f -name nu | head -1)
+            test -n "$NU_BIN"
+            mkdir -p "$HOME/tools/nu-${NU_VER}"
+            cp -a "$(dirname "$NU_BIN")/." "$HOME/tools/nu-${NU_VER}/"
+          fi
+          echo "$HOME/tools/nu-${NU_VER}" >> "$GITHUB_PATH"
+          "$HOME/tools/nu-${NU_VER}/nu" --version
+          test "$("$HOME/tools/nu-${NU_VER}/nu" --version | tr -d '[:space:]')" = "${NU_VER}"
+
+      - name: Install numan 0.1.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          NUMAN_VER=0.1.4
+          ASSET="numan-${NUMAN_VER}-aarch64-apple-darwin.tar.gz"
+          URL="https://github.com/tonythethompson/numan/releases/download/v${NUMAN_VER}/${ASSET}"
+          mkdir -p "$HOME/tools/numan-${NUMAN_VER}"
+          if curl -fsSL -o "/tmp/${ASSET}" "$URL"; then
+            tar -xzf "/tmp/${ASSET}" -C "$HOME/tools/numan-${NUMAN_VER}"
+            NUMAN_BIN=$(find "$HOME/tools/numan-${NUMAN_VER}" -type f -name numan | head -1)
+            if [ -n "$NUMAN_BIN" ]; then
+              mkdir -p "$HOME/tools/numan-bin"
+              cp -f "$NUMAN_BIN" "$HOME/tools/numan-bin/numan"
+              chmod +x "$HOME/tools/numan-bin/numan"
+              echo "$HOME/tools/numan-bin" >> "$GITHUB_PATH"
+            else
+              echo "numan binary not found in release asset; falling back to cargo install"
+              curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+              source "$HOME/.cargo/env"
+              cargo install --locked numan-cli --version "${NUMAN_VER}"
+              echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            fi
+          else
+            echo "Release asset download failed; installing via cargo"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            source "$HOME/.cargo/env"
+            cargo install --locked numan-cli --version "${NUMAN_VER}"
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          hash -r
+          export PATH="$HOME/tools/numan-bin:$HOME/.cargo/bin:$PATH"
+          numan --version
+
+      - name: Prepare NUMAN_ROOT and nushell dirs
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$HOME/tools/nu-0.113.1" >> "$GITHUB_PATH"
+          if [ -d "$HOME/tools/numan-bin" ]; then
+            echo "$HOME/tools/numan-bin" >> "$GITHUB_PATH"
+          fi
+          if [ -d "$HOME/.cargo/bin" ]; then
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          fi
+          export PATH="$HOME/tools/nu-0.113.1:$HOME/tools/numan-bin:$HOME/.cargo/bin:$PATH"
+          DOGROOT="$HOME/numan-dogfood-0.113"
+          rm -rf "$DOGROOT"
+          mkdir -p "$DOGROOT/macos-root"
+          echo "NUMAN_ROOT=${DOGROOT}/macos-root" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.config/nushell"
+          mkdir -p "$HOME/.local/share/nushell/vendor/autoload"
+          mkdir -p "$HOME/Library/Application Support/nushell/vendor/autoload" || true
+          nu --version
+          numan --version
+
+      - name: Run official registry dogfood
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/tools/nu-0.113.1:$HOME/tools/numan-bin:$HOME/.cargo/bin:$PATH"
+          LOG="$HOME/numan-dogfood-0.113/dogfood.log"
+          mkdir -p "$(dirname "$LOG")"
+
+          {
+            echo "=== MACOS DOGFOOD ==="
+            echo "nu=$(nu --version)"
+            echo "numan=$(numan --version)"
+            echo "uname=$(uname -a)"
+            echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "NUMAN_ROOT=${NUMAN_ROOT}"
+
+            rm -rf "$NUMAN_ROOT"
+            mkdir -p "$NUMAN_ROOT"
+            numan init
+            numan registry sync
+
+            dogfood_plugin() {
+              local pkg="$1"
+              local short="$2"
+              echo "----- $pkg -----"
+              numan info "$pkg"
+              numan install "$pkg"
+              numan activate --yes "$pkg"
+              numan doctor || true
+              numan list
+              nu -c "plugin list | where name =~ ${short} | get name"
+              numan remove --force "$pkg"
+              numan gc
+              echo "OK $pkg"
+            }
+
+            dogfood_plugin cptpiepmatz/nu_plugin_highlight highlight
+            dogfood_plugin fdncred/nu_plugin_regex regex
+            dogfood_plugin dead10ck/nu_plugin_dns dns
+
+            echo "----- nutest -----"
+            numan install vyadh/nutest
+            numan activate --yes vyadh/nutest
+            numan doctor || true
+            numan list
+            numan deactivate vyadh/nutest 2>/dev/null || numan remove --force vyadh/nutest
+            numan gc
+            echo "OK vyadh/nutest"
+
+            echo "MACOS_DOGFOOD_OK"
+          } 2>&1 | tee "$LOG"
+
+          grep -q MACOS_DOGFOOD_OK "$LOG"
+
+      - name: Upload dogfood.log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dogfood-macos-log
+          path: /Users/runner/numan-dogfood-0.113/dogfood.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Echo success marker
+        if: ${{ success() }}
+        shell: bash
+        run: echo "MACOS_DOGFOOD_OK"
