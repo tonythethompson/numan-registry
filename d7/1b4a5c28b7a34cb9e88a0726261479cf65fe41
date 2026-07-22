@@ -1,0 +1,21 @@
+registry/index.json
+  s_2b89eaf48e0bf9::t_67f6fff52d5c07 3,795-848
+specs/idanarye-nu_plugin_skim-0.29.1.json
+  s_2b89eaf48e0bf9::t_d470409b7b98fa 1-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d71b4a5c28b7a34cb9e88a0726261479cf65fe41",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
