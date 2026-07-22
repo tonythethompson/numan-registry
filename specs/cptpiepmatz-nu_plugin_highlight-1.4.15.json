@@ -15,6 +15,11 @@
   "verified_with": [
     "0.113.1"
   ],
+  "source": {
+    "git": "https://github.com/cptpiepmatz/nu-plugin-highlight",
+    "rev": "v1.4.15+0.113.1",
+    "cargo_name": "nu_plugin_highlight"
+  },
   "artifact": {
     "kind": "binary",
     "targets": {
