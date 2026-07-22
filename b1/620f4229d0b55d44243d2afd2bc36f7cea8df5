@@ -1,0 +1,31 @@
+docs/intake-candidates.md
+  s_2b89eaf48e0bf9::t_5040b6052156d3 6
+.github/pull_request_template.md
+  s_2b89eaf48e0bf9::t_9406a2cf68c53b 1-15
+README.md
+  s_2b89eaf48e0bf9::t_24a2202cc17227 42,50
+AGENTS.md
+  s_2b89eaf48e0bf9::t_1d703debcc536c 18,24
+.github/workflows/repo-safety.yml
+  s_2b89eaf48e0bf9::t_e474bf3d5bb2b8 55-80
+scripts/lint-manifest-index.py
+  s_2b89eaf48e0bf9::t_0837156eb5f10c 1-188
+scripts/test_lint_manifest_index.py
+  s_2b89eaf48e0bf9::t_95a7753059726b 1-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b1620f4229d0b55d44243d2afd2bc36f7cea8df5",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
