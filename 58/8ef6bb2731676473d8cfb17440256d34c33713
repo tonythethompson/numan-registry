@@ -1,0 +1,19 @@
+registry/index.json
+  s_ae12ad8694742c::t_a75e2f7b875149 3,674,679,684,689,723,728,733,738,773,778,783
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "588ef6bb2731676473d8cfb17440256d34c33713",
+  "prompts": {},
+  "sessions": {
+    "s_ae12ad8694742c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f0df6249-09df-4359-9d67-5c8bfb490fbc",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
