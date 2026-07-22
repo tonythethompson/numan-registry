@@ -1,0 +1,22 @@
+docs/intake-candidates.md
+  s_ae12ad8694742c::t_cf5e327c860542 4
+  s_ae12ad8694742c::t_873d61f382586a 25-27,66
+docs/intake-state.json
+  s_ae12ad8694742c::t_5724130bde1824 80-112,273-276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d31838bac392fba1aa45fafff13f967fa1ea7402",
+  "prompts": {},
+  "sessions": {
+    "s_ae12ad8694742c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f0df6249-09df-4359-9d67-5c8bfb490fbc",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
