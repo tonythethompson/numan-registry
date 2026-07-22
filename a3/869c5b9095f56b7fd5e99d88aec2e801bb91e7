@@ -1,0 +1,19 @@
+scripts/sync-intake-candidates.py
+  s_2b89eaf48e0bf9::t_4d03b8fac6dca5 309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "a3869c5b9095f56b7fd5e99d88aec2e801bb91e7",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
