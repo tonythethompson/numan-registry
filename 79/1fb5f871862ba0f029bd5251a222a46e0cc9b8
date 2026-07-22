@@ -1,0 +1,43 @@
+scripts/test_build_version_entry_source.py
+  s_4c6d6c42f87fd1::t_21d3db5e63e410 1-78
+scripts/add-package.py
+  s_4c6d6c42f87fd1::t_2abd8020faffa5 197-225,233
+specs/cptpiepmatz-nu_plugin_highlight-1.4.15.json
+  s_4c6d6c42f87fd1::t_f23099ad698ba5 18-22
+docs/resign-after-highlight-source-backfill.md
+  s_4c6d6c42f87fd1::t_76deedd0910ddd 1-14
+registry/index.json
+  s_1044febd05ebf3::t_1bdd03ea179b35 669-673
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "791fb5f871862ba0f029bd5251a222a46e0cc9b8",
+  "prompts": {},
+  "sessions": {
+    "s_1044febd05ebf3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3ce1e26d-2e08-4478-92ca-43b8f64b6bea",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    },
+    "s_4c6d6c42f87fd1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "58234566-0c26-44f4-aac4-fdf5ba578975",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    },
+    "s_9c261654b0dd34": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c12dea8c-1fbb-43a3-91c6-8f75c6f78817",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
