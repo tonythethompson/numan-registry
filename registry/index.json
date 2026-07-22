@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-22T04:39:28Z",
+  "updated_at": "2026-07-22T14:58:24Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -787,6 +787,60 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_dns-4.0.10/nu_plugin_dns-4.0.10-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "b394eecbf3f80ab8c7e05c81907a4f5f80ffe5c7d3549ede955d49e35838ee04",
                 "executable_path": "nu_plugin_dns"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "idanarye",
+        "name": "nu_plugin_skim"
+      },
+      "description": "Fuzzy finder (skim) integration for Nushell. CI-built from idanarye/nu_plugin_skim@v0.29.1 and signed under the official trust root.",
+      "repo": "https://github.com/idanarye/nu_plugin_skim",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "skim",
+        "fuzzy",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.29.1",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/idanarye/nu_plugin_skim",
+            "rev": "v0.29.1",
+            "cargo_name": "nu_plugin_skim"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_skim-0.29.1/nu_plugin_skim-0.29.1-aarch64-apple-darwin.tar.gz",
+                "sha256": "febf0db1a99a68a19c035a50117e331a091cc7d7977fe4ce4be33469ca8cc378",
+                "executable_path": "nu_plugin_skim"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_skim-0.29.1/nu_plugin_skim-0.29.1-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "c6c15a78f4f6800b987b4e5be6d7c1a0ab1c68b3b4f6420fdb05dda0bf3dc29c",
+                "executable_path": "nu_plugin_skim"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_skim-0.29.1/nu_plugin_skim-0.29.1-x86_64-pc-windows-msvc.zip",
+                "sha256": "610f457da7ce046741629ecdca1314a1b4a24874ef14b1d3d6df0dbe4710bca3",
+                "executable_path": "nu_plugin_skim.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_skim-0.29.1/nu_plugin_skim-0.29.1-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "2c252279c41c78193e0e0b0c370d6a9464bb8e20d312d940234f3cc527f859c6",
+                "executable_path": "nu_plugin_skim"
               }
             }
           }
