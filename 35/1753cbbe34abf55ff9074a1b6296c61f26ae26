@@ -1,0 +1,37 @@
+AGENTS.md
+  s_2b89eaf48e0bf9::t_04c4b669a8cd3a 38-40
+docs/intake-candidates.md
+  s_2b89eaf48e0bf9::t_de8d7ac35929a3 6
+docs/lifecycle-prove.md
+  s_2b89eaf48e0bf9::t_e36fe722bad9dc 1-35
+scripts/test_lifecycle_prove.py
+  s_2b89eaf48e0bf9::t_c572be3b4c34ef 1-6,8-18,20-80,89,100-105
+  s_2b89eaf48e0bf9::t_73e67938cb7308 81-88,90-99
+  s_2b89eaf48e0bf9::t_b6d68caf0ddb0a 7
+  s_2b89eaf48e0bf9::t_d4ceabb558aaff 19
+README.md
+  s_2b89eaf48e0bf9::t_303d29d1d14d99 25,43
+  s_2b89eaf48e0bf9::t_bfae4590515a47 89-98
+scripts/sync-intake-candidates.py
+  s_2b89eaf48e0bf9::t_6c5f6bc2f2bced 309
+docs/upstream-release-outreach.md
+  s_2b89eaf48e0bf9::t_ba024ff61418f7 172-175
+scripts/lifecycle-prove.py
+  s_2b89eaf48e0bf9::t_254f4bfb71624b 1-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "351753cbbe34abf55ff9074a1b6296c61f26ae26",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
