@@ -1,0 +1,44 @@
+registry/index.json
+  s_1044febd05ebf3::t_cda57bba260ebe 3
+  s_1044febd05ebf3::t_15376a578fa190 647-789
+docs/intake-candidates.md
+  s_1044febd05ebf3::t_5b0bf9d2534f9b 7,12
+specs/cptpiepmatz-nu_plugin_highlight-1.4.15.json
+  s_b04250085234ec::t_5af54b1d32f099 1-39
+specs/dead10ck-nu_plugin_dns-4.0.10.json
+  s_71cc231455aafa::t_e5690c3231c0d6 1-36
+specs/fdncred-nu_plugin_regex-0.22.0.json
+  s_b04250085234ec::t_7954415a294b11 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "a2cadd84881b192b0bb41ce88213219734f533ab",
+  "prompts": {},
+  "sessions": {
+    "s_1044febd05ebf3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3ce1e26d-2e08-4478-92ca-43b8f64b6bea",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    },
+    "s_71cc231455aafa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ebc171a0-06fa-41e4-ac36-b9d374cb1acf",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    },
+    "s_b04250085234ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9153c712-00cc-4b98-abe2-ffc9ffff3370",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "tonythethompson <tonythethompson@hotmail.com>"
+    }
+  }
+}
