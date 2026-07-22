@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-10T19:07:08Z",
+  "updated_at": "2026-07-22T04:39:28Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -641,6 +641,149 @@
             "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-git-completions-f04cb44/git-completions-f04cb44.zip",
             "sha256": "0525a5e018d9de8972b1182fa1c66d000aabe382c80ad10fb0bdf0fd5570e2ad",
             "archive_root": "git-completions-f04cb44"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "cptpiepmatz",
+        "name": "nu_plugin_highlight"
+      },
+      "description": "Syntax highlighting for Nushell values and code. CI-built from cptpiepmatz/nu-plugin-highlight@v1.4.15+0.113.1. Pending official trust-root signing on production publish.",
+      "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "highlight",
+        "syntax",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "1.4.15",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.15/nu_plugin_highlight-1.4.15-aarch64-apple-darwin.tar.gz",
+                "sha256": "e8eb1fbda385bff9e58bd6cace71f4567e5acfdb6920e9ace889eada33ab18d0",
+                "executable_path": "nu_plugin_highlight"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.15/nu_plugin_highlight-1.4.15-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "7c477d546940b5aff0eb03417e596ca76a3c7d70fead4c3dd61ff8d39bafada5",
+                "executable_path": "nu_plugin_highlight"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.15/nu_plugin_highlight-1.4.15-x86_64-pc-windows-msvc.zip",
+                "sha256": "23844c2bb3831e6746285d51646ac57f3d32492b933569e74155bdcc528fc4eb",
+                "executable_path": "nu_plugin_highlight.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.15/nu_plugin_highlight-1.4.15-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "7a5dfa59ba7414be355fab39ce87199813d9c3b98f4a58e27b2c9345f45e7a89",
+                "executable_path": "nu_plugin_highlight"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_regex"
+      },
+      "description": "Search text with regular expressions in Nushell pipelines. CI-built from fdncred/nu_plugin_regex@v0.22.0. Pending official trust-root signing on production publish.",
+      "repo": "https://github.com/fdncred/nu_plugin_regex",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "regex",
+        "text",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.22.0",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.22.0/nu_plugin_regex-0.22.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "fa91611d8d78717f810c5f2816c86448e5d937e676a1dcdfd563366c2a8dfb4e",
+                "executable_path": "nu_plugin_regex"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.22.0/nu_plugin_regex-0.22.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "3d7285d2a2fb23b53236c7328aa7f732a02d0ccd47fd1aa56f9b787efaf3e794",
+                "executable_path": "nu_plugin_regex"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.22.0/nu_plugin_regex-0.22.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "93691902e24635047ca497ecf55b8736179f6e3e9fe9cf5bd0df5dadac4b0e62",
+                "executable_path": "nu_plugin_regex.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.22.0/nu_plugin_regex-0.22.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "e21010b79260f10659864b53ca2c1362afac5c6c111ef475a05d0568fee36238",
+                "executable_path": "nu_plugin_regex"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "dead10ck",
+        "name": "nu_plugin_dns"
+      },
+      "description": "DNS utility for Nushell. CI-built from dead10ck/nu_plugin_dns@v4.0.10. Pending official trust-root signing on production publish. Linux and macOS only for now: upstream's Cargo.lock pulls conflicting windows-sys versions that fail to build against nu-protocol 0.113 on Windows.",
+      "repo": "https://github.com/dead10ck/nu_plugin_dns",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "dns",
+        "network",
+        "ci-built",
+        "no-windows"
+      ],
+      "versions": [
+        {
+          "version": "4.0.10",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_dns-4.0.10/nu_plugin_dns-4.0.10-aarch64-apple-darwin.tar.gz",
+                "sha256": "adffa262c70619ee8c477a552912322ad82f179ee7894cd3864da888e8fd694c",
+                "executable_path": "nu_plugin_dns"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_dns-4.0.10/nu_plugin_dns-4.0.10-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "a3959b052391ba039bfc3370b277c5f5cbe49bdccc354a2454658e4eaa412a61",
+                "executable_path": "nu_plugin_dns"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_dns-4.0.10/nu_plugin_dns-4.0.10-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "b394eecbf3f80ab8c7e05c81907a4f5f80ffe5c7d3549ede955d49e35838ee04",
+                "executable_path": "nu_plugin_dns"
+              }
+            }
           }
         }
       ]

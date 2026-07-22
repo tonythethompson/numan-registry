@@ -77,6 +77,39 @@
       "repo": "https://github.com/tesujimath/bash-env-nushell",
       "spec": "specs/tesujimath-bash-env-nushell-0.19.0.json",
       "pr": 16
+    },
+    {
+      "id": "cptpiepmatz/nu_plugin_highlight",
+      "name": "nu_plugin_highlight",
+      "owner": "cptpiepmatz",
+      "type": "plugin",
+      "version": "1.4.15",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
+      "spec": "specs/cptpiepmatz-nu_plugin_highlight-1.4.15.json"
+    },
+    {
+      "id": "fdncred/nu_plugin_regex",
+      "name": "nu_plugin_regex",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.22.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/fdncred/nu_plugin_regex",
+      "spec": "specs/fdncred-nu_plugin_regex-0.22.0.json"
+    },
+    {
+      "id": "dead10ck/nu_plugin_dns",
+      "name": "nu_plugin_dns",
+      "owner": "dead10ck",
+      "type": "plugin",
+      "version": "4.0.10",
+      "platforms": "linux x64/arm64, macOS arm64 only",
+      "note": "ci-built via numan-plugins; no Windows (upstream build fails on Windows)",
+      "repo": "https://github.com/dead10ck/nu_plugin_dns",
+      "spec": "specs/dead10ck-nu_plugin_dns-4.0.10.json"
     }
   ],
   "mirror": [
@@ -237,6 +270,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-07-21",
+      "change": "Intake CI-built plugins from numan-plugins: cptpiepmatz/nu_plugin_highlight@1.4.15, fdncred/nu_plugin_regex@0.22.0, dead10ck/nu_plugin_dns@4.0.10"
+    },
     {
       "date": "2026-07-10",
       "change": "Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16))"
