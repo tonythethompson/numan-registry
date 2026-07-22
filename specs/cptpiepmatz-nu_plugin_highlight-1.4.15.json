@@ -1,7 +1,7 @@
 {
   "owner": "cptpiepmatz",
   "name": "nu_plugin_highlight",
-  "description": "Syntax highlighting for Nushell values and code. CI-built from cptpiepmatz/nu-plugin-highlight@v1.4.15+0.113.1 and signed under the official trust root.",
+  "description": "Syntax highlighting for Nushell values and code. CI-built from cptpiepmatz/nu-plugin-highlight@v1.4.15+0.113.1. Pending official trust-root signing on production publish.",
   "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
   "type": "plugin",
   "tags": [

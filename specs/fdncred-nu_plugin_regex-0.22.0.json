@@ -1,7 +1,7 @@
 {
   "owner": "fdncred",
   "name": "nu_plugin_regex",
-  "description": "Search text with regular expressions in Nushell pipelines. CI-built from fdncred/nu_plugin_regex@v0.22.0 and signed under the official trust root.",
+  "description": "Search text with regular expressions in Nushell pipelines. CI-built from fdncred/nu_plugin_regex@v0.22.0. Pending official trust-root signing on production publish.",
   "repo": "https://github.com/fdncred/nu_plugin_regex",
   "type": "plugin",
   "tags": [

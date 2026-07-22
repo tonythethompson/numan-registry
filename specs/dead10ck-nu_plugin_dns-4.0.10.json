@@ -1,7 +1,7 @@
 {
   "owner": "dead10ck",
   "name": "nu_plugin_dns",
-  "description": "DNS utility for Nushell. CI-built from dead10ck/nu_plugin_dns@v4.0.10 and signed under the official trust root. Linux and macOS only for now: upstream's Cargo.lock pulls conflicting windows-sys versions that fail to build against nu-protocol 0.113 on Windows.",
+  "description": "DNS utility for Nushell. CI-built from dead10ck/nu_plugin_dns@v4.0.10. Pending official trust-root signing on production publish. Linux and macOS only for now: upstream's Cargo.lock pulls conflicting windows-sys versions that fail to build against nu-protocol 0.113 on Windows.",
   "repo": "https://github.com/dead10ck/nu_plugin_dns",
   "type": "plugin",
   "tags": [
