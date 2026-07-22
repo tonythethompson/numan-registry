@@ -1,0 +1,25 @@
+registry/index.json
+  s_ae12ad8694742c::t_86ddccecfa0f9d 653,702,751
+specs/cptpiepmatz-nu_plugin_highlight-1.4.15.json
+  s_ae12ad8694742c::t_3b003b39f69259 4
+specs/dead10ck-nu_plugin_dns-4.0.10.json
+  s_ae12ad8694742c::t_3f44b5fc8ba109 4
+specs/fdncred-nu_plugin_regex-0.22.0.json
+  s_ae12ad8694742c::t_2af66514f9e000 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0c8b2f6234693ed1b95832ad5d370c0d7577b697",
+  "prompts": {},
+  "sessions": {
+    "s_ae12ad8694742c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "f0df6249-09df-4359-9d67-5c8bfb490fbc",
+        "model": "unknown"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
