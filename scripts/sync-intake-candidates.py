@@ -306,7 +306,7 @@ def render_intake_doc(
         "Running list of packages evaluated for the official Numan registry.",
         f"_Auto-synced {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._",
         "",
-        "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
+        "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, run Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`) on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
         "",
         f"**Currently in registry:** {registry_line}.",
         "",
