@@ -1,0 +1,19 @@
+.github/workflows/dogfood-macos-oneshot.yml
+  s_b924a6cec62e32::t_d1026fbd641272 1-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "bacc4b422e82c1f61bdd50f59aacb6379a3b629d",
+  "prompts": {},
+  "sessions": {
+    "s_b924a6cec62e32": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7858a0d1-d6cc-484c-aca9-f8e865813f91",
+        "model": "unknown"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
