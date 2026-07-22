@@ -2,6 +2,11 @@ name: One-shot macOS dogfood (Nu 0.113.1)
 
 on:
   workflow_dispatch:
+  # PR trigger: main is protected, so dispatch registration on main is blocked.
+  # Open a PR to run this oneshot; do not merge.
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
