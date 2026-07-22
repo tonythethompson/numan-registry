@@ -306,7 +306,7 @@ def render_intake_doc(
         "Running list of packages evaluated for the official Numan registry.",
         f"_Auto-synced {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._",
         "",
-        "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. For CI-built plugins from `numan-plugins`, keep `nu_version` in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
+        "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
         "",
         f"**Currently in registry:** {registry_line}.",
         "",
