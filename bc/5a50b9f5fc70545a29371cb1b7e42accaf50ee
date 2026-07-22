@@ -1,0 +1,23 @@
+scripts/lint-manifest-index.py
+  s_2b89eaf48e0bf9::t_deae236933553c 9,42-43,45,53-64,68-75,77-84,90-91,97-98,103-110,112,114,119-123,136,152,183,185-186,193-199
+.github/workflows/repo-safety.yml
+  s_2b89eaf48e0bf9::t_9b46c0af8ed9a4 60-62,64,68,72
+scripts/test_lint_manifest_index.py
+  s_2b89eaf48e0bf9::t_5917291b61ba51 8,20,27,51,54,78,80,97,100,104-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "bc5a50b9f5fc70545a29371cb1b7e42accaf50ee",
+  "prompts": {},
+  "sessions": {
+    "s_2b89eaf48e0bf9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0c938dcd-4797-4f21-84dc-089f6a387dca",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
