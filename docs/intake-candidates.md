@@ -1,11 +1,7 @@
 # Registry intake candidates
 
 Running list of packages evaluated for the official Numan registry.
-<<<<<<< HEAD
-_Auto-synced 2026-07-11 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
-=======
-_Auto-synced 2026-07-12 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
->>>>>>> ec55bcc (registry: add CI-built highlight, regex, and dns plugins)
+_Auto-synced 2026-07-22 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, or `.tar` (not `.tar.xz`); prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
@@ -26,6 +22,9 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 | [`alex-kattathra-johnson/nu_plugin_ws`](https://github.com/alex-kattathra-johnson/nu_plugin_ws) | plugin | v1.0.6 | linux, macOS, Windows (full matrix, `.tar.gz` + `.zip`) | live (upstream asset) |
 | [`Trivernis/nu-plugin-dialog`](https://github.com/Trivernis/nu-plugin-dialog) | plugin | v0.1.0 | Windows x64 zip only | live (upstream asset) — Windows-only |
 | [`tesujimath/bash-env-nushell`](https://github.com/tesujimath/bash-env-nushell) | module | v0.19.0 | all platforms (`.zip` archive — platform-agnostic Nu module) | live (upstream asset) |
+| [`cptpiepmatz/nu_plugin_highlight`](https://github.com/cptpiepmatz/nu-plugin-highlight) | plugin | v1.4.15 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (upstream asset) — ci-built via numan-plugins |
+| [`fdncred/nu_plugin_regex`](https://github.com/fdncred/nu_plugin_regex) | plugin | v0.22.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (upstream asset) — ci-built via numan-plugins |
+| [`dead10ck/nu_plugin_dns`](https://github.com/dead10ck/nu_plugin_dns) | plugin | v4.0.10 | linux x64/arm64, macOS arm64 only | live (upstream asset) — ci-built via numan-plugins; no Windows (upstream build fails on Windows) |
 
 ---
 
@@ -64,6 +63,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Intake CI-built plugins from numan-plugins: cptpiepmatz/nu_plugin_highlight@1.4.15, fdncred/nu_plugin_regex@0.22.0, dead10ck/nu_plugin_dns@4.0.10 |
 | 2026-07-10 | Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16)) |
 | 2026-07-06 | Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions) |
 | 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
