@@ -39,6 +39,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 │   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
 │   ├── scan_for_secrets.py            # CI scan for probable private-key material
 │   ├── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
+│   ├── lint-manifest-index.py         # Fail if numan-plugins manifest Nu range ≠ index (when both known)
 │   ├── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
 │   └── sync-intake-candidates.py      # Regenerate intake-candidates.md from state + gh
 ├── tools/
@@ -46,7 +47,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 └── .github/workflows/
     ├── staging.yml                # Deploy staging index with ephemeral key
     ├── production.yml             # Deploy production index from protected environment
-    └── repo-safety.yml            # Secret scan, preflight, and Numan parser checks on every push/PR
+    └── repo-safety.yml            # Secret scan, preflight, Numan parser, manifest↔index Nu lint
 ```
 
 ## Schema
