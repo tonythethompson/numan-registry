@@ -169,10 +169,11 @@ When a maintainer says yes, PR should include:
 ## After upstream ships
 
 1. Add spec with upstream URL → `scripts/add-package.py --spec … --write`
-2. Prove on a clean root: `python scripts/lifecycle-prove.py --package owner/name` (see [lifecycle-prove.md](lifecycle-prove.md))
-3. Keep mirror version in index **or** deprecate after one release cycle
-4. Update `docs/intake-state.json` — move from mirror to ready-now, then run `python scripts/sync-intake-candidates.py` to regenerate
-5. Comment on upstream issue with brief thanks (no registry internals)
+2. The package **must be staged or published** in the configured registry before running lifecycle-prove, unless a registry-target override is added
+3. Prove on a clean root: `python scripts/lifecycle-prove.py --package owner/name` (see [lifecycle-prove.md](lifecycle-prove.md))
+4. Keep mirror version in index **or** deprecate after one release cycle
+5. Update `docs/intake-state.json` — move from mirror to ready-now, then run `python scripts/sync-intake-candidates.py` to regenerate
+6. Comment on upstream issue with brief thanks (no registry internals)
 
 ---
 

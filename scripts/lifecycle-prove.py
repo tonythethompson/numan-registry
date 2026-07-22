@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.12
 """Run Stage 1 lifecycle-prove for a registry package against a real Nu.
 
 Given a package id (`owner/name`) and paths to `numan` + `nu`, creates a
@@ -48,6 +48,8 @@ def resolve_binary(explicit: Path | None, names: list[str], label: str) -> Path:
         path = explicit
         if not path.is_file():
             raise FileNotFoundError(f"{label} not found: {path}")
+        if not os.access(path, os.X_OK):
+            raise FileNotFoundError(f"{label} is not executable: {path}")
         return path.resolve()
     for name in names:
         found = which(name)
@@ -56,6 +58,25 @@ def resolve_binary(explicit: Path | None, names: list[str], label: str) -> Path:
     raise FileNotFoundError(
         f"{label} not found on PATH (tried {', '.join(names)}); pass --{label}"
     )
+
+
+def validate_package_id(package_id: str) -> None:
+    """Validate package ID has exactly owner/name format (two non-empty components).
+
+    Raises ValueError if the package_id is malformed.
+    """
+    if "/" not in package_id:
+        raise ValueError(f"package id must be owner/name, got {package_id!r}")
+    parts = package_id.split("/")
+    if len(parts) != 2:
+        raise ValueError(
+            f"package id must have exactly two components (owner/name), got {package_id!r}"
+        )
+    owner, name = parts
+    if not owner:
+        raise ValueError(f"package id has empty owner: {package_id!r}")
+    if not name:
+        raise ValueError(f"package id has empty name: {package_id!r}")
 
 
 def package_search_query(package_id: str) -> str:
@@ -109,29 +130,45 @@ def prove(
     root: Path,
     keep_root: bool,
 ) -> int:
-    if "/" not in package_id:
-        print(
-            f"error: package id must be owner/name, got {package_id!r}",
-            file=sys.stderr,
-        )
-        return 2
-
     # Prefer the requested Nu for `numan init` probing without mutating the
-    # caller's shell permanently: prepend its directory for child processes.
+    # caller's shell permanently: create a temporary shim that invokes the
+    # exact nu binary, ensuring numan doesn't find a different nu on PATH.
     env = os.environ.copy()
     env["NUMAN_ROOT"] = str(root)
-    nu_dir = str(nu.parent)
-    path_key = "PATH"
-    sep = os.pathsep
-    env[path_key] = nu_dir + sep + env.get(path_key, "")
 
-    print(f"package: {package_id}")
-    print(f"numan:   {numan}")
-    print(f"nu:      {nu}")
-    print(f"root:    {root}")
-    print(flush=True)
+    # Create a temporary directory for the nu shim
+    shim_dir = Path(tempfile.mkdtemp(prefix="numan-lifecycle-prove-shim-"))
+    is_windows = sys.platform == "win32"
+    shim_name = "nu.exe" if is_windows else "nu"
+    shim_path = shim_dir / shim_name
 
     try:
+        # Write a shim script that invokes the exact nu binary
+        if is_windows:
+            # Windows batch script
+            shim_path.write_text(
+                f'@echo off\n"{nu}" %*\n',
+                encoding="utf-8",
+            )
+        else:
+            # Unix shell script
+            shim_path.write_text(
+                f'#!/bin/sh\nexec "{nu}" "$@"\n',
+                encoding="utf-8",
+            )
+            shim_path.chmod(0o755)
+
+        # Prepend the shim directory to PATH
+        path_key = "PATH"
+        sep = os.pathsep
+        env[path_key] = str(shim_dir) + sep + env.get(path_key, "")
+
+        print(f"package: {package_id}")
+        print(f"numan:   {numan}")
+        print(f"nu:      {nu}")
+        print(f"root:    {root}")
+        print(flush=True)
+
         for step in build_steps(package_id):
             result = run_step(step, numan=numan, root=root, env=env)
             if result.returncode != 0:
@@ -144,6 +181,9 @@ def prove(
         print("OK: lifecycle-prove passed.")
         return 0
     finally:
+        # Clean up shim directory
+        shutil.rmtree(shim_dir, ignore_errors=True)
+
         if keep_root:
             print(f"kept root at {root}")
         else:
@@ -188,6 +228,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        validate_package_id(args.package.strip())
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    try:
         numan = resolve_binary(
             args.numan,
             ["numan", "numan.exe"],
@@ -200,7 +246,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.root is not None:
         root = args.root.resolve()
-        root.mkdir(parents=True, exist_ok=True)
+        if root.exists():
+            if not root.is_dir():
+                print(f"error: --root exists but is not a directory: {root}", file=sys.stderr)
+                return 2
+            # Reject non-empty existing directories
+            if any(root.iterdir()):
+                print(f"error: --root directory must be empty: {root}", file=sys.stderr)
+                return 2
+        else:
+            # Create the directory if it doesn't exist
+            root.mkdir(parents=True, exist_ok=True)
         # Never delete a caller-supplied root.
         keep_root = True
     else:

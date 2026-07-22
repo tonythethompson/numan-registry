@@ -88,7 +88,10 @@ CI validates the JSON schema, verifies the signed production candidate, download
 
 ## Intake prove (Stage 1)
 
-After `add-package.py --write`, prove the package on a clean root with a real Nu that matches its constraint:
+After `add-package.py --write`, the package **must be staged or published** in the
+configured registry before running `scripts/lifecycle-prove.py`, unless a
+registry-target override is added. Prove the package on a clean root with a real
+Nu that matches its constraint:
 
 ```bash
 python scripts/lifecycle-prove.py --package owner/name --numan /path/to/numan --nu /path/to/nu
