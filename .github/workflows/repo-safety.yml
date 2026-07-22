@@ -52,3 +52,29 @@ jobs:
           cargo run --locked
           --manifest-path tools/numan-parser-check/Cargo.toml
           -- registry/index.json
+
+  manifest-index-lint:
+    name: Lint manifest vs index Nu constraints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: tonythethompson/numan-plugins
+          path: numan-plugins
+          sparse-checkout: |
+            manifest.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Unit test lint script
+        run: python3 scripts/test_lint_manifest_index.py
+
+      - name: Compare numan-plugins manifest to registry index
+        run: >-
+          python3 scripts/lint-manifest-index.py
+          --index registry/index.json
+          --manifest numan-plugins/manifest.json
