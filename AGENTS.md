@@ -15,12 +15,13 @@ to start — the "application" is the command-line toolchain under `scripts/`.
   list lives in the CI workflows (`.github/workflows/staging.yml`,
   `production.yml`) and is `cryptography jsonschema`.
 
-### Checks CI runs (there is no lint step)
+### Checks CI runs
 
 - `python3 scripts/scan_for_secrets.py` — scans git-tracked files for private-key material.
 - `python3 scripts/preflight.py` — key/workflow consistency checks (no network, no secrets).
 - `python3 scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub` — schema + canonical-JSON + Ed25519 signature checks. Add `--skip-artifacts` to avoid network artifact-digest downloads.
 - `cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json` — parse the catalog with Numan's production Rust registry parser (repo-safety + production workflows).
+- `python3 scripts/lint-manifest-index.py --index registry/index.json --manifest <numan-plugins/manifest.json>` — Stage 2 gate: fail when an `active[]` plugin's `nu_version` disagrees with the same owner/name/version in the index (repo-safety).
 
 ### Non-obvious gotchas
 
