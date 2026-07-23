@@ -139,7 +139,7 @@ def prove(
     # Create a temporary directory for the nu shim
     shim_dir = Path(tempfile.mkdtemp(prefix="numan-lifecycle-prove-shim-"))
     is_windows = sys.platform == "win32"
-    shim_name = "nu.exe" if is_windows else "nu"
+    shim_name = "nu.cmd" if is_windows else "nu"
     shim_path = shim_dir / shim_name
 
     try:
@@ -147,7 +147,7 @@ def prove(
         if is_windows:
             # Windows batch script
             shim_path.write_text(
-                f'@echo off\n"{nu}" %*\n',
+                f'`@echo` off\n"{nu}" %*\n',
                 encoding="utf-8",
             )
         else:
