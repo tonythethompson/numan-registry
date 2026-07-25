@@ -22,6 +22,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 │   ├── intake-candidates.md           # Running intake list (auto-synced; edit intake-state.json)
 │   ├── intake-state.json              # Machine-readable intake catalog (source for sync)
 │   ├── upstream-release-outreach.md   # Outreach plan + tracker (tracker auto-synced)
+│   ├── lifecycle-prove.md             # Stage 1: scripted search→…→gc against real Nu
 │   └── outreach-issues/               # Copy-paste GitHub issue drafts for upstream contact
 ├── .cursor/
 │   └── hooks.json                     # Agent hooks: auto-sync intake docs after edits/gh/stop
@@ -39,6 +40,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 │   ├── preflight.py                   # Key/workflow consistency checks (no secrets, no network)
 │   ├── scan_for_secrets.py            # CI scan for probable private-key material
 │   ├── add-package.py                 # Scaffold a package entry from a spec (computes sha256, never hand-typed)
+│   ├── lifecycle-prove.py             # Stage 1 acceptance: prove a package on a clean root + real Nu
 │   ├── lint-manifest-index.py         # Fail if numan-plugins manifest Nu range ≠ index (when both known)
 │   ├── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
 │   └── sync-intake-candidates.py      # Regenerate intake-candidates.md from state + gh
@@ -84,6 +86,19 @@ python scripts/validate.py --index registry/index.json --sig registry/index.json
 ```
 
 CI validates the JSON schema, verifies the signed production candidate, downloads and verifies artifact digests for non-fixture entries, and parses the catalog with a pinned revision of Numan's production Rust registry parser.
+
+## Intake prove (Stage 1)
+
+After `add-package.py --write`, the package **must be staged or published** in the
+configured registry before running `scripts/lifecycle-prove.py`, unless a
+registry-target override is added. Prove the package on a clean root with a real
+Nu that matches its constraint:
+
+```bash
+python scripts/lifecycle-prove.py --package owner/name --numan /path/to/numan --nu /path/to/nu
+```
+
+See [docs/lifecycle-prove.md](docs/lifecycle-prove.md).
 
 ## Operations
 

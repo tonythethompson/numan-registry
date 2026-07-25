@@ -36,5 +36,8 @@ to start — the "application" is the command-line toolchain under `scripts/`.
 - `scripts/add-package.py` downloads each artifact to compute its sha256, so it
   needs network for real specs; its guardrails (missing fields, `kind: source`,
   unsupported archive suffixes) fail fast before any download.
+- `scripts/lifecycle-prove.py` needs network plus a real `numan` and `nu` on
+  PATH (or `--numan` / `--nu`). It is a maintainer Stage 1 gate, not a
+  repo-safety CI job. See `docs/lifecycle-prove.md`.
 - Never commit private-key material. `*.key`, `*.pem`, `*_private_key*` etc. are
   gitignored and the secret scanner will fail CI if they are force-added.
