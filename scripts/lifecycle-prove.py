@@ -45,8 +45,6 @@ def which(name: str) -> Path | None:
 
 def resolve_binary(explicit: Path | None, names: list[str], label: str) -> Path:
     if explicit is not None:
-def resolve_binary(explicit: Path | None, names: list[str], label: str) -> Path:
-    if explicit is not None:
         path = explicit
         if not path.is_file() or not os.access(path, os.X_OK):
             raise FileNotFoundError(f"{label} is not executable: {path}")
