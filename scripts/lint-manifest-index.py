@@ -62,9 +62,21 @@ def require_list(value: object, label: str) -> list:
     return value
 
 
-def index_version_map(index: dict) -> dict[tuple[str, str, str], str]:
-    """Map (owner, name, version) -> nu_version from the registry index."""
-    out: dict[tuple[str, str, str], str] = {}
+class _UnknownNuVersion:
+    """Sentinel for index entries with missing or non-string nu_version."""
+    def __repr__(self) -> str:
+        return "<unknown>"
+
+_UNKNOWN_NU_VERSION = _UnknownNuVersion()
+
+
+def index_version_map(index: dict) -> dict[tuple[str, str, str], str | _UnknownNuVersion]:
+    """Map (owner, name, version) -> nu_version from the registry index.
+
+    Returns nu_version strings for valid entries, or _UNKNOWN_NU_VERSION sentinel
+    for entries with missing/malformed nu_version. Raises TypeError on duplicate keys.
+    """
+    out: dict[tuple[str, str, str], str | _UnknownNuVersion] = {}
     packages = require_list(index.get("packages", []), "index.packages")
     for i, pkg in enumerate(packages):
         pkg_obj = require_object(pkg, f"index.packages[{i}]")
@@ -81,9 +93,18 @@ def index_version_map(index: dict) -> dict[tuple[str, str, str], str]:
             nu_version = ver_obj.get("nu_version")
             if not isinstance(version, str) or not version:
                 continue
+
+            key = (owner, name, version)
+            if key in out:
+                raise TypeError(
+                    f"Duplicate index entry for {owner}/{name}@{version} "
+                    f"at index.packages[{i}].versions[{j}]"
+                )
+
             if not isinstance(nu_version, str) or not nu_version:
-                continue
-            out[(owner, name, version)] = nu_version
+                out[key] = _UNKNOWN_NU_VERSION
+            else:
+                out[key] = nu_version
     return out
 
 
@@ -124,6 +145,11 @@ def compare(
         index_nu = versions.get(key)
         if index_nu is None:
             missing.append(f"{label} (manifest nu_version={nu_version!r})")
+            continue
+
+        # If index has unknown nu_version, treat symmetrically to manifest unknown case
+        if isinstance(index_nu, _UnknownNuVersion):
+            unchecked.append(f"{label} (index nu_version unknown)")
             continue
 
         checked.append(label)
