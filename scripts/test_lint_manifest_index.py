@@ -156,6 +156,127 @@ class LintManifestIndexTests(unittest.TestCase):
             )
             self.assertEqual(code, 2)
 
+    def test_index_missing_nu_version_is_unchecked_not_error(self):
+        manifest = {
+            "active": [
+                {
+                    "owner": "acme",
+                    "name": "nu_plugin_x",
+                    "version": "1.0.0",
+                    "nu_version": ">=0.114.0 <0.115.0",
+                }
+            ]
+        }
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0"}  # nu_version key absent
+                    ],
+                }
+            ]
+        }
+        errors, missing, checked, unchecked = self.lint.compare(manifest, index)
+        self.assertEqual(errors, [])
+        self.assertEqual(missing, [])
+        self.assertEqual(checked, [])
+        self.assertEqual(len(unchecked), 1)
+        self.assertIn("acme/nu_plugin_x@1.0.0", unchecked[0])
+        self.assertIn("index nu_version unknown", unchecked[0])
+
+    def test_index_non_string_nu_version_is_unchecked_not_error(self):
+        manifest = {
+            "active": [
+                {
+                    "owner": "acme",
+                    "name": "nu_plugin_x",
+                    "version": "1.0.0",
+                    "nu_version": ">=0.114.0 <0.115.0",
+                }
+            ]
+        }
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0", "nu_version": None}  # non-string nu_version
+                    ],
+                }
+            ]
+        }
+        errors, missing, checked, unchecked = self.lint.compare(manifest, index)
+        self.assertEqual(errors, [])
+        self.assertEqual(missing, [])
+        self.assertEqual(checked, [])
+        self.assertEqual(len(unchecked), 1)
+        self.assertIn("acme/nu_plugin_x@1.0.0", unchecked[0])
+        self.assertIn("index nu_version unknown", unchecked[0])
+
+    def test_index_duplicate_version_raises(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0", "nu_version": ">=0.114.0 <0.115.0"},
+                        {"version": "1.0.0", "nu_version": ">=0.113.0 <0.114.0"},
+                    ],
+                }
+            ]
+        }
+        with self.assertRaises(TypeError) as ctx:
+            self.lint.index_version_map(index)
+        self.assertIn("Duplicate", str(ctx.exception))
+        self.assertIn("acme/nu_plugin_x@1.0.0", str(ctx.exception))
+
+    def test_index_duplicate_across_packages_raises(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0", "nu_version": ">=0.114.0 <0.115.0"}
+                    ],
+                },
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0", "nu_version": ">=0.113.0 <0.114.0"}
+                    ],
+                },
+            ]
+        }
+        with self.assertRaises(TypeError) as ctx:
+            self.lint.index_version_map(index)
+        self.assertIn("Duplicate", str(ctx.exception))
+        self.assertIn("acme/nu_plugin_x@1.0.0", str(ctx.exception))
+
+    def test_main_index_duplicate_exit_2(self):
+        manifest = {"active": []}
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_x"},
+                    "versions": [
+                        {"version": "1.0.0", "nu_version": ">=0.114.0 <0.115.0"},
+                        {"version": "1.0.0", "nu_version": ">=0.113.0 <0.114.0"},
+                    ],
+                }
+            ]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            man_path = root / "manifest.json"
+            idx_path = root / "index.json"
+            man_path.write_text(json.dumps(manifest), encoding="utf-8")
+            idx_path.write_text(json.dumps(index), encoding="utf-8")
+            code = self.lint.main(
+                ["--index", str(idx_path), "--manifest", str(man_path)]
+            )
+            self.assertEqual(code, 2)
+
     def test_main_with_temp_files(self):
         manifest = {
             "active": [

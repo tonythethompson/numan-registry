@@ -64,6 +64,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: tonythethompson/numan-plugins
+          ref: e8836a6b5202e870fed9093dbc13e1faa23c108f # reviewed manifest from numan-plugins PR #2
           path: numan-plugins
           persist-credentials: false
           sparse-checkout: |
