@@ -44,6 +44,7 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertIn("environment: production", publish)
         self.assertIn("contents: write", publish)
         self.assertIn("secrets.NUMAN_REGISTRY_PRIVATE_KEY", publish)
+        self.assertNotIn("--allow-provisional-lifecycle", text)
         for command in (
             "scan_for_secrets.py",
             "preflight.py",
@@ -62,6 +63,21 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertNotIn("contents: write", validate)
         self.assertIn("needs: validate", publish)
         self.assertIn("contents: write", publish)
+
+    def test_signing_values_are_passed_as_data_not_shell_templates(self):
+        production = (WORKFLOWS / "production.yml").read_text(encoding="utf-8")
+        production_publish = job_block(production, "sign-and-publish")
+        self.assertIn("PRODUCTION_KEY_ID: ${{ steps.key_id.outputs.key_id }}", production_publish)
+        self.assertIn('--key-id "${PRODUCTION_KEY_ID}"', production_publish)
+        self.assertNotIn('--key-id "${{ steps.key_id.outputs.key_id }}"', production_publish)
+        self.assertIn("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$", production_publish)
+
+        staging = (WORKFLOWS / "staging.yml").read_text(encoding="utf-8")
+        staging_validate = job_block(staging, "validate", "publish")
+        self.assertIn('STAGING_PUB="${RUNNER_TEMP}/staging-key.pub.json"', staging_validate)
+        self.assertIn("trap 'rm -f \"${STAGING_PUB}\"' EXIT", staging_validate)
+        self.assertIn("--allow-provisional-lifecycle", staging_validate)
+        self.assertNotIn('--priv-b64 "${{ steps.sign.outputs.private_key }}"', staging_validate)
 
     def test_lifecycle_tests_run_on_windows_and_ubuntu(self):
         text = (WORKFLOWS / "repo-safety.yml").read_text(encoding="utf-8")

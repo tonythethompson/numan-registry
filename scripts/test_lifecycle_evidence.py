@@ -7,8 +7,10 @@ import copy
 import importlib.util
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import jsonschema
 
@@ -78,7 +80,9 @@ class LifecycleEvidenceTests(unittest.TestCase):
                 "exact Nu version"
             ],
         )
-        self.assert_schema_rejects(pkg)
+        # Schema permits a provisional staging shape; production validation
+        # supplies the promotion gate.
+        jsonschema.validate(self.index(pkg), self.schema)
 
     def test_explicitly_activated_module_requires_evidence(self):
         pkg = package("module", activation=True)
@@ -89,7 +93,7 @@ class LifecycleEvidenceTests(unittest.TestCase):
                 "exact Nu version"
             ],
         )
-        self.assert_schema_rejects(pkg)
+        jsonschema.validate(self.index(pkg), self.schema)
 
     def test_install_only_package_does_not_require_evidence(self):
         pkg = package("script", activation=False)
@@ -158,6 +162,14 @@ class LifecycleEvidenceTests(unittest.TestCase):
         }
         with self.assertRaises(SystemExit):
             self.add_package.validate_spec(spec)
+        self.add_package.validate_spec(spec, allow_provisional=True)
+        self.assertEqual(
+            self.validate.lifecycle_evidence_errors(
+                self.index(package("plugin", activation=False)),
+                allow_missing=True,
+            ),
+            [],
+        )
         valid = copy.deepcopy(spec)
         valid["verified_with"] = ["0.114.1"]
         self.add_package.validate_spec(valid)
@@ -166,6 +178,29 @@ class LifecycleEvidenceTests(unittest.TestCase):
         invalid["verified_with"] = ["0.113.1"]
         with self.assertRaises(SystemExit):
             self.add_package.validate_spec(invalid)
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(invalid, allow_provisional=True)
+
+    def test_schema_failure_skips_lifecycle_traversal(self):
+        malformed = {
+            "schema_version": 1,
+            "updated_at": "2026-07-29T00:00:00Z",
+            "packages": [None],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            index_path = Path(tmp) / "index.json"
+            index_path.write_text(json.dumps(malformed), encoding="utf-8")
+            argv = [
+                "validate.py",
+                "--index",
+                str(index_path),
+                "--schema",
+                str(ROOT / "schemas" / "index-v1.json"),
+                "--skip-signature",
+                "--skip-artifacts",
+            ]
+            with mock.patch.object(sys, "argv", argv):
+                self.assertEqual(self.validate.main(), 1)
 
 
 if __name__ == "__main__":

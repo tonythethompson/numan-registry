@@ -143,7 +143,7 @@ def download_and_verify(url, expected_sha256):
     return True, "ok"
 
 
-def lifecycle_evidence_errors(index):
+def lifecycle_evidence_errors(index, *, allow_missing=False):
     """Return invalid or incompatible lifecycle-evidence records."""
     errors = []
     for package in index.get("packages", []):
@@ -151,6 +151,8 @@ def lifecycle_evidence_errors(index):
         for version in package.get("versions", []):
             activatable = package.get("type") == "plugin" or "activation" in version
             if not activatable:
+                continue
+            if allow_missing and "verified_with" not in version:
                 continue
             evidence = version.get("verified_with")
             evidence_error = lifecycle_evidence_error(
@@ -175,6 +177,14 @@ def main():
     )
     parser.add_argument("--skip-artifacts", action="store_true", help="Skip artifact digest verification")
     parser.add_argument("--strict-artifacts", action="store_true", help="Fail on fixture URLs that cannot be downloaded")
+    parser.add_argument(
+        "--allow-provisional-lifecycle",
+        action="store_true",
+        help=(
+            "Allow missing verified_with for staging only; malformed or "
+            "incompatible evidence still fails"
+        ),
+    )
     args = parser.parse_args()
 
     errors = []
@@ -187,16 +197,25 @@ def main():
         return 1
 
     # Schema validation
+    schema_valid = True
     try:
         validate_schema(index, args.schema)
         print("OK: schema validation passed")
     except Exception as exc:
         print(f"FAIL: schema validation: {exc}")
         errors.append("schema")
+        schema_valid = False
 
-    for evidence_error in lifecycle_evidence_errors(index):
-        print(f"FAIL: {evidence_error}")
-        errors.append(f"lifecycle_evidence:{evidence_error}")
+    if schema_valid:
+        evidence_errors = lifecycle_evidence_errors(
+            index,
+            allow_missing=args.allow_provisional_lifecycle,
+        )
+        for evidence_error in evidence_errors:
+            print(f"FAIL: {evidence_error}")
+            errors.append(f"lifecycle_evidence:{evidence_error}")
+        if args.allow_provisional_lifecycle and not evidence_errors:
+            print("OK: provisional lifecycle evidence is allowed for staging")
 
     # schema_version check
     if index.get("schema_version") != 1:

@@ -43,11 +43,15 @@ jobs:
           PY
       - name: Sign and validate staging candidate
         shell: bash
+        env:
+          STAGING_PRIVATE_KEY: ${{ steps.sign.outputs.private_key }}
+          STAGING_PUBLIC_KEY: ${{ steps.sign.outputs.public_key }}
         run: |
-          python scripts/ci-sign.py --index registry/index.json --sig registry/index.json.sig --key-id staging-ephemeral --priv-b64 "${{ steps.sign.outputs.private_key }}"
-          printf '%s' '{"key_id":"staging-ephemeral","public_key_b64":"${{ steps.sign.outputs.public_key }}"}' > staging-key.pub.json
-          python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub staging-key.pub.json --schema schemas/index-v1.json --skip-artifacts
-          rm -f staging-key.pub.json
+          STAGING_PUB="${RUNNER_TEMP}/staging-key.pub.json"
+          trap 'rm -f "${STAGING_PUB}"' EXIT
+          python scripts/ci-sign.py --index registry/index.json --sig registry/index.json.sig --key-id staging-ephemeral --priv-b64 "${STAGING_PRIVATE_KEY}"
+          printf '{"key_id":"staging-ephemeral","public_key_b64":"%s"}' "${STAGING_PUBLIC_KEY}" > "${STAGING_PUB}"
+          python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub "${STAGING_PUB}" --schema schemas/index-v1.json --skip-artifacts --allow-provisional-lifecycle
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         with:

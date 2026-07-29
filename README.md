@@ -97,10 +97,12 @@ CI validates the JSON schema, verifies the signed production candidate, download
 
 ## Intake prove (Stage 1)
 
-After `add-package.py --write`, the package **must be staged or published** in the
-configured registry before running `scripts/lifecycle-prove.py`, unless a
-registry-target override is added. Prove the package on a clean root with a real
-Nu that matches its constraint:
+For an activatable package without evidence yet, use `add-package.py
+--provisional --write` and stage that candidate. Staging permits an omitted
+`verified_with`; production does not. After lifecycle-prove succeeds, add the
+exact compatible Nu version(s) to `verified_with`, rerun intake without
+`--provisional`, and only then promote the package. Prove the staged package on
+a clean root with a real Nu that matches its constraint:
 
 ```bash
 python scripts/lifecycle-prove.py --package owner/name --numan /path/to/numan --nu /path/to/nu

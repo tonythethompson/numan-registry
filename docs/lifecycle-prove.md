@@ -1,10 +1,12 @@
 # Lifecycle-prove (Stage 1 intake gate)
 
-After adding a package to `registry/index.json` (usually via
-`scripts/add-package.py --spec … --write`), the package **must be staged or
-published** in the configured registry before running `scripts/lifecycle-prove.py`,
-unless a registry-target override is added. Prove it on a **clean** Numan root
-against a **real** Nu that matches the package's `nu_version` constraint.
+An activatable package cannot earn lifecycle evidence until it is available to
+Numan. Add it without `verified_with` using `scripts/add-package.py --spec …
+--provisional --write`, then stage that candidate. Staging explicitly permits
+missing evidence; production validation does not. Run lifecycle-prove against
+the staged package on a **clean** Numan root and a **real** Nu matching the
+package's `nu_version` constraint. After success, record the exact version(s) in
+`verified_with`, rerun intake without `--provisional`, and only then promote it.
 
 ## Script
 

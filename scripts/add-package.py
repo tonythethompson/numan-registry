@@ -43,7 +43,9 @@ Spec format (archive artifact, e.g. a module):
 
 For any spec with `activation` (and for every plugin), populate
 `verified_with` only after lifecycle-prove succeeds against those exact,
-compatible Nu versions. Placeholder evidence is rejected by intake.
+compatible Nu versions. To stage an unproved candidate first, omit
+`verified_with` and pass `--provisional`; production validation still rejects
+the entry until genuine evidence replaces the provisional state.
 
 Note: a "mod.nu" entry must use "import": "all". Numan's activation
 imports the entry file directly (`use "<entry>"`), not the containing
@@ -264,7 +266,7 @@ def build_package_entry(spec, version_entry):
     }
 
 
-def validate_spec(spec):
+def validate_spec(spec, *, allow_provisional=False):
     missing = [f for f in REQUIRED_TOP_FIELDS if f not in spec]
     if missing:
         print(f"FAIL: spec is missing required field(s): {', '.join(missing)}")
@@ -276,6 +278,13 @@ def validate_spec(spec):
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
         if evidence_error:
+            if allow_provisional and "verified_with" not in spec:
+                print(
+                    "WARN: allowing provisional activatable intake without "
+                    "lifecycle evidence",
+                    file=sys.stderr,
+                )
+                return
             print(f"FAIL: invalid lifecycle evidence: {evidence_error}")
             sys.exit(1)
 
@@ -339,10 +348,18 @@ def main():
     parser.add_argument("--write", action="store_true", help="Merge into --index instead of just printing")
     parser.add_argument("--index", default=str(REPO_ROOT / "registry" / "index.json"))
     parser.add_argument("--force", action="store_true", help="Allow replacing an existing version")
+    parser.add_argument(
+        "--provisional",
+        action="store_true",
+        help=(
+            "Allow an activatable entry without verified_with for staging and "
+            "lifecycle-prove; production validation will reject it"
+        ),
+    )
     args = parser.parse_args()
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
-    validate_spec(spec)
+    validate_spec(spec, allow_provisional=args.provisional)
 
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
     version_entry = build_version_entry(spec)

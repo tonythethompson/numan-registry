@@ -146,31 +146,10 @@
                     "import": { "type": "string", "enum": ["module", "all"] }
                   }
                 }
-              },
-              "allOf": [
-                {
-                  "if": { "required": ["activation"] },
-                  "then": { "required": ["verified_with"] }
-                }
-              ]
-            }
-          }
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": { "type": { "const": "plugin" } },
-              "required": ["type"]
-            },
-            "then": {
-              "properties": {
-                "versions": {
-                  "items": { "required": ["verified_with"] }
-                }
               }
             }
           }
-        ]
+        }
       }
     }
   }
