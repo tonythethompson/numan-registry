@@ -1,0 +1,31 @@
+schemas/index-v1.json
+  s_6c58868655aae2::t_b917100f58e79f 88-91
+scripts/add-package.py
+  s_6c58868655aae2::t_b917100f58e79f 78-79,273-275
+scripts/validate.py
+  s_6c58868655aae2::t_b917100f58e79f 24-25,147-148,156-162,197-199
+scripts/test_lifecycle_evidence.py
+  s_6c58868655aae2::t_1bba26536334bd 17-18,76-79,87-90,109-111,113-145,165-168
+scripts/nu_version_constraint.py
+  s_6c58868655aae2::t_a742887eb9641f 1-72
+docs/lifecycle-prove.md
+  s_6c58868655aae2::t_1bba26536334bd 40-41
+README.md
+  s_6c58868655aae2::t_1bba26536334bd 113-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e96f4a86130df62630f10214e7373abb111bc584",
+  "prompts": {},
+  "sessions": {
+    "s_6c58868655aae2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fab11-b45b-76c0-9653-39aece85b698",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
