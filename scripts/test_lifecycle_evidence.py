@@ -21,6 +21,16 @@ if str(SCRIPTS) not in sys.path:
 
 
 def load_mod(name: str, filename: str):
+    """
+    Load and return a Python module from a file in the scripts directory.
+    
+    Parameters:
+    	name (str): Name to register for the loaded module.
+    	filename (str): Module filename relative to the scripts directory.
+    
+    Returns:
+    	module: The loaded Python module.
+    """
     spec = importlib.util.spec_from_file_location(name, SCRIPTS / filename)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -30,6 +40,17 @@ def load_mod(name: str, filename: str):
 
 
 def package(package_type: str, *, activation: bool, evidence=None):
+    """
+    Build a package index entry fixture with configurable package type, activation, and verification evidence.
+    
+    Parameters:
+    	package_type (str): The package type to include in the fixture.
+    	activation (bool): Whether to include Nu module activation metadata.
+    	evidence: Verification evidence to include when provided.
+    
+    Returns:
+    	dict: A package index entry containing one version and its artifact metadata.
+    """
     version = {
         "version": "1.0.0",
         "nu_version": ">=0.114.0 <0.115.0",
@@ -56,11 +77,26 @@ def package(package_type: str, *, activation: bool, evidence=None):
 class LifecycleEvidenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        """
+        Load the validation helpers and index schema shared by the test class.
+        
+        Parameters:
+        	cls: The test class receiving the loaded modules and parsed schema.
+        """
         cls.validate = load_mod("validate_lifecycle", "validate.py")
         cls.add_package = load_mod("add_package_lifecycle", "add-package.py")
         cls.schema = json.loads((ROOT / "schemas" / "index-v1.json").read_text())
 
     def index(self, pkg):
+        """
+        Wrap a package entry in a versioned package index structure.
+        
+        Parameters:
+        	pkg: The package entry to include in the index.
+        
+        Returns:
+        	dict: An index containing the schema version, update timestamp, and package entry.
+        """
         return {
             "schema_version": 1,
             "updated_at": "2026-07-29T00:00:00Z",
@@ -68,6 +104,11 @@ class LifecycleEvidenceTests(unittest.TestCase):
         }
 
     def assert_schema_rejects(self, pkg):
+        """Assert that a package causes its wrapped index to fail schema validation.
+        
+        Parameters:
+        	pkg: The package dictionary to validate within the index.
+        """
         with self.assertRaises(jsonschema.ValidationError):
             jsonschema.validate(self.index(pkg), self.schema)
 
@@ -85,6 +126,7 @@ class LifecycleEvidenceTests(unittest.TestCase):
         jsonschema.validate(self.index(pkg), self.schema)
 
     def test_explicitly_activated_module_requires_evidence(self):
+        """Verify that explicitly activated modules require exact Nu-version evidence."""
         pkg = package("module", activation=True)
         self.assertEqual(
             self.validate.lifecycle_evidence_errors(self.index(pkg)),
@@ -101,6 +143,9 @@ class LifecycleEvidenceTests(unittest.TestCase):
         jsonschema.validate(self.index(pkg), self.schema)
 
     def test_nonempty_evidence_passes_validator_and_schema(self):
+        """
+        Verify that valid evidence passes lifecycle and schema validation for plugins and activated modules.
+        """
         for pkg in (
             package("plugin", activation=False, evidence=["0.114.1"]),
             package("module", activation=True, evidence=["0.114.1"]),

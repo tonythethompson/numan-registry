@@ -129,6 +129,16 @@ def is_fixture_url(url):
 
 
 def download_and_verify(url, expected_sha256):
+    """
+    Download content from a URL and verify its SHA-256 digest.
+    
+    Parameters:
+    	url (str): The content URL.
+    	expected_sha256 (str): The expected SHA-256 digest.
+    
+    Returns:
+    	tuple: A success flag and status message.
+    """
     if not expected_sha256:
         return False, "missing expected sha256"
     req = urllib.request.Request(url, method="GET")
@@ -144,7 +154,16 @@ def download_and_verify(url, expected_sha256):
 
 
 def lifecycle_evidence_errors(index, *, allow_missing=False):
-    """Return invalid or incompatible lifecycle-evidence records."""
+    """
+    Validate lifecycle-evidence records for activatable package versions.
+    
+    Parameters:
+    	index (dict): Registry index containing package and version records.
+    	allow_missing (bool): Whether to skip activatable versions without lifecycle evidence.
+    
+    Returns:
+    	list[str]: Error messages for invalid or incompatible lifecycle-evidence records.
+    """
     errors = []
     for package in index.get("packages", []):
         package_id = f"{package['id']['owner']}/{package['id']['name']}"
@@ -165,6 +184,12 @@ def lifecycle_evidence_errors(index, *, allow_missing=False):
 
 
 def main():
+    """
+    Validate the registry index and its associated signatures and artifacts.
+    
+    Returns:
+    	int: `0` if validation succeeds, `1` if any validation step fails.
+    """
     parser = argparse.ArgumentParser(description="Validate the Numan registry index")
     parser.add_argument("--index", default="registry/index.json")
     parser.add_argument("--sig", default="registry/index.json.sig")

@@ -102,6 +102,13 @@ REQUIRED_TOP_FIELDS = (
 VALID_TYPES = ("plugin", "module", "script", "completion")
 
 def check_archive_format_supported(url, label):
+    """
+    Validate that an artifact URL uses an archive format supported by Numan's installer.
+    
+    Parameters:
+    	url (str): Artifact URL to validate.
+    	label (str): Label identifying the artifact in failure messages.
+    """
     lower = url.lower()
     if not any(lower.endswith(suffix) for suffix in SUPPORTED_ARCHIVE_SUFFIXES):
         print(
@@ -243,6 +250,16 @@ def build_version_entry(spec):
 
 
 def build_package_entry(spec, version_entry):
+    """
+    Build the package entry containing package metadata and its version entry.
+    
+    Parameters:
+    	spec (dict): Package specification containing identity, description, repository, type, and optional tags.
+    	version_entry (dict): Version data to include in the package's versions list.
+    
+    Returns:
+    	dict: Package entry with package metadata and the supplied version entry.
+    """
     return {
         "id": {"owner": spec["owner"], "name": spec["name"]},
         "description": spec["description"],
@@ -254,6 +271,16 @@ def build_package_entry(spec, version_entry):
 
 
 def validate_spec(spec, *, allow_provisional=False):
+    """
+    Validate required fields, package type, and lifecycle evidence in a package specification.
+    
+    Parameters:
+        spec (dict): Package specification to validate.
+        allow_provisional (bool): Whether activatable specifications may omit lifecycle evidence.
+    
+    Returns:
+        None
+    """
     missing = [f for f in REQUIRED_TOP_FIELDS if f not in spec]
     if missing:
         print(f"FAIL: spec is missing required field(s): {', '.join(missing)}")
@@ -277,6 +304,12 @@ def validate_spec(spec, *, allow_provisional=False):
 
 
 def validate_against_schema(index):
+    """
+    Validate an index against the registry schema when the JSON Schema dependency is available.
+    
+    Parameters:
+    	index (dict): Registry index object to validate.
+    """
     try:
         import jsonschema
     except ImportError:
@@ -330,6 +363,12 @@ def merge_into_index(index_path, package_entry, force):
 
 
 def main():
+    """
+    Build and optionally merge a registry package entry from a JSON specification.
+    
+    Returns:
+    	int: 0 on successful completion.
+    """
     parser = argparse.ArgumentParser(description="Scaffold a registry package entry from a spec file")
     parser.add_argument("--spec", required=True, help="Path to the package spec JSON file")
     parser.add_argument("--write", action="store_true", help="Merge into --index instead of just printing")

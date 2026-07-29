@@ -14,6 +14,20 @@ ANY_USE = re.compile(r"^\s*-\s+uses:\s+\S+", re.MULTILINE)
 
 
 def job_block(text: str, name: str, next_name: str | None = None) -> str:
+    """
+    Extract a named job section from workflow text.
+    
+    Parameters:
+    	text (str): Workflow YAML content.
+    	name (str): Job name whose section should be extracted.
+    	next_name (str | None): Optional name of the following job that marks the section boundary.
+    
+    Returns:
+    	str: The text spanning the named job section.
+    
+    Raises:
+    	ValueError: If the named job or specified following job is not found.
+    """
     start = text.index(f"  {name}:\n")
     end = text.index(f"  {next_name}:\n", start) if next_name else len(text)
     return text[start:end]
@@ -21,6 +35,7 @@ def job_block(text: str, name: str, next_name: str | None = None) -> str:
 
 class WorkflowSafetyTests(unittest.TestCase):
     def test_every_action_is_pinned_to_full_commit(self):
+        """Verify that every GitHub Actions workflow action references a full commit SHA."""
         for name in ("repo-safety.yml", "staging.yml", "production.yml"):
             text = (WORKFLOWS / name).read_text(encoding="utf-8")
             self.assertEqual(
@@ -57,6 +72,7 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertNotIn("--skip-signature", publish)
 
     def test_staging_write_permission_is_only_in_publish_job(self):
+        """Verify that staging write permission is restricted to the publish job."""
         text = (WORKFLOWS / "staging.yml").read_text(encoding="utf-8")
         validate = job_block(text, "validate", "publish")
         publish = job_block(text, "publish")

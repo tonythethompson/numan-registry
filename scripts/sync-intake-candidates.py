@@ -279,6 +279,18 @@ def render_intake_doc(
     index: dict[str, Any],
     outreach_cache: dict[str, dict[str, str]],
 ) -> str:
+    """
+    Generate the Markdown document listing registry intake candidates and their statuses.
+    
+    Parameters:
+    	state (dict[str, Any]): Intake candidates, blocked packages, and changelog entries.
+    	live (dict[str, dict[str, Any]]): Current package information from the registry.
+    	index (dict[str, Any]): Registry index data used to summarize package versions.
+    	outreach_cache (dict[str, dict[str, str]]): Cached outreach statuses keyed by package identifier.
+    
+    Returns:
+    	str: The rendered intake-candidates Markdown document.
+    """
     pr_nums = {
         e.get("pr")
         for section in ("ready", "mirror")

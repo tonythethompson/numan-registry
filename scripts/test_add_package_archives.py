@@ -21,6 +21,12 @@ from archive_formats import (  # noqa: E402
 
 
 def load_mod():
+    """
+    Load and return the add-package module from its script path.
+    
+    Returns:
+        module: The dynamically loaded add-package module.
+    """
     spec = importlib.util.spec_from_file_location("add_package_archives", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -39,6 +45,7 @@ class FakeResponse:
         return False
 
     def read(self):
+        """Return the response payload as bytes."""
         return self.data
 
 
@@ -48,6 +55,12 @@ class AddPackageArchiveTests(unittest.TestCase):
         cls.mod = load_mod()
 
     def assert_downloaded_archive(self, suffix: str):
+        """
+        Verify that an archive suffix is accepted, downloaded, and hashed correctly.
+        
+        Parameters:
+            suffix (str): Archive filename suffix to test.
+        """
         payload = b"deterministic archive bytes"
         url = f"https://example.invalid/package{suffix}"
         with mock.patch.object(

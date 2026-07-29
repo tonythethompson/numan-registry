@@ -40,12 +40,29 @@ class Step:
 
 
 def which(name: str) -> Path | None:
+    """Locate an executable by name on the system PATH.
+    
+    Parameters:
+    	name (str): The executable name to locate.
+    
+    Returns:
+    	Path | None: The executable path if found, otherwise `None`.
+    """
     found = shutil.which(name)
     return Path(found) if found else None
 
 
 def is_executable(path: Path, *, platform: str | None = None) -> bool:
-    """Apply the executable check appropriate to the target platform."""
+    """
+    Determine whether a path points to an executable file for the target platform.
+    
+    Parameters:
+        path (Path): File path to check.
+        platform (str | None): Platform identifier used for the executable check. Defaults to the current platform.
+    
+    Returns:
+        bool: `True` if the path is an executable file, `False` otherwise.
+    """
     platform = platform or sys.platform
     if not path.is_file():
         return False
@@ -61,6 +78,21 @@ def resolve_binary(
     *,
     platform: str | None = None,
 ) -> Path:
+    """
+    Resolve an executable from an explicit path or a list of names on `PATH`.
+    
+    Parameters:
+        explicit (Path | None): Optional executable path to validate and resolve.
+        names (list[str]): Executable names to search for when no explicit path is provided.
+        label (str): Binary label used in error messages and the suggested CLI option.
+        platform (str | None): Optional platform identifier used for executable validation.
+    
+    Returns:
+        Path: The resolved executable path.
+    
+    Raises:
+        FileNotFoundError: If the explicit path is not executable or no named executable is found.
+    """
     if explicit is not None:
         path = explicit
         if not is_executable(path, platform=platform):
@@ -126,6 +158,18 @@ def run_step(
     root: Path,
     env: dict[str, str],
 ) -> subprocess.CompletedProcess[str]:
+    """
+    Run a lifecycle step with the specified Numan executable and root.
+    
+    Parameters:
+    	step (Step): The lifecycle step and its command-line arguments.
+    	numan (Path): Path to the Numan executable.
+    	root (Path): Numan root directory for the step.
+    	env (dict[str, str]): Environment variables used to run the command.
+    
+    Returns:
+    	subprocess.CompletedProcess[str]: The completed process result.
+    """
     cmd = [str(numan), "--root", str(root), *step.args]
     print(f"==> {step.name}: {' '.join(cmd)}", flush=True)
     return subprocess.run(
@@ -151,7 +195,20 @@ def prepare_nu_search_dir(
     *,
     platform: str | None = None,
 ) -> Path:
-    """Expose the exact selected Nu under the name Numan resolves on PATH."""
+    """
+    Ensure the selected Nu executable is discoverable under the name used by Numan.
+    
+    Parameters:
+        nu (Path): Path to the selected Nu executable.
+        shim_dir (Path): Directory used for Nu PATH isolation.
+    
+    Returns:
+        Path: The directory containing the isolated Nu executable.
+    
+    Raises:
+        ValueError: If Windows is used and `nu` does not have an `.exe` suffix.
+        OSError: If the isolated Windows copy does not match the selected executable.
+    """
     platform = platform or sys.platform
     if platform != "win32":
         return shim_dir
@@ -185,6 +242,23 @@ def prove(
     # Prefer the requested Nu for `numan init` probing without mutating the
     # caller's shell permanently: create a temporary shim that invokes the
     # exact nu binary, ensuring numan doesn't find a different nu on PATH.
+    """
+    Run the complete lifecycle verification sequence for a package.
+    
+    Args:
+        package_id: Package identifier in ``owner/name`` format.
+        numan: Path to the Numan executable.
+        nu: Path to the Nu executable used during initialization.
+        root: Numan root directory for the verification.
+        keep_root: Whether to preserve the root directory after completion.
+    
+    Returns:
+        ``0`` if every lifecycle step succeeds, ``2`` if Nu isolation fails,
+        or the failing step's exit code otherwise.
+    
+    The temporary Nu shim is removed after execution. The root directory is
+    removed unless ``keep_root`` is true.
+    """
     env = os.environ.copy()
     env["NUMAN_ROOT"] = str(root)
 

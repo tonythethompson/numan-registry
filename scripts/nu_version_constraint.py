@@ -15,6 +15,18 @@ MINOR_WILDCARD = re.compile(
 
 
 def parse_exact_nu_version(value: str) -> tuple[int, int, int]:
+    """
+    Parse an exact Nu version into its numeric components.
+    
+    Parameters:
+        value (str): Version in MAJOR.MINOR.PATCH format.
+    
+    Returns:
+        tuple[int, int, int]: The major, minor, and patch components.
+    
+    Raises:
+        ValueError: If value is not an exact Nu version.
+    """
     if not isinstance(value, str) or EXACT_NU_VERSION.fullmatch(value) is None:
         raise ValueError(
             f"{value!r} is not an exact Nu version (expected MAJOR.MINOR.PATCH)"
@@ -23,7 +35,19 @@ def parse_exact_nu_version(value: str) -> tuple[int, int, int]:
 
 
 def matches_nu_constraint(version: str, constraint: str) -> bool:
-    """Match the exact version using the constraint forms understood by Numan."""
+    """
+    Determine whether an exact Nu version satisfies a supported constraint expression.
+    
+    Parameters:
+        version (str): Exact version in `MAJOR.MINOR.PATCH` format.
+        constraint (str): Wildcard, exact-version, comparator, or space-separated constraint expression.
+    
+    Returns:
+        bool: `True` if the version satisfies every constraint, `False` otherwise.
+    
+    Raises:
+        ValueError: If the version or constraint contains an invalid value.
+    """
     candidate = parse_exact_nu_version(version)
     if constraint == "*":
         return True
@@ -60,6 +84,16 @@ def matches_nu_constraint(version: str, constraint: str) -> bool:
 
 
 def lifecycle_evidence_error(constraint: str, evidence) -> str | None:
+    """
+    Validate lifecycle evidence against a Nu version constraint.
+    
+    Parameters:
+        constraint (str): Constraint that each evidence version must satisfy.
+        evidence (list): Exact Nu versions used as lifecycle evidence.
+    
+    Returns:
+        str | None: An error message for missing, invalid, or incompatible evidence; `None` when all evidence satisfies the constraint.
+    """
     if not isinstance(evidence, list) or not evidence:
         return "verified_with must contain at least one exact Nu version"
     for version in evidence:
