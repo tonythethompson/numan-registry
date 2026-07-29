@@ -142,7 +142,18 @@
                     "import": { "type": "string", "enum": ["module", "all"] }
                   }
                 }
-              }
+              },
+              "allOf": [
+                {
+                  "if": { "required": ["activation"] },
+                  "then": {
+                    "required": ["verified_with"],
+                    "properties": {
+                      "verified_with": { "minItems": 1 }
+                    }
+                  }
+                }
+              ]
             }
           }
         }

@@ -173,6 +173,19 @@ def main():
         print(f"FAIL: schema validation: {exc}")
         errors.append("schema")
 
+    # Activatable versions must carry machine-readable lifecycle evidence.
+    for package in index.get("packages", []):
+        for version in package.get("versions", []):
+            if "activation" in version:
+                evidence = version.get("verified_with")
+                if not isinstance(evidence, list) or not evidence or any(
+                    not isinstance(item, str) or not item.strip() for item in evidence
+                ):
+                    print(
+                        "FAIL: activatable version is missing complete verified_with lifecycle evidence"
+                    )
+                    errors.append("lifecycle_evidence")
+
     # schema_version check
     if index.get("schema_version") != 1:
         print(f"FAIL: schema_version must be 1, got {index.get('schema_version')}")
