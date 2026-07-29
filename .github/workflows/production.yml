@@ -8,119 +8,101 @@ on:
         required: true
 
 permissions:
-  contents: write  # required for peaceiris/actions-gh-pages to push the gh-pages branch
+  contents: read
 
 concurrency:
   group: registry-production
   cancel-in-progress: false
 
 jobs:
-  validate-and-publish:
-    name: Validate and publish production registry
-    runs-on: ubuntu-latest
-    environment: production
-    # Belt-and-suspenders alongside the environment's own branch protection
-    # rule (Settings > Environments > production > Deployment branches).
+  validate:
+    name: Validate unsigned production candidate
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
-
-      - name: Install Python dependencies
+      - run: python -m pip install cryptography jsonschema
+      - name: Run no-secret safety validation and artifact digest checks
         run: |
-          python -m pip install --upgrade pip
-          pip install cryptography jsonschema
-
-      - name: Guard against debug tracing
+          python scripts/scan_for_secrets.py
+          python scripts/preflight.py
+          python scripts/validate.py --index registry/index.json --schema schemas/index-v1.json --skip-signature
+      - uses: dtolnay/rust-toolchain@39b0b3842c7e8bbf6904c0bfc3d9006fdd4dc4e0 # 1.88
+      - name: Parse candidate with Numan's production parser
+        run: cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: tonythethompson/numan-plugins
+          ref: eb435983cfd8bed568a3c275ba6518607e904e89 # merged numan-plugins PR #3
+          path: numan-plugins
+          persist-credentials: false
+          sparse-checkout: manifest.json
+      - name: Lint manifest and index
         run: |
-          if [ "${RUNNER_DEBUG:-}" = "1" ] || [ "${STEP_DEBUG_SECRET:-}" = "true" ] || [ "${RUNNER_DEBUG_SECRET:-}" = "true" ]; then
-            echo "FAIL: Debug logging is enabled for this run (RUNNER_DEBUG, or the"
-            echo "      ACTIONS_STEP_DEBUG / ACTIONS_RUNNER_DEBUG secret, is set). Disable"
-            echo "      debug logging before deploying production; it increases the risk"
-            echo "      of secret values or key material being surfaced in the log."
-            exit 1
-          fi
-          echo "OK: debug logging is not enabled for this run"
+          python scripts/test_lint_manifest_index.py
+          python scripts/lint-manifest-index.py --index registry/index.json --manifest numan-plugins/manifest.json
+
+  sign-and-publish:
+    name: Sign and publish production registry
+    needs: validate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      # Required only for actions-gh-pages to publish the signed registry.
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install cryptography jsonschema
+      - name: Guard against debug tracing and require signing secret
+        shell: bash
         env:
-          # RUNNER_DEBUG is the runtime signal GitHub sets when either debug
-          # secret below is enabled. Checked directly too, in case that
-          # propagation ever changes -- belt and suspenders.
           STEP_DEBUG_SECRET: ${{ secrets.ACTIONS_STEP_DEBUG }}
           RUNNER_DEBUG_SECRET: ${{ secrets.ACTIONS_RUNNER_DEBUG }}
-
-      - name: Require production signing secret
+          NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
         run: |
-          if [ -z "${NUMAN_REGISTRY_PRIVATE_KEY}" ]; then
-            echo "FAIL: NUMAN_REGISTRY_PRIVATE_KEY is not set in the production environment."
-            echo "The maintainer must manually provision the production key before deploying."
+          if [ "${RUNNER_DEBUG:-}" = "1" ] || [ "${STEP_DEBUG_SECRET:-}" = "true" ] || [ "${RUNNER_DEBUG_SECRET:-}" = "true" ]; then
+            echo "FAIL: debug logging is enabled; disable it before production signing"
             exit 1
           fi
-          echo "OK: production signing secret is present"
-        env:
-          NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
-
-      - name: Validate index schema before signing
-        run: |
-          python - <<'PY'
-          import json
-          import sys
-
-          import jsonschema
-
-          with open("registry/index.json", "r", encoding="utf-8") as f:
-              index = json.load(f)
-          with open("schemas/index-v1.json", "r", encoding="utf-8") as f:
-              schema = json.load(f)
-
-          jsonschema.validate(index, schema)
-          if index.get("schema_version") != 1:
-              print(f"FAIL: schema_version must be 1, got {index.get('schema_version')}")
-              sys.exit(1)
-          print("OK: index schema is valid prior to signing")
-          PY
-
-      - uses: dtolnay/rust-toolchain@1.88
-
-      - name: Parse the candidate index with Numan's production parser
-        run: >-
-          cargo run --locked
-          --manifest-path tools/numan-parser-check/Cargo.toml
-          -- registry/index.json
-
-      - name: Read key_id from committed public key
+          if [ -z "${NUMAN_REGISTRY_PRIVATE_KEY}" ]; then
+            echo "FAIL: NUMAN_REGISTRY_PRIVATE_KEY is not set in the production environment"
+            exit 1
+          fi
+      - name: Read production key id
         id: key_id
+        shell: bash
         run: |
           KEY_ID=$(python -c "import json; print(json.load(open('keys/official.pub'))['key_id'])")
-          if [ "${KEY_ID}" = "official-placeholder" ]; then
-            echo "FAIL: keys/official.pub is still a placeholder. Provision the production"
-            echo "      key per docs/key-provisioning.md before running this workflow."
+          if [[ ! "${KEY_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]] || [ "${KEY_ID}" = "official-placeholder" ]; then
+            echo "FAIL: keys/official.pub contains an invalid production key id"
             exit 1
           fi
           echo "key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
-
-      - name: Sign production index
-        run: |
-          python scripts/ci-sign.py \
-            --index registry/index.json \
-            --sig registry/index.json.sig \
-            --key-id "${{ steps.key_id.outputs.key_id }}" \
-            --priv-b64 "${NUMAN_REGISTRY_PRIVATE_KEY}"
+      - name: Sign and validate production registry
+        shell: bash
         env:
           NUMAN_REGISTRY_PRIVATE_KEY: ${{ secrets.NUMAN_REGISTRY_PRIVATE_KEY }}
-
-      - name: Validate signed index with committed public key
+          PRODUCTION_KEY_ID: ${{ steps.key_id.outputs.key_id }}
         run: |
-          python scripts/validate.py \
-            --index registry/index.json \
-            --sig registry/index.json.sig \
-            --pub keys/official.pub \
-            --schema schemas/index-v1.json
-
-      - name: Publish to gh-pages root
-        uses: peaceiris/actions-gh-pages@v4
+          if [[ ! "${PRODUCTION_KEY_ID}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]; then
+            echo "FAIL: production key id has an invalid format"
+            exit 1
+          fi
+          python scripts/ci-sign.py --index registry/index.json --sig registry/index.json.sig --key-id "${PRODUCTION_KEY_ID}" --priv-b64 "${NUMAN_REGISTRY_PRIVATE_KEY}"
+          python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub --schema schemas/index-v1.json
+      - uses: peaceiris/actions-gh-pages@329bcc8f12caed2cefe5a5b80781499a6f3b361b # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./registry

@@ -250,11 +250,11 @@
     },
     {
       "id": "abusch/nu_plugin_semver",
-      "blocker": "mac/linux tar.xz only (in registry as Windows-only)"
+      "blocker": "mac/linux targets now have supported tar.xz assets (registry remains Windows-only pending intake and lifecycle evidence)"
     },
     {
       "id": "fennewald/nu_plugin_net",
-      "blocker": "tar.xz only; no Windows zip"
+      "blocker": "tar.xz assets are supported; no Windows release asset"
     },
     {
       "id": "fnuttens/nu_plugin_hmac",

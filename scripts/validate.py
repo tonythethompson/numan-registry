@@ -21,6 +21,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from nu_version_constraint import lifecycle_evidence_error
+
 
 def canonical_json(value):
     """Return the canonical JSON string for a parsed JSON value."""
@@ -127,6 +129,16 @@ def is_fixture_url(url):
 
 
 def download_and_verify(url, expected_sha256):
+    """
+    Download content from a URL and verify its SHA-256 digest.
+    
+    Parameters:
+    	url (str): The content URL.
+    	expected_sha256 (str): The expected SHA-256 digest.
+    
+    Returns:
+    	tuple: A success flag and status message.
+    """
     if not expected_sha256:
         return False, "missing expected sha256"
     req = urllib.request.Request(url, method="GET")
@@ -141,14 +153,63 @@ def download_and_verify(url, expected_sha256):
     return True, "ok"
 
 
+def lifecycle_evidence_errors(index, *, allow_missing=False):
+    """
+    Validate lifecycle-evidence records for activatable package versions.
+    
+    Parameters:
+    	index (dict): Registry index containing package and version records.
+    	allow_missing (bool): Whether to skip activatable versions without lifecycle evidence.
+    
+    Returns:
+    	list[str]: Error messages for invalid or incompatible lifecycle-evidence records.
+    """
+    errors = []
+    for package in index.get("packages", []):
+        package_id = f"{package['id']['owner']}/{package['id']['name']}"
+        for version in package.get("versions", []):
+            activatable = package.get("type") == "plugin" or "activation" in version
+            if not activatable:
+                continue
+            if allow_missing and "verified_with" not in version:
+                continue
+            evidence = version.get("verified_with")
+            evidence_error = lifecycle_evidence_error(
+                version.get("nu_version"), evidence
+            )
+            if evidence_error:
+                label = f"{package_id}@{version.get('version', '<unknown>')}"
+                errors.append(f"{label}: {evidence_error}")
+    return errors
+
+
 def main():
+    """
+    Validate the registry index and its associated signatures and artifacts.
+    
+    Returns:
+    	int: `0` if validation succeeds, `1` if any validation step fails.
+    """
     parser = argparse.ArgumentParser(description="Validate the Numan registry index")
     parser.add_argument("--index", default="registry/index.json")
     parser.add_argument("--sig", default="registry/index.json.sig")
     parser.add_argument("--pub", default="keys/official.pub")
     parser.add_argument("--schema", default="schemas/index-v1.json")
+    parser.add_argument(
+        "--skip-signature",
+        action="store_true",
+        help="Validate an unsigned candidate before the protected signing job",
+    )
     parser.add_argument("--skip-artifacts", action="store_true", help="Skip artifact digest verification")
     parser.add_argument("--strict-artifacts", action="store_true", help="Fail on fixture URLs that cannot be downloaded")
+    parser.add_argument(
+        "--allow-provisional-lifecycle",
+        action="store_true",
+        help=(
+            "Allow missing verified_with for staging only; malformed or "
+            "incompatible evidence still fails"
+        ),
+    )
     args = parser.parse_args()
 
     errors = []
@@ -161,12 +222,25 @@ def main():
         return 1
 
     # Schema validation
+    schema_valid = True
     try:
         validate_schema(index, args.schema)
         print("OK: schema validation passed")
     except Exception as exc:
         print(f"FAIL: schema validation: {exc}")
         errors.append("schema")
+        schema_valid = False
+
+    if schema_valid:
+        evidence_errors = lifecycle_evidence_errors(
+            index,
+            allow_missing=args.allow_provisional_lifecycle,
+        )
+        for evidence_error in evidence_errors:
+            print(f"FAIL: {evidence_error}")
+            errors.append(f"lifecycle_evidence:{evidence_error}")
+        if args.allow_provisional_lifecycle and not evidence_errors:
+            print("OK: provisional lifecycle evidence is allowed for staging")
 
     # schema_version check
     if index.get("schema_version") != 1:
@@ -181,19 +255,23 @@ def main():
     index_sha256 = hashlib.sha256(canonical).hexdigest()
     print(f"OK: canonical index sha256 = {index_sha256}")
 
-    # Signature validation
-    try:
-        expected_key_id, public_key_b64 = load_pub_key(args.pub)
-        sig_key_id, signature_b64 = load_sig(args.sig)
-        if sig_key_id != expected_key_id:
-            raise ValueError(
-                f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
-            )
-        verify_ed25519(public_key_b64, signature_b64, canonical)
-        print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
-    except Exception as exc:
-        print(f"FAIL: signature verification: {exc}")
-        errors.append("signature")
+    # Production candidates are validated without secrets before signing, then
+    # validated again with the committed public key after signing.
+    if args.skip_signature:
+        print("OK: signature verification skipped for unsigned candidate")
+    else:
+        try:
+            expected_key_id, public_key_b64 = load_pub_key(args.pub)
+            sig_key_id, signature_b64 = load_sig(args.sig)
+            if sig_key_id != expected_key_id:
+                raise ValueError(
+                    f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
+                )
+            verify_ed25519(public_key_b64, signature_b64, canonical)
+            print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
+        except Exception as exc:
+            print(f"FAIL: signature verification: {exc}")
+            errors.append("signature")
 
     # Artifact digest verification
     if not args.skip_artifacts:

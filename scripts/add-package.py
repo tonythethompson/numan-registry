@@ -36,10 +36,16 @@ Spec format (archive artifact, e.g. a module):
       "owner": "someone", "name": "cool-module",
       "description": "...", "repo": "https://github.com/someone/cool-module",
       "type": "module", "tags": ["module"],
-      "version": "1.0.0", "nu_version": "*",
+      "version": "1.0.0", "nu_version": "*", "verified_with": ["0.114.1"],
       "artifact": {"kind": "archive", "url": "https://.../module.zip", "entry": "mod.nu"},
       "activation": {"kind": "nu-module", "import": "all"}
     }
+
+For any spec with `activation` (and for every plugin), populate
+`verified_with` only after lifecycle-prove succeeds against those exact,
+compatible Nu versions. To stage an unproved candidate first, omit
+`verified_with` and pass `--provisional`; production validation still rejects
+the entry until genuine evidence replaces the provisional state.
 
 Note: a "mod.nu" entry must use "import": "all". Numan's activation
 imports the entry file directly (`use "<entry>"`), not the containing
@@ -75,6 +81,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
+from nu_version_constraint import lifecycle_evidence_error
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
 
@@ -92,15 +101,14 @@ REQUIRED_TOP_FIELDS = (
 )
 VALID_TYPES = ("plugin", "module", "script", "completion")
 
-# Must match ArchiveFormat::from_url in tonythethompson/numan's
-# src/install/extract.rs. A target URL with any other extension will fail
-# to install with "Cannot determine archive format" -- checked here because
-# a real seed entry shipped with .tar.xz targets and nobody caught it until
-# a reviewer actually traced it through the client's install path.
-SUPPORTED_ARCHIVE_SUFFIXES = (".zip", ".tar.gz", ".tgz", ".tar")
-
-
 def check_archive_format_supported(url, label):
+    """
+    Validate that an artifact URL uses an archive format supported by Numan's installer.
+    
+    Parameters:
+    	url (str): Artifact URL to validate.
+    	label (str): Label identifying the artifact in failure messages.
+    """
     lower = url.lower()
     if not any(lower.endswith(suffix) for suffix in SUPPORTED_ARCHIVE_SUFFIXES):
         print(
@@ -242,6 +250,16 @@ def build_version_entry(spec):
 
 
 def build_package_entry(spec, version_entry):
+    """
+    Build the package entry containing package metadata and its version entry.
+    
+    Parameters:
+    	spec (dict): Package specification containing identity, description, repository, type, and optional tags.
+    	version_entry (dict): Version data to include in the package's versions list.
+    
+    Returns:
+    	dict: Package entry with package metadata and the supplied version entry.
+    """
     return {
         "id": {"owner": spec["owner"], "name": spec["name"]},
         "description": spec["description"],
@@ -252,7 +270,17 @@ def build_package_entry(spec, version_entry):
     }
 
 
-def validate_spec(spec):
+def validate_spec(spec, *, allow_provisional=False):
+    """
+    Validate required fields, package type, and lifecycle evidence in a package specification.
+    
+    Parameters:
+        spec (dict): Package specification to validate.
+        allow_provisional (bool): Whether activatable specifications may omit lifecycle evidence.
+    
+    Returns:
+        None
+    """
     missing = [f for f in REQUIRED_TOP_FIELDS if f not in spec]
     if missing:
         print(f"FAIL: spec is missing required field(s): {', '.join(missing)}")
@@ -260,9 +288,28 @@ def validate_spec(spec):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
+    if spec["type"] == "plugin" or "activation" in spec:
+        evidence = spec.get("verified_with")
+        evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
+        if evidence_error:
+            if allow_provisional and "verified_with" not in spec:
+                print(
+                    "WARN: allowing provisional activatable intake without "
+                    "lifecycle evidence",
+                    file=sys.stderr,
+                )
+                return
+            print(f"FAIL: invalid lifecycle evidence: {evidence_error}")
+            sys.exit(1)
 
 
 def validate_against_schema(index):
+    """
+    Validate an index against the registry schema when the JSON Schema dependency is available.
+    
+    Parameters:
+    	index (dict): Registry index object to validate.
+    """
     try:
         import jsonschema
     except ImportError:
@@ -316,15 +363,29 @@ def merge_into_index(index_path, package_entry, force):
 
 
 def main():
+    """
+    Build and optionally merge a registry package entry from a JSON specification.
+    
+    Returns:
+    	int: 0 on successful completion.
+    """
     parser = argparse.ArgumentParser(description="Scaffold a registry package entry from a spec file")
     parser.add_argument("--spec", required=True, help="Path to the package spec JSON file")
     parser.add_argument("--write", action="store_true", help="Merge into --index instead of just printing")
     parser.add_argument("--index", default=str(REPO_ROOT / "registry" / "index.json"))
     parser.add_argument("--force", action="store_true", help="Allow replacing an existing version")
+    parser.add_argument(
+        "--provisional",
+        action="store_true",
+        help=(
+            "Allow an activatable entry without verified_with for staging and "
+            "lifecycle-prove; production validation will reject it"
+        ),
+    )
     args = parser.parse_args()
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
-    validate_spec(spec)
+    validate_spec(spec, allow_provisional=args.provisional)
 
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
     version_entry = build_version_entry(spec)
