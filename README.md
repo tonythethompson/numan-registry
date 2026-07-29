@@ -95,6 +95,9 @@ python scripts/validate.py --index registry/index.json --sig registry/index.json
 
 CI validates the JSON schema, verifies the signed production candidate, downloads and verifies artifact digests for non-fixture entries, and parses the catalog with a pinned revision of Numan's production Rust registry parser.
 
+For the remaining registry intake, catalog growth, and production publication
+plan, see [docs/roadmap.md](docs/roadmap.md).
+
 ## Intake prove (Stage 1)
 
 For an activatable package without evidence yet, use `add-package.py
