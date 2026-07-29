@@ -1,0 +1,39 @@
+scripts/archive_formats.py
+  s_6c58868655aae2::t_841b626efc7613 4-5
+  s_6c58868655aae2::t_63bc13776c2fb1 1-3,6-18
+scripts/lifecycle-prove.py
+  s_6c58868655aae2::t_a0f9827cffc230 167,170-173,194,198,201-202
+scripts/sync-intake-candidates.py
+  s_6c58868655aae2::t_63bc13776c2fb1 25-26,311
+scripts/nu_version_constraint.py
+  s_6c58868655aae2::t_63bc13776c2fb1 1
+.github/workflows/repo-safety.yml
+  s_6c58868655aae2::t_63bc13776c2fb1 31
+.github/workflows/staging.yml
+  s_6c58868655aae2::t_b9eede57d819b6 28,35-37,39,41
+  s_6c58868655aae2::t_442f34681153ae 33-34,38
+scripts/add-package.py
+  s_6c58868655aae2::t_63bc13776c2fb1 84
+scripts/test_lifecycle_prove.py
+  s_6c58868655aae2::t_9115fca0d8b07d 111-140,219-245
+scripts/test_add_package_archives.py
+  s_6c58868655aae2::t_82c247264e4330 14-20,80-91
+scripts/test_workflow_safety.py
+  s_6c58868655aae2::t_82c247264e4330 80-82,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "220dde0f44d48c807d901c906169c9fee9fd9789",
+  "prompts": {},
+  "sessions": {
+    "s_6c58868655aae2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fab11-b45b-76c0-9653-39aece85b698",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
