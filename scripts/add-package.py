@@ -36,10 +36,14 @@ Spec format (archive artifact, e.g. a module):
       "owner": "someone", "name": "cool-module",
       "description": "...", "repo": "https://github.com/someone/cool-module",
       "type": "module", "tags": ["module"],
-      "version": "1.0.0", "nu_version": "*",
+      "version": "1.0.0", "nu_version": "*", "verified_with": ["0.114.1"],
       "artifact": {"kind": "archive", "url": "https://.../module.zip", "entry": "mod.nu"},
       "activation": {"kind": "nu-module", "import": "all"}
     }
+
+For any spec with `activation` (and for every plugin), populate
+`verified_with` only after lifecycle-prove succeeds against those exact,
+compatible Nu versions. Placeholder evidence is rejected by intake.
 
 Note: a "mod.nu" entry must use "import": "all". Numan's activation
 imports the entry file directly (`use "<entry>"`), not the containing
