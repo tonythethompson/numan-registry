@@ -11,6 +11,13 @@ from pathlib import Path
 from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "add-package.py"
+if str(SCRIPT.parent) not in sys.path:
+    sys.path.insert(0, str(SCRIPT.parent))
+
+from archive_formats import (  # noqa: E402
+    SUPPORTED_ARCHIVE_SUFFIXES,
+    SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN,
+)
 
 
 def load_mod():
@@ -69,6 +76,19 @@ class AddPackageArchiveTests(unittest.TestCase):
             )
         self.assertEqual(raised.exception.code, 1)
         urlopen.assert_not_called()
+
+    def test_generated_intake_doc_uses_shared_archive_suffixes(self):
+        self.assertEqual(
+            self.mod.SUPPORTED_ARCHIVE_SUFFIXES,
+            SUPPORTED_ARCHIVE_SUFFIXES,
+        )
+        intake_doc = (SCRIPT.parent.parent / "docs" / "intake-candidates.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            f"artifact must be {SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN};",
+            intake_doc,
+        )
 
 
 if __name__ == "__main__":

@@ -77,11 +77,14 @@ class WorkflowSafetyTests(unittest.TestCase):
         self.assertIn('STAGING_PUB="${RUNNER_TEMP}/staging-key.pub.json"', staging_validate)
         self.assertIn("trap 'rm -f \"${STAGING_PUB}\"' EXIT", staging_validate)
         self.assertIn("--allow-provisional-lifecycle", staging_validate)
-        self.assertNotIn('--priv-b64 "${{ steps.sign.outputs.private_key }}"', staging_validate)
+        self.assertIn("export STAGING_PRIVATE_KEY", staging_validate)
+        self.assertNotIn("steps.sign.outputs", staging_validate)
+        self.assertNotIn("GITHUB_OUTPUT", staging_validate)
 
     def test_lifecycle_tests_run_on_windows_and_ubuntu(self):
         text = (WORKFLOWS / "repo-safety.yml").read_text(encoding="utf-8")
         self.assertIn("os: [ubuntu-latest, windows-latest]", text)
+        self.assertIn("python -m pip install cryptography jsonschema", text)
         self.assertIn('python -m unittest discover -s scripts -p "test_*.py" -v', text)
 
     def test_manifest_lint_uses_immutable_plugins_merge(self):

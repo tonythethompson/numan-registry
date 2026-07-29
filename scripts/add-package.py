@@ -81,6 +81,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -99,20 +100,6 @@ REQUIRED_TOP_FIELDS = (
     "artifact",
 )
 VALID_TYPES = ("plugin", "module", "script", "completion")
-
-# Must match ArchiveFormat::from_url in tonythethompson/numan's
-# src/install/extract.rs. A target URL with any other extension will fail
-# to install with "Cannot determine archive format" -- checked here because
-# Keep this list in sync with ArchiveFormat::from_url in the client.
-SUPPORTED_ARCHIVE_SUFFIXES = (
-    ".zip",
-    ".tar.gz",
-    ".tgz",
-    ".tar.xz",
-    ".txz",
-    ".tar",
-)
-
 
 def check_archive_format_supported(url, label):
     lower = url.lower()

@@ -108,6 +108,36 @@ class LifecycleProveTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must be an .exe"):
                 self.mod.prepare_nu_search_dir(selected, root, platform="win32")
 
+    def test_windows_search_dir_removes_mismatched_copy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selected = root / "selected.exe"
+            selected.write_bytes(b"selected nu")
+            shim = root / "shim"
+            shim.mkdir()
+            link_error = OSError("hardlink unavailable")
+
+            def write_mismatched_copy(_source, destination):
+                Path(destination).write_bytes(b"wrong binary")
+
+            with (
+                mock.patch.object(self.mod.os, "link", side_effect=link_error),
+                mock.patch.object(
+                    self.mod.shutil,
+                    "copy2",
+                    side_effect=write_mismatched_copy,
+                ),
+                self.assertRaisesRegex(OSError, "does not match") as raised,
+            ):
+                self.mod.prepare_nu_search_dir(
+                    selected,
+                    shim,
+                    platform="win32",
+                )
+
+            self.assertIs(raised.exception.__cause__, link_error)
+            self.assertFalse((shim / "nu.exe").exists())
+
     @unittest.skipIf(os.name == "nt", "POSIX execute bits are not meaningful on Windows")
     def test_unix_executable_check_requires_execute_bit(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -185,6 +215,34 @@ class LifecycleProveTests(unittest.TestCase):
             self.assertTrue(all(path == expected_path for path in paths))
             self.assertFalse(shim.exists())
             self.assertFalse(root.exists())
+
+    def test_prove_returns_two_and_cleans_shim_when_nu_isolation_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "caller root"
+            root.mkdir()
+            shim = Path(tmp) / "shim"
+            shim.mkdir()
+            with (
+                mock.patch.object(self.mod, "run_step") as run_step,
+                mock.patch.object(self.mod.tempfile, "mkdtemp", return_value=str(shim)),
+                mock.patch.object(
+                    self.mod,
+                    "prepare_nu_search_dir",
+                    side_effect=ValueError("must be an .exe"),
+                ),
+            ):
+                code = self.mod.prove(
+                    "acme/pkg",
+                    numan=Path("numan"),
+                    nu=Path("nu.cmd"),
+                    root=root,
+                    keep_root=True,
+                )
+
+            self.assertEqual(code, 2)
+            run_step.assert_not_called()
+            self.assertFalse(shim.exists())
+            self.assertTrue(root.exists())
 
     def test_prove_preserves_caller_supplied_root(self):
         with tempfile.TemporaryDirectory() as tmp:

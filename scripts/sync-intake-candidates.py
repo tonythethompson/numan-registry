@@ -22,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STATE_PATH = REPO_ROOT / "docs" / "intake-state.json"
 OUT_PATH = REPO_ROOT / "docs" / "intake-candidates.md"
@@ -306,7 +308,7 @@ def render_intake_doc(
         "Running list of packages evaluated for the official Numan registry.",
         f"_Auto-synced {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._",
         "",
-        "**Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, `.tar.xz`, `.txz`, or `.tar`; prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, the package **must be staged or published** in the configured registry before running Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`), unless a registry-target override is added. Run lifecycle-prove on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
+        f"**Intake rules:** artifact must be {SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN}; prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, the package **must be staged or published** in the configured registry before running Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`), unless a registry-target override is added. Run lifecycle-prove on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.",
         "",
         f"**Currently in registry:** {registry_line}.",
         "",

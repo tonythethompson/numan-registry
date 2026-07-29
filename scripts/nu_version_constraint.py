@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.12
 """Validate exact Nu versions against Numan's supported constraint forms."""
 
 from __future__ import annotations

@@ -164,10 +164,13 @@ def prepare_nu_search_dir(
     alias = shim_dir / "nu.exe"
     try:
         os.link(nu, alias)
-    except OSError:
+    except OSError as link_error:
         shutil.copy2(nu, alias)
         if not filecmp.cmp(nu, alias, shallow=False):
-            raise OSError("the isolated nu.exe copy does not match the selected Nu")
+            alias.unlink(missing_ok=True)
+            raise OSError(
+                "the isolated nu.exe copy does not match the selected Nu"
+            ) from link_error
     return shim_dir
 
 
@@ -188,17 +191,15 @@ def prove(
     # Create a temporary directory for the nu shim
     shim_dir = Path(tempfile.mkdtemp(prefix="numan-lifecycle-prove-shim-"))
     is_windows = sys.platform == "win32"
-    shim_name = "nu-forward.cmd" if is_windows else "nu"
-    shim_path = shim_dir / shim_name
+    shim_path = shim_dir / "nu"
 
     try:
-        shim_path.write_bytes(render_nu_shim(nu))
         if not is_windows:
+            shim_path.write_bytes(render_nu_shim(nu))
             shim_path.chmod(0o755)
 
-        # Rust rejects some arguments when Command launches a batch file. On
-        # Windows, expose an isolated nu.exe hardlink/copy of the exact selected
-        # binary; the batch rendering remains testable without entering PATH.
+        # Rust rejects some arguments when Command launches a batch file, so
+        # Windows exposes an isolated nu.exe hardlink/copy of the exact binary.
         try:
             nu_search_dir = prepare_nu_search_dir(nu, shim_dir)
         except (OSError, ValueError) as exc:
