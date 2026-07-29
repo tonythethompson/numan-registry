@@ -1,0 +1,21 @@
+.github/workflows/production.yml
+  s_6c58868655aae2::t_993ab37ba2af9d 58
+.github/workflows/staging.yml
+  s_6c58868655aae2::t_993ab37ba2af9d 68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0de8da9ce800d4ae841b4851332bfd54c5d9da93",
+  "prompts": {},
+  "sessions": {
+    "s_6c58868655aae2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fab11-b45b-76c0-9653-39aece85b698",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
