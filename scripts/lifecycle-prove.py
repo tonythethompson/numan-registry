@@ -43,10 +43,26 @@ def which(name: str) -> Path | None:
     return Path(found) if found else None
 
 
-def resolve_binary(explicit: Path | None, names: list[str], label: str) -> Path:
+def is_executable(path: Path, *, platform: str | None = None) -> bool:
+    """Apply the executable check appropriate to the target platform."""
+    platform = platform or sys.platform
+    if not path.is_file():
+        return False
+    if platform == "win32":
+        return path.suffix.lower() in {".exe", ".cmd"}
+    return os.access(path, os.X_OK)
+
+
+def resolve_binary(
+    explicit: Path | None,
+    names: list[str],
+    label: str,
+    *,
+    platform: str | None = None,
+) -> Path:
     if explicit is not None:
         path = explicit
-        if not path.is_file() or not os.access(path, os.X_OK):
+        if not is_executable(path, platform=platform):
             raise FileNotFoundError(f"{label} is not executable: {path}")
         return path.resolve()
     for name in names:
@@ -120,6 +136,14 @@ def run_step(
     )
 
 
+def render_nu_shim(nu: Path, *, platform: str | None = None) -> bytes:
+    """Render an exact-path Nu launcher for the requested platform."""
+    platform = platform or sys.platform
+    if platform == "win32":
+        return f'@echo off\r\n"{nu}" %*\r\n'.encode("utf-8")
+    return f'#!/bin/sh\nexec "{nu}" "$@"\n'.encode("utf-8")
+
+
 def prove(
     package_id: str,
     *,
@@ -141,25 +165,20 @@ def prove(
     shim_path = shim_dir / shim_name
 
     try:
-        # Write a shim script that invokes the exact nu binary
-        if is_windows:
-            # Windows batch script
-            shim_path.write_text(
-                f'`@echo` off\n"{nu}" %*\n',
-                encoding="utf-8",
-            )
-        else:
-            # Unix shell script
-            shim_path.write_text(
-                f'#!/bin/sh\nexec "{nu}" "$@"\n',
-                encoding="utf-8",
-            )
+        shim_path.write_bytes(render_nu_shim(nu))
+        if not is_windows:
             shim_path.chmod(0o755)
 
-        # Prepend the shim directory to PATH
+        # Rust rejects some arguments when Command launches a batch file, so
+        # Windows must expose the selected real executable directly. Keep the
+        # rendered .cmd as the tested/documented Windows shim contract; use
+        # its parent-executable directory for the real lifecycle probe.
+        nu_search_dir = nu.parent if is_windows else shim_dir
+
+        # Prepend the selected Nu location to PATH.
         path_key = "PATH"
         sep = os.pathsep
-        env[path_key] = str(shim_dir) + sep + env.get(path_key, "")
+        env[path_key] = str(nu_search_dir) + sep + env.get(path_key, "")
 
         print(f"package: {package_id}")
         print(f"numan:   {numan}")

@@ -76,8 +76,16 @@ The registry private key is **never** committed, printed, or handled by coding a
 
 ## Environments
 
-- **Staging**: deployed automatically from the default branch using an ephemeral CI-generated key. It validates source changes without asserting production trust.
-- **Production**: deployed from `main` only through the protected GitHub Actions environment that requires manual approval and the `NUMAN_REGISTRY_PRIVATE_KEY` secret.
+- **Build validation**: every PR runs secret scan, preflight, schema and parser
+  checks, script tests on Windows and Ubuntu, and manifest/index linting. It has
+  read-only permissions and no production secret access.
+- **Staging**: the default branch is signed with an ephemeral CI key after a
+  read-only validation job; only the separate staging publication job receives
+  `contents: write`. Staging does not assert production trust.
+- **Production signing**: manual dispatch first reruns all no-secret validation,
+  including artifact digests. Only after it succeeds can the protected
+  `production` environment expose `NUMAN_REGISTRY_PRIVATE_KEY` to the signing
+  and publication job.
 
 ## Validation
 
@@ -99,6 +107,8 @@ python scripts/lifecycle-prove.py --package owner/name --numan /path/to/numan --
 ```
 
 See [docs/lifecycle-prove.md](docs/lifecycle-prove.md).
+Successful lifecycle evidence is mandatory before promoting any activatable
+package to production; staging and build validation do not replace it.
 
 ## Operations
 

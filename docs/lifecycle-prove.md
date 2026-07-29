@@ -31,7 +31,12 @@ a directory (never auto-deleted).
 - A `numan` build new enough for the package under test
 - A `nu` binary compatible with the package's `nu_version`
 
-## PR note
+## Promotion requirement
 
-Paste the command and OS/Nu version into the intake PR when the prove passes
-(or explicitly defer with rationale).
+Lifecycle evidence is mandatory before an activatable package is promoted to
+production. Paste the successful command, OS, Nu version, and package version
+into the intake PR. Build validation proves archive structure and hashes;
+staging proves the unsigned catalog and ephemeral signature path; neither is a
+substitute for exercising install, activation, deactivation, removal, and
+cleanup against a real Nu. If the lifecycle prove cannot run, keep the package
+out of the production catalog until the evidence is available.

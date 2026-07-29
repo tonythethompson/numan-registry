@@ -147,6 +147,11 @@ def main():
     parser.add_argument("--sig", default="registry/index.json.sig")
     parser.add_argument("--pub", default="keys/official.pub")
     parser.add_argument("--schema", default="schemas/index-v1.json")
+    parser.add_argument(
+        "--skip-signature",
+        action="store_true",
+        help="Validate an unsigned candidate before the protected signing job",
+    )
     parser.add_argument("--skip-artifacts", action="store_true", help="Skip artifact digest verification")
     parser.add_argument("--strict-artifacts", action="store_true", help="Fail on fixture URLs that cannot be downloaded")
     args = parser.parse_args()
@@ -181,19 +186,23 @@ def main():
     index_sha256 = hashlib.sha256(canonical).hexdigest()
     print(f"OK: canonical index sha256 = {index_sha256}")
 
-    # Signature validation
-    try:
-        expected_key_id, public_key_b64 = load_pub_key(args.pub)
-        sig_key_id, signature_b64 = load_sig(args.sig)
-        if sig_key_id != expected_key_id:
-            raise ValueError(
-                f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
-            )
-        verify_ed25519(public_key_b64, signature_b64, canonical)
-        print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
-    except Exception as exc:
-        print(f"FAIL: signature verification: {exc}")
-        errors.append("signature")
+    # Production candidates are validated without secrets before signing, then
+    # validated again with the committed public key after signing.
+    if args.skip_signature:
+        print("OK: signature verification skipped for unsigned candidate")
+    else:
+        try:
+            expected_key_id, public_key_b64 = load_pub_key(args.pub)
+            sig_key_id, signature_b64 = load_sig(args.sig)
+            if sig_key_id != expected_key_id:
+                raise ValueError(
+                    f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
+                )
+            verify_ed25519(public_key_b64, signature_b64, canonical)
+            print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
+        except Exception as exc:
+            print(f"FAIL: signature verification: {exc}")
+            errors.append("signature")
 
     # Artifact digest verification
     if not args.skip_artifacts:

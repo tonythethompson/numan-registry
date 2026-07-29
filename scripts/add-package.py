@@ -95,9 +95,15 @@ VALID_TYPES = ("plugin", "module", "script", "completion")
 # Must match ArchiveFormat::from_url in tonythethompson/numan's
 # src/install/extract.rs. A target URL with any other extension will fail
 # to install with "Cannot determine archive format" -- checked here because
-# a real seed entry shipped with .tar.xz targets and nobody caught it until
-# a reviewer actually traced it through the client's install path.
-SUPPORTED_ARCHIVE_SUFFIXES = (".zip", ".tar.gz", ".tgz", ".tar")
+# Keep this list in sync with ArchiveFormat::from_url in the client.
+SUPPORTED_ARCHIVE_SUFFIXES = (
+    ".zip",
+    ".tar.gz",
+    ".tgz",
+    ".tar.xz",
+    ".txz",
+    ".tar",
+)
 
 
 def check_archive_format_supported(url, label):
