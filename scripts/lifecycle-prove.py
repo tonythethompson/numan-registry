@@ -161,6 +161,10 @@ def prove(
     # Create a temporary directory for the nu shim
     shim_dir = Path(tempfile.mkdtemp(prefix="numan-lifecycle-prove-shim-"))
     is_windows = sys.platform == "win32"
+    if is_windows and nu.name.lower() != "nu.exe":
+        raise ValueError(
+            "--nu must name nu.exe on Windows; custom executable names cannot be resolved exactly"
+        )
     shim_name = "nu.cmd" if is_windows else "nu"
     shim_path = shim_dir / shim_name
 
