@@ -14,6 +14,8 @@ import jsonschema
 
 SCRIPTS = Path(__file__).resolve().parent
 ROOT = SCRIPTS.parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
 
 
 def load_mod(name: str, filename: str):
@@ -71,7 +73,10 @@ class LifecycleEvidenceTests(unittest.TestCase):
         pkg = package("plugin", activation=False)
         self.assertEqual(
             self.validate.lifecycle_evidence_errors(self.index(pkg)),
-            ["acme/pkg@1.0.0"],
+            [
+                "acme/pkg@1.0.0: verified_with must contain at least one "
+                "exact Nu version"
+            ],
         )
         self.assert_schema_rejects(pkg)
 
@@ -79,7 +84,10 @@ class LifecycleEvidenceTests(unittest.TestCase):
         pkg = package("module", activation=True)
         self.assertEqual(
             self.validate.lifecycle_evidence_errors(self.index(pkg)),
-            ["acme/pkg@1.0.0"],
+            [
+                "acme/pkg@1.0.0: verified_with must contain at least one "
+                "exact Nu version"
+            ],
         )
         self.assert_schema_rejects(pkg)
 
@@ -98,10 +106,43 @@ class LifecycleEvidenceTests(unittest.TestCase):
 
     def test_blank_evidence_is_rejected(self):
         pkg = package("plugin", activation=False, evidence=["  "])
-        self.assertEqual(
-            self.validate.lifecycle_evidence_errors(self.index(pkg)),
-            ["acme/pkg@1.0.0"],
+        self.assertIn(
+            "is not an exact Nu version",
+            self.validate.lifecycle_evidence_errors(self.index(pkg))[0],
         )
+        self.assert_schema_rejects(pkg)
+
+    def test_malformed_evidence_is_rejected(self):
+        pkg = package("plugin", activation=False, evidence=["not-tested"])
+        self.assertIn(
+            "is not an exact Nu version",
+            self.validate.lifecycle_evidence_errors(self.index(pkg))[0],
+        )
+        self.assert_schema_rejects(pkg)
+
+    def test_incompatible_evidence_is_rejected(self):
+        pkg = package("plugin", activation=False, evidence=["0.113.1"])
+        self.assertIn(
+            "does not satisfy",
+            self.validate.lifecycle_evidence_errors(self.index(pkg))[0],
+        )
+        # Schema establishes syntax; production validation establishes
+        # compatibility with the sibling nu_version constraint.
+        jsonschema.validate(self.index(pkg), self.schema)
+
+    def test_constraint_forms_match_numan_contract(self):
+        for constraint, version in (
+            ("*", "0.114.1"),
+            (">=0.114.0", "0.114.1"),
+            ("=0.114.x", "0.114.1"),
+            ("0.114.x", "0.114.1"),
+            ("0.114.1", "0.114.1"),
+        ):
+            pkg = package("plugin", activation=False, evidence=[version])
+            pkg["versions"][0]["nu_version"] = constraint
+            self.assertEqual(
+                self.validate.lifecycle_evidence_errors(self.index(pkg)), []
+            )
 
     def test_intake_rejects_activatable_spec_without_evidence(self):
         spec = {
@@ -120,6 +161,11 @@ class LifecycleEvidenceTests(unittest.TestCase):
         valid = copy.deepcopy(spec)
         valid["verified_with"] = ["0.114.1"]
         self.add_package.validate_spec(valid)
+
+        invalid = copy.deepcopy(spec)
+        invalid["verified_with"] = ["0.113.1"]
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(invalid)
 
 
 if __name__ == "__main__":

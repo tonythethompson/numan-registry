@@ -75,6 +75,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from nu_version_constraint import lifecycle_evidence_error
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
 
@@ -268,13 +270,9 @@ def validate_spec(spec):
         sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
-        if not isinstance(evidence, list) or not evidence or any(
-            not isinstance(item, str) or not item.strip() for item in evidence
-        ):
-            print(
-                "FAIL: activatable packages require non-empty verified_with "
-                "lifecycle evidence"
-            )
+        evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
+        if evidence_error:
+            print(f"FAIL: invalid lifecycle evidence: {evidence_error}")
             sys.exit(1)
 
 

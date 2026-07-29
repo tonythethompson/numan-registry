@@ -37,7 +37,8 @@ Lifecycle evidence is mandatory before an activatable package is promoted to
 production. Paste the successful command, OS, Nu version, and package version
 into the intake PR, and record every successfully proved Nu version in the
 version entry's non-empty `verified_with` list. Production validation rejects
-plugins and explicitly activated modules without that machine-readable claim.
+plugins and explicitly activated modules unless every entry is an exact
+`MAJOR.MINOR.PATCH` Nu version satisfying the package's `nu_version` constraint.
 Build validation proves archive structure and hashes;
 staging proves the unsigned catalog and ephemeral signature path; neither is a
 substitute for exercising install, activation, deactivation, removal, and
