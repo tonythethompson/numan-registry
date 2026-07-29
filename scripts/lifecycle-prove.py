@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import filecmp
 import os
 import shutil
 import subprocess
@@ -144,6 +145,32 @@ def render_nu_shim(nu: Path, *, platform: str | None = None) -> bytes:
     return f'#!/bin/sh\nexec "{nu}" "$@"\n'.encode("utf-8")
 
 
+def prepare_nu_search_dir(
+    nu: Path,
+    shim_dir: Path,
+    *,
+    platform: str | None = None,
+) -> Path:
+    """Expose the exact selected Nu under the name Numan resolves on PATH."""
+    platform = platform or sys.platform
+    if platform != "win32":
+        return shim_dir
+    if nu.suffix.lower() != ".exe":
+        raise ValueError(
+            "the selected Nu must be an .exe on Windows; .cmd launchers cannot "
+            "safely forward Numan's probe arguments"
+        )
+
+    alias = shim_dir / "nu.exe"
+    try:
+        os.link(nu, alias)
+    except OSError:
+        shutil.copy2(nu, alias)
+        if not filecmp.cmp(nu, alias, shallow=False):
+            raise OSError("the isolated nu.exe copy does not match the selected Nu")
+    return shim_dir
+
+
 def prove(
     package_id: str,
     *,
@@ -161,7 +188,7 @@ def prove(
     # Create a temporary directory for the nu shim
     shim_dir = Path(tempfile.mkdtemp(prefix="numan-lifecycle-prove-shim-"))
     is_windows = sys.platform == "win32"
-    shim_name = "nu.cmd" if is_windows else "nu"
+    shim_name = "nu-forward.cmd" if is_windows else "nu"
     shim_path = shim_dir / shim_name
 
     try:
@@ -169,11 +196,14 @@ def prove(
         if not is_windows:
             shim_path.chmod(0o755)
 
-        # Rust rejects some arguments when Command launches a batch file, so
-        # Windows must expose the selected real executable directly. Keep the
-        # rendered .cmd as the tested/documented Windows shim contract; use
-        # its parent-executable directory for the real lifecycle probe.
-        nu_search_dir = nu.parent if is_windows else shim_dir
+        # Rust rejects some arguments when Command launches a batch file. On
+        # Windows, expose an isolated nu.exe hardlink/copy of the exact selected
+        # binary; the batch rendering remains testable without entering PATH.
+        try:
+            nu_search_dir = prepare_nu_search_dir(nu, shim_dir)
+        except (OSError, ValueError) as exc:
+            print(f"error: could not isolate selected Nu: {exc}", file=sys.stderr)
+            return 2
 
         # Prepend the selected Nu location to PATH.
         path_key = "PATH"

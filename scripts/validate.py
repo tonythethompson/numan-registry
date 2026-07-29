@@ -141,6 +141,23 @@ def download_and_verify(url, expected_sha256):
     return True, "ok"
 
 
+def lifecycle_evidence_errors(index):
+    """Return activatable versions lacking a recorded real-Nu proof."""
+    missing = []
+    for package in index.get("packages", []):
+        package_id = f"{package['id']['owner']}/{package['id']['name']}"
+        for version in package.get("versions", []):
+            activatable = package.get("type") == "plugin" or "activation" in version
+            if not activatable:
+                continue
+            evidence = version.get("verified_with")
+            if not isinstance(evidence, list) or not evidence or any(
+                not isinstance(item, str) or not item.strip() for item in evidence
+            ):
+                missing.append(f"{package_id}@{version.get('version', '<unknown>')}")
+    return missing
+
+
 def main():
     parser = argparse.ArgumentParser(description="Validate the Numan registry index")
     parser.add_argument("--index", default="registry/index.json")
@@ -172,6 +189,10 @@ def main():
     except Exception as exc:
         print(f"FAIL: schema validation: {exc}")
         errors.append("schema")
+
+    for label in lifecycle_evidence_errors(index):
+        print(f"FAIL: {label} is activatable but has no verified_with lifecycle evidence")
+        errors.append(f"lifecycle_evidence:{label}")
 
     # schema_version check
     if index.get("schema_version") != 1:

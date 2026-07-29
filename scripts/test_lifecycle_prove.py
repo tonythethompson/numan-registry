@@ -80,6 +80,34 @@ class LifecycleProveTests(unittest.TestCase):
             self.assertTrue(self.mod.is_executable(cmd, platform="win32"))
             self.assertFalse(self.mod.is_executable(plain, platform="win32"))
 
+    def test_windows_search_dir_aliases_exact_custom_named_nu(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selected = root / "selected" / "nu-0.114.1.exe"
+            selected.parent.mkdir()
+            selected.write_bytes(b"selected nu")
+            (selected.parent / "nu.exe").write_bytes(b"competing nu")
+            shim = root / "shim"
+            shim.mkdir()
+
+            search_dir = self.mod.prepare_nu_search_dir(
+                selected,
+                shim,
+                platform="win32",
+            )
+
+            self.assertEqual(search_dir, shim)
+            self.assertEqual((shim / "nu.exe").read_bytes(), b"selected nu")
+            self.assertNotEqual((shim / "nu.exe").read_bytes(), b"competing nu")
+
+    def test_windows_search_dir_rejects_cmd_nu(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            selected = root / "nu.cmd"
+            selected.write_bytes(b"@echo off\r\n")
+            with self.assertRaisesRegex(ValueError, "must be an .exe"):
+                self.mod.prepare_nu_search_dir(selected, root, platform="win32")
+
     @unittest.skipIf(os.name == "nt", "POSIX execute bits are not meaningful on Windows")
     def test_unix_executable_check_requires_execute_bit(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -101,7 +129,14 @@ class LifecycleProveTests(unittest.TestCase):
 
             return R()
 
-        with mock.patch.object(self.mod, "run_step", side_effect=fake_run):
+        with (
+            mock.patch.object(self.mod, "run_step", side_effect=fake_run),
+            mock.patch.object(
+                self.mod,
+                "prepare_nu_search_dir",
+                side_effect=lambda _nu, shim_dir: shim_dir,
+            ),
+        ):
             code = self.mod.prove(
                 "acme/pkg",
                 numan=Path("numan"),
@@ -127,6 +162,9 @@ class LifecycleProveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "temporary root"
             root.mkdir()
+            selected_nu = Path(tmp) / "Nu Shell" / "custom-nu.exe"
+            selected_nu.parent.mkdir()
+            selected_nu.write_bytes(b"selected nu")
             shim = Path(tmp) / "shim with spaces"
             shim.mkdir()
             with (
@@ -136,13 +174,13 @@ class LifecycleProveTests(unittest.TestCase):
                 code = self.mod.prove(
                     "acme/pkg",
                     numan=Path("numan"),
-                    nu=Path("Nu Shell/nu"),
+                    nu=selected_nu,
                     root=root,
                     keep_root=False,
                 )
             self.assertEqual(code, 0)
             self.assertEqual(calls, [step.name for step in self.mod.build_steps("acme/pkg")])
-            expected_path = str(Path("Nu Shell")) if os.name == "nt" else str(shim)
+            expected_path = str(shim)
             self.assertTrue(paths)
             self.assertTrue(all(path == expected_path for path in paths))
             self.assertFalse(shim.exists())
@@ -152,7 +190,14 @@ class LifecycleProveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "caller root"
             root.mkdir()
-            with mock.patch.object(self.mod, "build_steps", return_value=[]):
+            with (
+                mock.patch.object(self.mod, "build_steps", return_value=[]),
+                mock.patch.object(
+                    self.mod,
+                    "prepare_nu_search_dir",
+                    side_effect=lambda _nu, shim_dir: shim_dir,
+                ),
+            ):
                 code = self.mod.prove(
                     "acme/pkg",
                     numan=Path("numan"),

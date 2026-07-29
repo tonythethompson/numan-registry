@@ -108,7 +108,10 @@ python scripts/lifecycle-prove.py --package owner/name --numan /path/to/numan --
 
 See [docs/lifecycle-prove.md](docs/lifecycle-prove.md).
 Successful lifecycle evidence is mandatory before promoting any activatable
-package to production; staging and build validation do not replace it.
+package to production; staging and build validation do not replace it. The
+signed version entry's `verified_with` list records the Nu versions with a
+successful real-Nu lifecycle proof, while the intake PR carries the command,
+OS, package version, and detailed result.
 
 ## Operations
 

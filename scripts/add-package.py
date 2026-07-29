@@ -266,6 +266,16 @@ def validate_spec(spec):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
+    if spec["type"] == "plugin" or "activation" in spec:
+        evidence = spec.get("verified_with")
+        if not isinstance(evidence, list) or not evidence or any(
+            not isinstance(item, str) or not item.strip() for item in evidence
+        ):
+            print(
+                "FAIL: activatable packages require non-empty verified_with "
+                "lifecycle evidence"
+            )
+            sys.exit(1)
 
 
 def validate_against_schema(index):
