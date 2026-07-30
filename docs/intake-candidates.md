@@ -27,6 +27,8 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 | [`dead10ck/nu_plugin_dns`](https://github.com/dead10ck/nu_plugin_dns) | plugin | v4.0.10 | linux x64/arm64, macOS arm64 only | live (upstream asset) — ci-built via numan-plugins; no Windows (upstream build fails on Windows) |
 | [`FMotalleb/nu_plugin_port_extension`](https://github.com/FMotalleb/nu_plugin_port_extension) | plugin | v0.113.1 | linux x64/arm64, macOS x64/arm64, Windows x64 | live (upstream asset) — ci-built via numan-plugins Wave 1 |
 | [`FMotalleb/nu_plugin_image`](https://github.com/FMotalleb/nu_plugin_image) | plugin | v0.112.2 | linux x64/arm64, macOS x64/arm64, Windows x64 | live (upstream asset) — ci-built via numan-plugins Wave 1 |
+| [`idanarye/nu_plugin_skim`](https://github.com/idanarye/nu_plugin_skim) | plugin | v0.29.1 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (upstream asset) — ci-built via numan-plugins |
+| [`FMotalleb/nu_plugin_desktop_notifications`](https://github.com/FMotalleb/nu_plugin_desktop_notifications) | plugin | v0.114.1 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (upstream asset) — ci-built via numan-plugins |
 
 ---
 
@@ -51,7 +53,6 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Blocker |
 |---------|---------|
-| [`idanarye/nu_plugin_skim`](https://github.com/idanarye/nu_plugin_skim) | v0.29.0 tag exists; release assets empty (dist CI not uploading) |
 | [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | nupm git-only; no release binaries (and other FMotalleb plugins) |
 | [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | mac/linux targets now have supported tar.xz assets (registry remains Windows-only pending intake and lifecycle evidence) |
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | tar.xz assets are supported; no Windows release asset |
@@ -65,9 +66,10 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
-| 2026-07-30 | Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2 |
+| 2026-07-30 | Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries). |
 | 2026-07-21 | Intake CI-built plugins from numan-plugins: cptpiepmatz/nu_plugin_highlight@1.4.15, fdncred/nu_plugin_regex@0.22.0, dead10ck/nu_plugin_dns@4.0.10 |
 | 2026-07-10 | Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16)) |
 | 2026-07-06 | Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions) |
 | 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
 | 2026-07-05 | Initial list |
+| 2026-07-30 | Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2 |

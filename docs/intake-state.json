@@ -132,6 +132,30 @@
       "note": "ci-built via numan-plugins Wave 1",
       "repo": "https://github.com/FMotalleb/nu_plugin_image",
       "spec": "specs/FMotalleb-nu_plugin_image-0.112.2.json"
+    },
+    {
+      "id": "idanarye/nu_plugin_skim",
+      "name": "nu_plugin_skim",
+      "owner": "idanarye",
+      "type": "plugin",
+      "version": "0.29.1",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/idanarye/nu_plugin_skim",
+      "spec": "specs/idanarye-nu_plugin_skim-0.29.1.json",
+      "pr": 22
+    },
+    {
+      "id": "FMotalleb/nu_plugin_desktop_notifications",
+      "name": "nu_plugin_desktop_notifications",
+      "owner": "FMotalleb",
+      "type": "plugin",
+      "version": "0.114.1",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/FMotalleb/nu_plugin_desktop_notifications",
+      "spec": "specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json",
+      "pr": 23
     }
   ],
   "mirror": [
@@ -294,10 +318,6 @@
   ],
   "blocked": [
     {
-      "id": "idanarye/nu_plugin_skim",
-      "blocker": "v0.29.0 tag exists; release assets empty (dist CI not uploading)"
-    },
-    {
       "id": "FMotalleb/nu_plugin_clipboard",
       "blocker": "nupm git-only; no release binaries (and other FMotalleb plugins)"
     },
@@ -325,7 +345,7 @@
   "changelog": [
     {
       "date": "2026-07-30",
-      "change": "Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2"
+      "change": "Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries)."
     },
     {
       "date": "2026-07-21",
@@ -346,6 +366,10 @@
     {
       "date": "2026-07-05",
       "change": "Initial list"
+    },
+    {
+      "date": "2026-07-30",
+      "change": "Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2"
     }
   ]
 }
