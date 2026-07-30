@@ -187,6 +187,21 @@ class LintPackagesTests(unittest.TestCase):
             any(e.startswith("<unknown-package#2>:") for e in errors)
         )
 
+    def test_malformed_version_entries_keep_distinct_labels(self):
+        pkg = base_package()
+        pkg["versions"] = ["bad", {"nu_version": "*"}, "also-bad"]
+        errors = self.lint.lint_index({"packages": [pkg]})
+        self.assertIn(
+            "acme/nu_plugin_demo: versions[0]: entry must be an object", errors
+        )
+        self.assertIn(
+            "acme/nu_plugin_demo: versions[2]: entry must be an object", errors
+        )
+        self.assertTrue(
+            any(e.startswith("acme/nu_plugin_demo@?#1:") for e in errors)
+        )
+        self.assertEqual(len(set(errors)), len(errors))
+
 
 if __name__ == "__main__":
     unittest.main()

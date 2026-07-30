@@ -58,10 +58,18 @@ def package_label(pkg: dict, *, entry_index: int | None = None) -> str:
     return "<unknown-package>"
 
 
-def version_label(pkg: dict, version: object, *, entry_index: int | None = None) -> str:
+def version_label(
+    pkg: dict,
+    version: object,
+    *,
+    entry_index: int | None = None,
+    version_index: int | None = None,
+) -> str:
     base = package_label(pkg, entry_index=entry_index)
     if isinstance(version, dict) and isinstance(version.get("version"), str):
         return f"{base}@{version['version']}"
+    if version_index is not None:
+        return f"{base}@?#{version_index}"
     return f"{base}@?"
 
 
@@ -132,22 +140,55 @@ def _validate_url_and_sha256(
     *,
     seen_sha256: dict[str, str],
     dedupe_key: str,
-    missing_url: str,
-    unsupported_suffix: str,
-    malformed_sha256: str,
-    duplicate_sha256: str,
+    label: str,
+    target_triple: str | None = None,
 ) -> None:
-    """Validate URL/archive suffix/SHA-256 and record SHA-256 dedupe bookkeeping."""
+    """Validate URL/archive suffix/SHA-256 and record SHA-256 dedupe bookkeeping.
+
+    ``target_triple`` selects binary-target wording; ``None`` selects archive wording.
+    """
+    if target_triple is not None:
+        if not isinstance(url, str) or not url.strip():
+            errors.append(f"{label}: target {target_triple!r} missing url")
+        elif not archive_suffix_ok(url):
+            errors.append(
+                f"{label}: target {target_triple!r} url has unsupported archive "
+                f"suffix (supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
+            )
+        if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
+            errors.append(
+                f"{label}: target {target_triple!r} missing or malformed sha256 "
+                "(expected 64 hex chars)"
+            )
+        elif isinstance(sha256, str):
+            prior = seen_sha256.get(sha256.lower())
+            if prior is not None and prior != dedupe_key:
+                errors.append(
+                    f"{label}: duplicate sha256 for target {target_triple!r} "
+                    f"(also used by {prior})"
+                )
+            else:
+                seen_sha256[sha256.lower()] = dedupe_key
+        return
+
     if not isinstance(url, str) or not url.strip():
-        errors.append(missing_url)
+        errors.append(f"{label}: archive artifact missing url")
     elif not archive_suffix_ok(url):
-        errors.append(unsupported_suffix)
+        errors.append(
+            f"{label}: archive url has unsupported archive suffix "
+            f"(supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
+        )
     if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
-        errors.append(malformed_sha256)
+        errors.append(
+            f"{label}: archive artifact missing or malformed sha256 "
+            "(expected 64 hex chars)"
+        )
     elif isinstance(sha256, str):
         prior = seen_sha256.get(sha256.lower())
         if prior is not None and prior != dedupe_key:
-            errors.append(duplicate_sha256.replace("{prior}", prior))
+            errors.append(
+                f"{label}: duplicate sha256 for archive (also used by {prior})"
+            )
         else:
             seen_sha256[sha256.lower()] = dedupe_key
 
@@ -159,8 +200,11 @@ def lint_artifact(
     *,
     seen_sha256: dict[str, str],
     entry_index: int | None = None,
+    version_index: int | None = None,
 ) -> None:
-    label = version_label(pkg, version, entry_index=entry_index)
+    label = version_label(
+        pkg, version, entry_index=entry_index, version_index=version_index
+    )
     artifact = version.get("artifact")
     if not isinstance(artifact, dict):
         errors.append(f"{label}: missing artifact object")
@@ -202,19 +246,8 @@ def lint_artifact(
                 errors,
                 seen_sha256=seen_sha256,
                 dedupe_key=f"{label}/{triple}",
-                missing_url=f"{label}: target {triple!r} missing url",
-                unsupported_suffix=(
-                    f"{label}: target {triple!r} url has unsupported archive "
-                    f"suffix (supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
-                ),
-                malformed_sha256=(
-                    f"{label}: target {triple!r} missing or malformed sha256 "
-                    "(expected 64 hex chars)"
-                ),
-                duplicate_sha256=(
-                    f"{label}: duplicate sha256 for target {triple!r} "
-                    f"(also used by {{prior}})"
-                ),
+                label=label,
+                target_triple=triple,
             )
             if not isinstance(executable_path, str) or not executable_path.strip():
                 errors.append(
@@ -229,16 +262,8 @@ def lint_artifact(
         errors,
         seen_sha256=seen_sha256,
         dedupe_key=label,
-        missing_url=f"{label}: archive artifact missing url",
-        unsupported_suffix=(
-            f"{label}: archive url has unsupported archive suffix "
-            f"(supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
-        ),
-        malformed_sha256=(
-            f"{label}: archive artifact missing or malformed sha256 "
-            "(expected 64 hex chars)"
-        ),
-        duplicate_sha256=f"{label}: duplicate sha256 for archive (also used by {{prior}})",
+        label=label,
+        target_triple=None,
     )
 
 
@@ -248,8 +273,11 @@ def lint_activation_and_provenance(
     errors: list[str],
     *,
     entry_index: int | None = None,
+    version_index: int | None = None,
 ) -> None:
-    label = version_label(pkg, version, entry_index=entry_index)
+    label = version_label(
+        pkg, version, entry_index=entry_index, version_index=version_index
+    )
     pkg_type = pkg.get("type")
     activation = version.get("activation")
     if pkg_type == "plugin":
@@ -301,14 +329,20 @@ def lint_version(
     *,
     seen_sha256: dict[str, str],
     entry_index: int | None = None,
+    version_index: int | None = None,
 ) -> None:
     if not isinstance(version, dict):
-        errors.append(
-            f"{package_label(pkg, entry_index=entry_index)}: "
-            "versions entry must be an object"
-        )
+        pkg_label = package_label(pkg, entry_index=entry_index)
+        if version_index is not None:
+            errors.append(
+                f"{pkg_label}: versions[{version_index}]: entry must be an object"
+            )
+        else:
+            errors.append(f"{pkg_label}: versions entry must be an object")
         return
-    label = version_label(pkg, version, entry_index=entry_index)
+    label = version_label(
+        pkg, version, entry_index=entry_index, version_index=version_index
+    )
     if not isinstance(version.get("version"), str) or not version["version"].strip():
         errors.append(f"{label}: missing version string")
     constraint_error = nu_constraint_error(version.get("nu_version"))
@@ -326,10 +360,19 @@ def lint_version(
                         "MAJOR.MINOR.PATCH"
                     )
     lint_artifact(
-        pkg, version, errors, seen_sha256=seen_sha256, entry_index=entry_index
+        pkg,
+        version,
+        errors,
+        seen_sha256=seen_sha256,
+        entry_index=entry_index,
+        version_index=version_index,
     )
     lint_activation_and_provenance(
-        pkg, version, errors, entry_index=entry_index
+        pkg,
+        version,
+        errors,
+        entry_index=entry_index,
+        version_index=version_index,
     )
 
 
@@ -355,7 +398,7 @@ def lint_index(index: dict) -> list[str]:
         if not isinstance(versions, list):
             continue
         seen_versions: set[str] = set()
-        for version in versions:
+        for version_index, version in enumerate(versions):
             if isinstance(version, dict) and isinstance(version.get("version"), str):
                 ver = version["version"]
                 if ver in seen_versions:
@@ -368,6 +411,7 @@ def lint_index(index: dict) -> list[str]:
                 errors,
                 seen_sha256=seen_sha256,
                 entry_index=entry_index,
+                version_index=version_index,
             )
     return errors
 
