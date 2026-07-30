@@ -73,7 +73,7 @@
       "owner": "tesujimath",
       "type": "module",
       "version": "0.19.0",
-      "platforms": "all platforms (`.zip` archive — platform-agnostic Nu module)",
+      "platforms": "all platforms (`.zip` archive \u2014 platform-agnostic Nu module)",
       "repo": "https://github.com/tesujimath/bash-env-nushell",
       "spec": "specs/tesujimath-bash-env-nushell-0.19.0.json",
       "pr": 16
@@ -110,6 +110,54 @@
       "note": "ci-built via numan-plugins; no Windows (upstream build fails on Windows)",
       "repo": "https://github.com/dead10ck/nu_plugin_dns",
       "spec": "specs/dead10ck-nu_plugin_dns-4.0.10.json"
+    },
+    {
+      "id": "FMotalleb/nu_plugin_port_extension",
+      "name": "nu_plugin_port_extension",
+      "owner": "FMotalleb",
+      "type": "plugin",
+      "version": "0.113.1",
+      "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
+      "note": "ci-built via numan-plugins Wave 1",
+      "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
+      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.113.1.json",
+      "pr": 32
+    },
+    {
+      "id": "FMotalleb/nu_plugin_image",
+      "name": "nu_plugin_image",
+      "owner": "FMotalleb",
+      "type": "plugin",
+      "version": "0.112.2",
+      "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
+      "note": "ci-built via numan-plugins Wave 1",
+      "repo": "https://github.com/FMotalleb/nu_plugin_image",
+      "spec": "specs/FMotalleb-nu_plugin_image-0.112.2.json",
+      "pr": 32
+    },
+    {
+      "id": "idanarye/nu_plugin_skim",
+      "name": "nu_plugin_skim",
+      "owner": "idanarye",
+      "type": "plugin",
+      "version": "0.29.1",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/idanarye/nu_plugin_skim",
+      "spec": "specs/idanarye-nu_plugin_skim-0.29.1.json",
+      "pr": 22
+    },
+    {
+      "id": "FMotalleb/nu_plugin_desktop_notifications",
+      "name": "nu_plugin_desktop_notifications",
+      "owner": "FMotalleb",
+      "type": "plugin",
+      "version": "0.114.1",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/FMotalleb/nu_plugin_desktop_notifications",
+      "spec": "specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json",
+      "pr": 23
     }
   ],
   "mirror": [
@@ -125,7 +173,12 @@
       "pr": 12,
       "outreach": {
         "upstream_repo": "amtoine/nu-git-manager",
-        "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
+        "search_terms": [
+          "release zip",
+          "numan",
+          "mirror",
+          "byte-stable"
+        ],
         "blocked": "repo archived (read-only); cannot open issues or comments"
       }
     },
@@ -142,7 +195,11 @@
       "outreach": {
         "upstream_repo": "nushell-prophet/numd",
         "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
-        "search_terms": ["dotnu", "release zip", "numan"],
+        "search_terms": [
+          "dotnu",
+          "release zip",
+          "numan"
+        ],
         "note": "Track on numd repo (combined outreach draft)"
       }
     },
@@ -159,7 +216,11 @@
       "outreach": {
         "upstream_repo": "nushell-prophet/numd",
         "issue_url": "https://github.com/nushell-prophet/numd/issues/115",
-        "search_terms": ["release zip", "numan", "dotnu"]
+        "search_terms": [
+          "release zip",
+          "numan",
+          "dotnu"
+        ]
       }
     },
     {
@@ -176,7 +237,12 @@
       "outreach": {
         "upstream_repo": "nushell/nu_scripts",
         "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
-        "search_terms": ["nu-hooks", "release", "numan", "monorepo"]
+        "search_terms": [
+          "nu-hooks",
+          "release",
+          "numan",
+          "monorepo"
+        ]
       }
     },
     {
@@ -193,7 +259,11 @@
       "outreach": {
         "upstream_repo": "nushell/nu_scripts",
         "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
-        "search_terms": ["custom-completions", "release", "numan"]
+        "search_terms": [
+          "custom-completions",
+          "release",
+          "numan"
+        ]
       }
     },
     {
@@ -218,7 +288,12 @@
       "spec": "specs/amtoine-nu-git-manager-sugar-0.7.0.json",
       "outreach": {
         "upstream_repo": "amtoine/nu-git-manager",
-        "search_terms": ["release zip", "numan", "mirror", "byte-stable"],
+        "search_terms": [
+          "release zip",
+          "numan",
+          "mirror",
+          "byte-stable"
+        ],
         "blocked": "repo archived (read-only); cannot open issues or comments"
       }
     },
@@ -235,15 +310,15 @@
       "outreach": {
         "upstream_repo": "nushell/nu_scripts",
         "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
-        "search_terms": ["git-completions", "release", "numan"]
+        "search_terms": [
+          "git-completions",
+          "release",
+          "numan"
+        ]
       }
     }
   ],
   "blocked": [
-    {
-      "id": "idanarye/nu_plugin_skim",
-      "blocker": "v0.29.0 tag exists; release assets empty (dist CI not uploading)"
-    },
     {
       "id": "FMotalleb/nu_plugin_clipboard",
       "blocker": "nupm git-only; no release binaries (and other FMotalleb plugins)"
@@ -271,6 +346,10 @@
   ],
   "changelog": [
     {
+      "date": "2026-07-30",
+      "change": "Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries)."
+    },
+    {
       "date": "2026-07-21",
       "change": "Intake CI-built plugins from numan-plugins: cptpiepmatz/nu_plugin_highlight@1.4.15, fdncred/nu_plugin_regex@0.22.0, dead10ck/nu_plugin_dns@4.0.10"
     },
@@ -289,6 +368,10 @@
     {
       "date": "2026-07-05",
       "change": "Initial list"
+    },
+    {
+      "date": "2026-07-30",
+      "change": "Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2"
     }
   ]
 }

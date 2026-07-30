@@ -73,6 +73,17 @@ def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def artifact_provenance(url: str) -> str:
+    """Classify a pinned artifact URL as mirror, ci-built, upstream, or other."""
+    if "numan-registry/releases/download/mirror-" in url:
+        return "mirror"
+    if "tonythethompson/numan-plugins/releases/" in url:
+        return "ci-built"
+    if url.startswith("http"):
+        return "upstream"
+    return "other"
+
+
 def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
     live: dict[str, dict[str, Any]] = {}
     for pkg in index.get("packages", []):
@@ -85,11 +96,12 @@ def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
         if artifact.get("kind") == "binary":
             targets = artifact.get("targets", {})
             url = next(iter(targets.values()), {}).get("url", "")
-        mirror = "numan-registry/releases/download/mirror-" in url
+        provenance = artifact_provenance(url)
         live[key] = {
             "version": latest.get("version", "?"),
-            "mirror": mirror,
-            "upstream_asset": not mirror and url.startswith("http"),
+            "mirror": provenance == "mirror",
+            "ci_built": provenance == "ci-built",
+            "upstream_asset": provenance == "upstream",
         }
     return live
 
@@ -238,6 +250,8 @@ def package_status(
         info = live[pid]
         if info.get("mirror"):
             parts.append("live (registry mirror)")
+        elif info.get("ci_built"):
+            parts.append("live (ci-built asset)")
         elif info.get("upstream_asset"):
             parts.append("live (upstream asset)")
         else:
@@ -302,7 +316,14 @@ def render_intake_doc(
     registry_summary = []
     for key in sorted(live):
         info = live[key]
-        kind = "mirror" if info.get("mirror") else "upstream"
+        if info.get("mirror"):
+            kind = "mirror"
+        elif info.get("ci_built"):
+            kind = "ci-built"
+        elif info.get("upstream_asset"):
+            kind = "upstream"
+        else:
+            kind = "other"
         registry_summary.append(f"`{key}@{info['version']}` ({kind})")
     # Include multi-version packages explicitly (e.g. nutest).
     for pkg in index.get("packages", []):
