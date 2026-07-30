@@ -120,7 +120,8 @@
       "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
       "note": "ci-built via numan-plugins Wave 1",
       "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
-      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.113.1.json"
+      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.113.1.json",
+      "pr": 32
     },
     {
       "id": "FMotalleb/nu_plugin_image",
@@ -131,7 +132,8 @@
       "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
       "note": "ci-built via numan-plugins Wave 1",
       "repo": "https://github.com/FMotalleb/nu_plugin_image",
-      "spec": "specs/FMotalleb-nu_plugin_image-0.112.2.json"
+      "spec": "specs/FMotalleb-nu_plugin_image-0.112.2.json",
+      "pr": 32
     },
     {
       "id": "idanarye/nu_plugin_skim",
