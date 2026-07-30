@@ -66,8 +66,10 @@ def version_label(
     version_index: int | None = None,
 ) -> str:
     base = package_label(pkg, entry_index=entry_index)
-    if isinstance(version, dict) and isinstance(version.get("version"), str):
-        return f"{base}@{version['version']}"
+    if isinstance(version, dict):
+        ver = version.get("version")
+        if isinstance(ver, str) and ver.strip():
+            return f"{base}@{ver}"
     if version_index is not None:
         return f"{base}@?#{version_index}"
     return f"{base}@?"
