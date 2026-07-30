@@ -83,13 +83,13 @@ the Numan client repo's
 
 ### Stage 2: Stronger Local Lint
 
-- [ ] Extend package linting to report actionable errors for missing metadata,
+- [x] Extend package linting to report actionable errors for missing metadata,
   duplicate targets, unknown target triples, unsupported archive suffixes,
   missing activation declarations, malformed Nu constraints, and source
-  provenance mismatches.
-- [ ] Keep lint output deterministic so reviewers can compare before/after
+  provenance mismatches (`scripts/lint_packages.py`).
+- [x] Keep lint output deterministic so reviewers can compare before/after
   reports in PRs.
-- [ ] Make the PR template ask for lint, parser-check, and lifecycle evidence.
+- [x] Make the PR template ask for lint, parser-check, and lifecycle evidence.
 
 ### Stage 3: Repo Discovery
 
