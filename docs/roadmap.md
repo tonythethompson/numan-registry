@@ -1,6 +1,6 @@
 # Numan Registry Roadmap
 
-**Status date:** 2026-07-29
+**Status date:** 2026-07-30
 
 **Consolidated plan:** Cross-repo priorities and the Wave 1 → registry → client
 critical path live in
@@ -25,11 +25,13 @@ JSON edits.
   The harness writes local evidence; the workflow uploads it.
 - The live candidate list is
   [`docs/intake-candidates.md`](intake-candidates.md).
+- `numan-plugins` PR #4 is **merged**. Wave 1 assets are not published yet
+  (first dispatch hit a Windows Recheck shell bug; fix in numan-plugins PR #8).
 
 ## Highest Priority: Import The Next CI-Built Plugin Wave
 
-The next registry change should wait for `numan-plugins` PR #4 to merge and for
-the manual `build-plugins` workflow to publish immutable assets for:
+The next registry change should wait for the manual `build-plugins` workflow to
+publish immutable assets for:
 
 - `FMotalleb/nu_plugin_port_extension@0.113.1`
 - `FMotalleb/nu_plugin_image@0.112.2`
