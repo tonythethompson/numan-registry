@@ -1,6 +1,6 @@
 # Numan Registry Roadmap
 
-**Status date:** 2026-07-29
+**Status date:** 2026-07-30
 
 **Consolidated plan:** Cross-repo priorities and the Wave 1 → registry → client
 critical path live in
@@ -25,32 +25,33 @@ JSON edits.
   The harness writes local evidence; the workflow uploads it.
 - The live candidate list is
   [`docs/intake-candidates.md`](intake-candidates.md).
+- `numan-plugins` Wave 1 release assets are published for
+  `port_extension@0.113.1` and `image@0.112.2`.
 
 ## Highest Priority: Import The Next CI-Built Plugin Wave
 
-The next registry change should wait for `numan-plugins` PR #4 to merge and for
-the manual `build-plugins` workflow to publish immutable assets for:
+Wave 1 intake for:
 
 - `FMotalleb/nu_plugin_port_extension@0.113.1`
 - `FMotalleb/nu_plugin_image@0.112.2`
 
 Checklist:
 
-- [ ] Fetch the generated `spec-*.json` artifacts from the successful
+- [x] Fetch the generated `spec-*.json` artifacts from the successful
   `numan-plugins` build workflow run.
-- [ ] Place specs under `specs/` in a focused registry branch.
-- [ ] Run `python scripts/add-package.py --spec specs/<file>.json --write` for
+- [x] Place specs under `specs/` in a focused registry branch.
+- [x] Run `python scripts/add-package.py --spec specs/<file>.json --write` for
   each package. Let the script download artifacts and compute SHA256 values.
-- [ ] Do not add unrelated catalog targets in the same PR.
-- [ ] Run `python scripts/sync-intake-candidates.py` if intake-state or index
+- [x] Do not add unrelated catalog targets in the same PR.
+- [x] Run `python scripts/sync-intake-candidates.py` if intake-state or index
   changes need the human candidate doc refreshed.
-- [ ] Run local checks:
+- [x] Run local checks:
   `python scripts/scan_for_secrets.py`,
   `python scripts/preflight.py`,
   `python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub --skip-artifacts`,
   `cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json`,
   and `python scripts/lint-manifest-index.py --index registry/index.json --manifest ../numan-plugins/manifest.json`.
-- [ ] Open a PR with the spec artifacts, generated index diff, intake doc
+- [x] Open a PR with the spec artifacts, generated index diff, intake doc
   updates, and clear test evidence.
 - [ ] Run staging after review if needed.
 - [ ] Run lifecycle-prove against a real Nu matching each package constraint
