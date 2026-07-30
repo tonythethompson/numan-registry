@@ -8,6 +8,8 @@ import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "lint_packages.py"
@@ -142,9 +144,48 @@ class LintPackagesTests(unittest.TestCase):
             self.assertEqual(code, 0)
 
     def test_errors_are_sorted_deterministic(self):
-        pkg = base_package(description="", repo="")
-        errors = self.lint.lint_index({"packages": [pkg]})
-        self.assertEqual(errors, sorted(set(errors)))
+        # Process zz before aa so generation order differs from sorted order.
+        # Repeat zz so main()'s sorted(set(...)) collapses duplicate messages.
+        zz = base_package(
+            id={"owner": "zz", "name": "pkg"},
+            description="",
+            repo="",
+        )
+        aa = base_package(
+            id={"owner": "aa", "name": "pkg"},
+            description="",
+            repo="",
+        )
+        index = {"packages": [zz, "not-a-package", aa, zz]}
+        raw = self.lint.lint_index(index)
+        expected = sorted(set(raw))
+        self.assertNotEqual(raw, expected)
+        self.assertLess(len(expected), len(raw))
+        expected_lines = [f"  - {error}" for error in expected]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            index_path = Path(tmp) / "index.json"
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+            buf = StringIO()
+            with redirect_stdout(buf):
+                code = self.lint.main(["--index", str(index_path)])
+            self.assertEqual(code, 1)
+            emitted = [
+                line for line in buf.getvalue().splitlines() if line.startswith("  - ")
+            ]
+            self.assertEqual(emitted, expected_lines)
+            self.assertTrue(emitted[0].startswith("  - aa/"))
+            self.assertTrue(any("packages[1]:" in line for line in emitted))
+
+    def test_malformed_entries_keep_distinct_labels(self):
+        errors = self.lint.lint_index(
+            {"packages": ["x", "y", {"description": "no-id"}]}
+        )
+        self.assertIn("packages[0]: entry must be an object", errors)
+        self.assertIn("packages[1]: entry must be an object", errors)
+        self.assertTrue(
+            any(e.startswith("<unknown-package#2>:") for e in errors)
+        )
 
 
 if __name__ == "__main__":
