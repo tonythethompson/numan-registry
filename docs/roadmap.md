@@ -2,6 +2,11 @@
 
 **Status date:** 2026-07-29
 
+**Consolidated plan:** Cross-repo priorities and the Wave 1 → registry → client
+critical path live in
+[`numan/docs/plans/2026-07-30-consolidated-multi-repo-roadmap.md`](https://github.com/tonythethompson/numan/blob/master/docs/plans/2026-07-30-consolidated-multi-repo-roadmap.md).
+This file keeps registry-local operational detail.
+
 This repository is the source of truth for the signed official Numan registry.
 It should grow through small, evidenced catalog changes, not broad hand-written
 JSON edits.
