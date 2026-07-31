@@ -9,6 +9,7 @@ Use this file when reviewing pull requests (human or automated). [`AGENTS.md`](A
 - `python3 scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub` (add `--skip-artifacts` when offline)
 - `cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json`
 - For CI-built plugins: `python3 scripts/lint-manifest-index.py --index registry/index.json --manifest <numan-plugins/manifest.json>`
+- Script unit tests: `python -m unittest discover -s scripts -p "test_*.py" -v` (see `.github/workflows/repo-safety.yml`)
 
 ## Severity labels
 

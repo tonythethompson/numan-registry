@@ -44,6 +44,7 @@ This document explains how to integrate and operate CI/CD pipelines with the Num
 **Updated** Enhanced with improved CI/CD pipeline resilience, including retriggering commands for staging environments after runner recovery and updated automated testing processes ensuring continuous integration workflows remain functional with latest plugin specifications.
 
 ## Project Structure
+
 The repository provides scripts and artifacts used by CI/CD to validate, sign, and update the registry index. Key areas include:
 - Scripts for preflight checks, validation, linting, signing, and registry operations
 - Registry artifacts (index and signature)
@@ -222,6 +223,7 @@ Optimization tips:
 - [scripts/lint-manifest-index.py](file://scripts/lint-manifest-index.py)
 
 ### Package Linting System
+
 Comprehensive linting framework integrated into repository safety checks for enhanced validation coverage.
 
 Purpose:
@@ -312,6 +314,7 @@ Guidelines:
 - [docs/key-provisioning.md](file://docs/key-provisioning.md)
 
 ### Runner Recovery and Retrying
+
 **New** Automated recovery mechanisms for handling infrastructure disruptions and maintaining pipeline continuity.
 
 Purpose:

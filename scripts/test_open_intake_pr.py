@@ -120,6 +120,55 @@ class TestUpdateIntakeState(unittest.TestCase):
             state = json.loads(state_path.read_text())
             self.assertEqual(len(state["ready"]), 1)  # No duplicate added
 
+    def test_preserves_optional_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "intake-state.json"
+            existing = {
+                "schema_version": 1,
+                "ready": [{
+                    "id": "test/pkg",
+                    "name": "pkg",
+                    "owner": "test",
+                    "type": "plugin",
+                    "version": "0.9.0",
+                    "platforms": "all",
+                    "repo": "https://github.com/test/pkg",
+                    "spec": "specs/test-pkg-0.9.0.json",
+                    "pr": 42,
+                    "note": "tracked",
+                    "outreach": {"upstream_repo": "test/pkg"},
+                }],
+            }
+            state_path.write_text(json.dumps(existing))
+            with patch.object(open_intake_pr, "INTAKE_STATE_PATH", state_path):
+                open_intake_pr._update_intake_state(
+                    "test", "pkg", "1.0.0", "plugin", "specs/test-pkg-1.0.0.json",
+                    "https://github.com/test/pkg", dry_run=False,
+                )
+            state = json.loads(state_path.read_text())
+            self.assertEqual(len(state["ready"]), 1)
+            entry = state["ready"][0]
+            self.assertEqual(entry["version"], "1.0.0")
+            self.assertEqual(entry["spec"], "specs/test-pkg-1.0.0.json")
+            self.assertEqual(entry["pr"], 42)
+            self.assertEqual(entry["note"], "tracked")
+            self.assertEqual(entry["outreach"], {"upstream_repo": "test/pkg"})
+
+    def test_atomic_write_creates_backup(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "intake-state.json"
+            state_path.write_text(json.dumps({"schema_version": 1, "ready": []}))
+            with patch.object(open_intake_pr, "INTAKE_STATE_PATH", state_path):
+                open_intake_pr._update_intake_state(
+                    "test", "pkg", "1.0.0", "plugin", "specs/test-pkg-1.0.0.json",
+                    "https://github.com/test/pkg", dry_run=False,
+                )
+            backup_path = state_path.with_suffix(state_path.suffix + ".bak")
+            self.assertTrue(backup_path.is_file())
+            backup = json.loads(backup_path.read_text())
+            self.assertEqual(backup["schema_version"], 1)
+            self.assertEqual(backup["ready"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

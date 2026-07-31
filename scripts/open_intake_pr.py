@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -58,19 +59,93 @@ def _branch_name(owner: str, name: str, version: str) -> str:
     return f"intake/{_sanitize(owner)}-{_sanitize(name)}-{_sanitize(version)}"
 
 
+def _write_json_atomic(path: Path, data: dict) -> None:
+    """Write JSON atomically, keeping a .bak copy of the previous file.
+
+    Uses a sibling temporary file and os.replace so readers never see a
+    partially-written file. A .bak copy of the previous contents is kept for
+    recovery. This is a maintainer-run tool, so advisory file locking is not
+    implemented; the atomic replace plus backup gives the required safety.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    backup_path = path.with_suffix(path.suffix + ".bak")
+    try:
+        tmp_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        if path.is_file():
+            backup_path.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
+        os.replace(tmp_path, path)
+    except Exception:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        raise
+
+
+def _current_branch() -> str:
+    """Return the name of the currently checked-out branch."""
+    result = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return result.stdout.strip()
+
+
+def _is_worktree_dirty() -> bool:
+    """Return True if the git worktree has uncommitted changes."""
+    result = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0 and result.stdout.strip() != ""
+
+
+def _cleanup_intake_branch(branch: str, original_branch: str) -> None:
+    """Best-effort cleanup of a partially created intake branch."""
+    try:
+        subprocess.run(
+            ["git", "checkout", original_branch],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        subprocess.run(
+            ["git", "branch", "-D", branch],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        print(f"  cleaned up intake branch {branch}", file=sys.stderr)
+    except subprocess.CalledProcessError as exc:
+        print(
+            f"warning: could not clean up intake branch {branch}: {exc}",
+            file=sys.stderr,
+        )
+
+
 def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
                          spec_path: str, repo: str, dry_run: bool) -> None:
-    """Append an entry to docs/intake-state.json ready[]."""
+    """Append or refresh an entry in docs/intake-state.json ready[]."""
     if dry_run:
         print(f"  [dry-run] would update {INTAKE_STATE_PATH}", file=sys.stderr)
         return
 
     if not INTAKE_STATE_PATH.is_file():
         print(f"warning: {INTAKE_STATE_PATH} not found; creating fresh", file=sys.stderr)
-        state: dict = {"ready": []}
+        state: dict = {"schema_version": 1, "ready": []}
     else:
         state = json.loads(INTAKE_STATE_PATH.read_text(encoding="utf-8"))
-    entry = {
+
+    core_fields = {
         "id": f"{owner}/{name}",
         "name": name,
         "owner": owner,
@@ -81,16 +156,16 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
         "spec": spec_path,
     }
     # Keep one entry per package, but refresh it when a new version is intaken.
+    # Preserve optional metadata (pr, note, outreach, etc.) across refreshes.
     ready = state.setdefault("ready", [])
     for index, existing in enumerate(ready):
-        if existing.get("id") == entry["id"]:
-            ready[index] = entry
+        if existing.get("id") == core_fields["id"]:
+            preserved = {k: v for k, v in existing.items() if k not in core_fields}
+            ready[index] = {**core_fields, **preserved}
             break
     else:
-        ready.append(entry)
-    INTAKE_STATE_PATH.write_text(
-        json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+        ready.append(core_fields)
+    _write_json_atomic(INTAKE_STATE_PATH, state)
 
 
 def _generate_pr_body(spec: dict, evidence: dict) -> str:
@@ -185,84 +260,100 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         print("  Mode:   DRY RUN (no mutations)", file=sys.stderr)
     print("", file=sys.stderr)
 
-    # Create the branch before any tracked files are mutated.
-    if dry_run:
-        print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
-    else:
-        _run(["git", "checkout", "-b", branch])
+    original_branch: str | None = None
+    if push:
+        if _is_worktree_dirty():
+            print(
+                "error: refusing to create intake branch with a dirty worktree; "
+                "commit or stash changes first",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        original_branch = _current_branch()
 
-    # Step 1: Copy spec to specs/ (preserve _meta provenance for reviewers)
-    if dry_run:
-        print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
-    else:
-        dest_spec.write_text(json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    try:
+        # Create the branch before any tracked files are mutated.
+        if dry_run:
+            print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
+        else:
+            _run(["git", "checkout", "-b", branch])
 
-    # Step 2: Run add-package.py --write to merge into index.
-    # add-package.py expects bare spec fields (owner, name, …) at the top level,
-    # not the {spec, _meta} wrapper — write an unwrapped copy for it.
-    if dry_run:
-        effective_spec_for_add = spec_path
-    else:
-        effective_spec_for_add = SPECS_DIR / f".bare-{spec_filename}"
-        effective_spec_for_add.write_text(
-            json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        # Step 1: Copy spec to specs/ (preserve _meta provenance for reviewers)
+        if dry_run:
+            print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
+        else:
+            dest_spec.write_text(json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        # Step 2: Run add-package.py --write to merge into index.
+        # add-package.py expects bare spec fields (owner, name, …) at the top level,
+        # not the {spec, _meta} wrapper — write an unwrapped copy for it.
+        if dry_run:
+            effective_spec_for_add = spec_path
+        else:
+            effective_spec_for_add = SPECS_DIR / f".bare-{spec_filename}"
+            effective_spec_for_add.write_text(
+                json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+            )
+        _run(
+            [sys.executable, str(SCRIPTS / "add-package.py"),
+             "--spec", str(effective_spec_for_add),
+             "--write", "--index", str(INDEX_PATH), "--provisional"],
+            dry_run=dry_run,
         )
-    _run(
-        [sys.executable, str(SCRIPTS / "add-package.py"),
-         "--spec", str(effective_spec_for_add),
-         "--write", "--index", str(INDEX_PATH), "--provisional"],
-        dry_run=dry_run,
-    )
-    # Clean up the temporary bare spec
-    if not dry_run and effective_spec_for_add.exists():
-        effective_spec_for_add.unlink()
+        # Clean up the temporary bare spec
+        if not dry_run and effective_spec_for_add.exists():
+            effective_spec_for_add.unlink()
 
-    # Step 3: Lint + validate gates
-    _run(
-        [sys.executable, str(SCRIPTS / "lint_packages.py"), "--index", str(INDEX_PATH)],
-        dry_run=dry_run,
-    )
-    _run(
-        [sys.executable, str(SCRIPTS / "validate.py"),
-         "--index", str(INDEX_PATH),
-         "--skip-signature", "--skip-artifacts", "--allow-provisional-lifecycle"],
-        dry_run=dry_run,
-    )
+        # Step 3: Lint + validate gates
+        _run(
+            [sys.executable, str(SCRIPTS / "lint_packages.py"), "--index", str(INDEX_PATH)],
+            dry_run=dry_run,
+        )
+        _run(
+            [sys.executable, str(SCRIPTS / "validate.py"),
+             "--index", str(INDEX_PATH),
+             "--skip-signature", "--skip-artifacts", "--allow-provisional-lifecycle"],
+            dry_run=dry_run,
+        )
 
-    # Step 4: Update intake-state.json
-    _update_intake_state(owner, name, version, pkg_type, f"specs/{spec_filename}", repo, dry_run)
+        # Step 4: Update intake-state.json
+        _update_intake_state(owner, name, version, pkg_type, f"specs/{spec_filename}", repo, dry_run)
 
-    # Step 5: Refresh intake-candidates doc
-    _run(
-        [sys.executable, str(SCRIPTS / "sync-intake-candidates.py")],
-        dry_run=dry_run,
-        check=False,
-    )
+        # Step 5: Refresh intake-candidates doc
+        _run(
+            [sys.executable, str(SCRIPTS / "sync-intake-candidates.py")],
+            dry_run=dry_run,
+            check=False,
+        )
 
-    # Step 6: Commit and push
-    if dry_run:
-        print(f"  [dry-run] would: git add specs/{spec_filename} registry/index.json docs/", file=sys.stderr)
-        print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
-        print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
-    else:
-        _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
-              str(REPO_ROOT / "docs" / "intake-candidates.md")])
-        _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
-        _run(["git", "push", "origin", branch])
+        # Step 6: Commit and push
+        if dry_run:
+            print(f"  [dry-run] would: git add specs/{spec_filename} registry/index.json docs/", file=sys.stderr)
+            print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
+            print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
+        else:
+            _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
+                  str(REPO_ROOT / "docs" / "intake-candidates.md")])
+            _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
+            _run(["git", "push", "origin", branch])
 
-    # Step 7: Open PR
-    pr_body = _generate_pr_body(spec, evidence)
-    if dry_run:
-        print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
-        print("\n--- PR body preview ---", file=sys.stderr)
-        print(pr_body, file=sys.stderr)
-    else:
-        _run([
-            "gh", "pr", "create",
-            "--title", f"Intake: {owner}/{name} v{version}",
-            "--body", pr_body,
-            "--base", "main",
-        ])
+        # Step 7: Open PR
+        pr_body = _generate_pr_body(spec, evidence)
+        if dry_run:
+            print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
+            print("\n--- PR body preview ---", file=sys.stderr)
+            print(pr_body, file=sys.stderr)
+        else:
+            _run([
+                "gh", "pr", "create",
+                "--title", f"Intake: {owner}/{name} v{version}",
+                "--body", pr_body,
+                "--base", "main",
+            ])
+    except (SystemExit, Exception):
+        if push and original_branch is not None:
+            _cleanup_intake_branch(branch, original_branch)
+        raise
 
     print("\nDone." if not dry_run else "\nDry run complete. Use --push to execute.", file=sys.stderr)
 

@@ -650,17 +650,17 @@ The modular architecture allows for easy extension and customization to meet evo
 
 #### Basic Validation
 ```bash
-python scripts/validate.py --package <package_path>
+python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
 ```
 
 #### Manifest Linting
 ```bash
-python scripts/lint-manifest-index.py --manifest <manifest_path>
+python scripts/lint-manifest-index.py --index registry/index.json --manifest <numan-plugins>/manifest.json
 ```
 
 #### Package Linting
 ```bash
-python scripts/lint_packages.py --package <package_path> --verbose
+python scripts/lint_packages.py --index registry/index.json
 ```
 
 #### Archive Verification
@@ -670,14 +670,14 @@ python scripts/archive_formats.py --check <archive_path>
 
 #### Signature Verification
 ```bash
-python scripts/ci-sign.py --verify <package_path> --key keys/official.pub
+python scripts/ci-sign.py --verify --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
 ```
 
-#### Plugin Specification Validation
+#### Candidate Validation (Stage 5)
 ```bash
-python scripts/validate.py --plugin-spec specs/spec-nu_plugin_emoji.json
-python scripts/validate.py --plugin-spec specs/spec-nu_plugin_json_path.json
-python scripts/validate.py --plugin-spec specs/spec-nu_plugin_parquet.json
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_emoji.json
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_json_path.json
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_parquet.json
 ```
 
 ### Testing Strategies

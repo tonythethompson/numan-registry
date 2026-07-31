@@ -183,9 +183,9 @@ The state management system uses a JSON-based approach for persistence:
 - **Configuration**: Runtime settings and thresholds
 
 #### Concurrency Control:
-- **File Locking**: Prevents simultaneous modifications
-- **Atomic Updates**: Ensures state consistency
-- **Backup Mechanisms**: Automatic state backups during updates
+- **Atomic Updates**: `open_intake_pr.py` writes `docs/intake-state.json` via a sibling temporary file and an atomic `os.replace`, so readers never see a partially-written file.
+- **Backup Mechanisms**: The previous `docs/intake-state.json` contents are copied to `docs/intake-state.json.bak` before each replacement.
+- **File Locking**: Not implemented; this is a maintainer-run tool and concurrent edits are assumed to be coordinated out of band.
 
 **Section sources**
 - [docs/intake-state.json](file://docs/intake-state.json)
