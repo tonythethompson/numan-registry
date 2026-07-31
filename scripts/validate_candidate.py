@@ -115,7 +115,20 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         )
         lint_errors = []
         if not ok_lint:
-            lint_errors = [line for line in output_lint.splitlines() if line.strip().startswith("ERROR")]
+            # lint_packages.py reports failures as a FAIL header followed by
+            # indented bullet diagnostics; preserve those actionable messages.
+            lines = output_lint.splitlines()
+            capturing = False
+            for line in lines:
+                if line.strip().startswith("FAIL:"):
+                    capturing = True
+                if capturing:
+                    lint_errors.append(line)
+            if not lint_errors:
+                lint_errors = lines
+            # Keep the evidence bounded while retaining the end of diagnostics.
+            joined = "\n".join(lint_errors)
+            lint_errors = joined[-2000:].splitlines()
         checks.append({
             "name": "lint",
             "status": "pass" if ok_lint else "fail",
