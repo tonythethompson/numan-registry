@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -42,14 +43,19 @@ def _run(cmd: list[str], *, check: bool = True, dry_run: bool = False) -> subpro
     return result
 
 
+def _sanitize(value: str) -> str:
+    """Sanitize a value for use in filenames and branch names."""
+    return re.sub(r"[^a-zA-Z0-9._-]", "-", value).strip("-") or "unknown"
+
+
 def _spec_filename(owner: str, name: str, version: str) -> str:
     """Generate the canonical spec filename."""
-    return f"{owner}-{name}-{version}.json"
+    return f"{_sanitize(owner)}-{_sanitize(name)}-{_sanitize(version)}.json"
 
 
 def _branch_name(owner: str, name: str, version: str) -> str:
     """Generate the intake branch name."""
-    return f"intake/{owner}-{name}-{version}"
+    return f"intake/{_sanitize(owner)}-{_sanitize(name)}-{_sanitize(version)}"
 
 
 def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
@@ -59,7 +65,11 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
         print(f"  [dry-run] would update {INTAKE_STATE_PATH}", file=sys.stderr)
         return
 
-    state = json.loads(INTAKE_STATE_PATH.read_text(encoding="utf-8"))
+    if not INTAKE_STATE_PATH.is_file():
+        print(f"warning: {INTAKE_STATE_PATH} not found; creating fresh", file=sys.stderr)
+        state: dict = {"ready": []}
+    else:
+        state = json.loads(INTAKE_STATE_PATH.read_text(encoding="utf-8"))
     entry = {
         "id": f"{owner}/{name}",
         "name": name,
@@ -125,7 +135,7 @@ def _generate_pr_body(spec: dict, evidence: dict) -> str:
         "### Checklist",
         "",
         "- [ ] Human reviewed spec fields",
-        f"- [ ] License compatible",
+        "- [ ] License compatible",
         "- [ ] No source-build consent needed",
         "- [ ] Artifact URLs are stable (release assets, not CI ephemeral)",
         "",
@@ -148,6 +158,12 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
 
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
 
+    # Gate: refuse to open a PR if validation did not pass
+    if evidence.get("overall") not in ("pass", "partial"):
+        print(f"error: evidence overall is '{evidence.get('overall')}'; "
+              "refusing to open PR for a failing candidate", file=sys.stderr)
+        sys.exit(1)
+
     owner = spec.get("owner", "unknown")
     name = spec.get("name", "unknown")
     version = spec.get("version", "0.0.0")
@@ -165,11 +181,11 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         print("  Mode:   DRY RUN (no mutations)", file=sys.stderr)
     print("", file=sys.stderr)
 
-    # Step 1: Copy spec to specs/
+    # Step 1: Copy spec to specs/ (preserve _meta provenance for reviewers)
     if dry_run:
         print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
     else:
-        dest_spec.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        dest_spec.write_text(json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     # Step 2: Run add-package.py --write to merge into index
     _run(
@@ -208,7 +224,9 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
         print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
     else:
+        # Create the branch first so mutations land on the intake branch, not the caller's
         _run(["git", "checkout", "-b", branch])
+        # Re-stage after branch creation (files are already written to working tree)
         _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
               str(REPO_ROOT / "docs" / "intake-candidates.md")])
         _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])

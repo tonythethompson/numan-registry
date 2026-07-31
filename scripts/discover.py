@@ -114,7 +114,11 @@ def _nu_constraint_from_dep(dep_version: str | None) -> str | None:
     if len(parts) >= 2:
         major, minor = parts[0], parts[1]
         patch = parts[2] if len(parts) >= 3 else "0"
-        return f">={major}.{minor}.{patch} <{major}.{int(minor) + 1}.0"
+        try:
+            next_minor = int(minor) + 1
+        except ValueError:
+            return None
+        return f">={major}.{minor}.{patch} <{major}.{next_minor}.0"
     return None
 
 
@@ -126,7 +130,7 @@ def _nu_constraint_from_dep(dep_version: str | None) -> str | None:
 def discover_github(repo: str, ref: str | None = None) -> dict:
     """Discover package metadata from a GitHub repository via gh CLI."""
     owner, name = repo.split("/", 1) if "/" in repo else (None, repo)
-    if not owner:
+    if not owner or not name:
         print(f"error: --repo must be owner/name format, got '{repo}'", file=sys.stderr)
         sys.exit(1)
 
@@ -215,7 +219,7 @@ def discover_github(repo: str, ref: str | None = None) -> dict:
     for rel in releases:
         for asset in rel.get("assets", []):
             aname = asset["name"].lower()
-            if "windows" in aname or "win" in aname or "msvc" in aname:
+            if "windows" in aname or "win64" in aname or "win32" in aname or "win-x64" in aname or "win-arm64" in aname or "msvc" in aname:
                 platform_hints["windows"] = True
             if "linux" in aname or "gnu" in aname:
                 platform_hints["linux"] = True

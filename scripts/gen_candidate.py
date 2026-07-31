@@ -115,13 +115,17 @@ def generate_spec(report: dict, *, owner_override: str | None = None,
     if not repo_url and owner and name:
         repo_url = f"https://github.com/{owner}/{name}"
 
+    if not package_type:
+        unresolved.append("package_type not determined; defaulting to plugin — verify manually")
+        package_type = "plugin"
+
     spec: dict = {
         "owner": owner or "TODO",
         "name": name,
         "description": description,
         "repo": repo_url,
-        "type": package_type or "plugin",
-        "tags": [package_type or "plugin", "ci-built"] if package_type else ["ci-built"],
+        "type": package_type,
+        "tags": [package_type, "ci-built"],
         "version": version or "0.0.0",
         "nu_version": nu_version,
     }
