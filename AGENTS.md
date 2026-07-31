@@ -41,28 +41,3 @@ to start — the "application" is the command-line toolchain under `scripts/`.
   repo-safety CI job. See `docs/lifecycle-prove.md`.
 - Never commit private-key material. `*.key`, `*.pem`, `*_private_key*` etc. are
   gitignored and the secret scanner will fail CI if they are force-added.
-
-### Intake automation (Stages 3–6)
-
-Four scripts implement the staged intake pipeline. Each is independently runnable
-and produces JSON consumed by the next stage:
-
-```bash
-# Stage 3: Discover package metadata from a GitHub repo or local checkout
-python scripts/discover.py --repo owner/name [--ref v1.0.0] [--out report.json]
-
-# Stage 4: Generate a draft spec from the discovery report
-python scripts/gen_candidate.py --report report.json [--out candidate.json]
-
-# Stage 5: Validate (download, hash, lint, optional lifecycle-prove)
-python scripts/validate_candidate.py --spec candidate.json [--prove] [--out evidence.json]
-
-# Stage 6: Open a PR (dry-run by default; --push to execute)
-python scripts/open_intake_pr.py --spec candidate.json --evidence evidence.json [--push]
-```
-
-- `discover.py` needs `gh` CLI authenticated for GitHub mode; `--path` mode works offline.
-- `validate_candidate.py --prove` requires `numan` and `nu` on PATH (or `--numan`/`--nu` flags).
-- `open_intake_pr.py` never signs, never pushes to main; human review is mandatory.
-- All scripts use only stdlib + `gh` CLI; no new dependencies.
-- Tests: `python -m unittest discover -s scripts -p "test_*.py"` (CI picks them up automatically).

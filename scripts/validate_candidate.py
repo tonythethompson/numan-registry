@@ -67,17 +67,22 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
 
     with tempfile.TemporaryDirectory(prefix="numan-validate-") as tmp:
         tmp_index = Path(tmp) / "index.json"
-        # Seed a minimal index for add-package.py to merge into
+        # add-package.py expects top-level spec fields, not the {spec, _meta} wrapper.
+        effective_spec = Path(tmp) / "spec.json"
+        effective_spec.write_text(
+            json.dumps(spec_data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        # Seed a schema-valid index for add-package.py to merge into
         tmp_index.write_text(json.dumps({
             "schema_version": 1,
-            "registry": "candidate-validation",
+            "updated_at": "1970-01-01T00:00:00Z",
             "packages": [],
         }), encoding="utf-8")
 
         # Step 1: Download + hash via add-package.py
         ok, output = _run_script(
             [str(SCRIPTS / "add-package.py"),
-             "--spec", str(spec_path),
+             "--spec", str(effective_spec),
              "--write", "--index", str(tmp_index),
              "--provisional"],
             label="add-package",
@@ -91,11 +96,11 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
                     for ver in pkg.get("versions", []):
                         artifact = ver.get("artifact", {})
                         if artifact.get("kind") == "binary":
-                            targets_count = len(artifact.get("targets", {}))
+                            targets_count += len(artifact.get("targets", {}))
                         else:
-                            targets_count = 1
-            except Exception:
-                pass
+                            targets_count += 1
+            except (OSError, json.JSONDecodeError) as exc:
+                print(f"warning: cannot read temporary index: {exc}", file=sys.stderr)
         checks.append({
             "name": "download_and_hash",
             "status": "pass" if ok else "fail",
@@ -132,6 +137,10 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         })
 
     # Step 4: Lifecycle (opt-in)
+    # NOTE: lifecycle-prove runs against the configured production registry,
+    # not the candidate index. For new packages not yet staged/published,
+    # this step will fail with "package not found" — that is expected.
+    # Use --prove only after the package is in the live registry.
     if prove:
         lifecycle_args = [
             str(SCRIPTS / "lifecycle-prove.py"),
@@ -145,7 +154,10 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         checks.append({
             "name": "lifecycle",
             "status": "pass" if ok_life else "fail",
-            "detail": "" if ok_life else output_life[-500:],
+            "detail": "" if ok_life else (
+                "lifecycle-prove runs against the live registry; "
+                "new packages must be staged first. " + output_life[-400:]
+            ),
         })
     else:
         checks.append({

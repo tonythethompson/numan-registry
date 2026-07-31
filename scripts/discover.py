@@ -113,7 +113,8 @@ def _nu_constraint_from_dep(dep_version: str | None) -> str | None:
     parts = dep_version.split(".")
     if len(parts) >= 2:
         major, minor = parts[0], parts[1]
-        return f">={major}.{minor}.0 <{major}.{int(minor) + 1}.0"
+        patch = parts[2] if len(parts) >= 3 else "0"
+        return f">={major}.{minor}.{patch} <{major}.{int(minor) + 1}.0"
     return None
 
 
@@ -143,8 +144,15 @@ def discover_github(repo: str, ref: str | None = None) -> dict:
     license_spdx = license_info.get("spdx_id") if isinstance(license_info, dict) else None
     topics = repo_info.get("topics") or []
 
-    # Releases (latest 5)
-    releases_raw = gh_json(["api", f"repos/{owner}/{name}/releases?per_page=5"])
+    # Releases: fetch by tag when --ref is set, otherwise latest 5
+    if ref:
+        releases_raw = gh_json(["api", f"repos/{owner}/{name}/releases/tags/{ref}"])
+        if isinstance(releases_raw, dict):
+            releases_raw = [releases_raw]
+        elif releases_raw is None:
+            releases_raw = []
+    else:
+        releases_raw = gh_json(["api", f"repos/{owner}/{name}/releases?per_page=5"])
     releases = []
     if isinstance(releases_raw, list):
         for rel in releases_raw:

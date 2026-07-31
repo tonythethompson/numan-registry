@@ -66,6 +66,7 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
         "owner": owner,
         "type": pkg_type,
         "version": version,
+        "platforms": "see spec targets",
         "repo": repo,
         "spec": spec_path,
     }

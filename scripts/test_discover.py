@@ -38,7 +38,7 @@ class TestNuConstraint(unittest.TestCase):
         self.assertEqual(discover._nu_constraint_from_dep("0.114.0"), ">=0.114.0 <0.115.0")
 
     def test_caret_prefix(self):
-        self.assertEqual(discover._nu_constraint_from_dep("^0.113.1"), ">=0.113.0 <0.114.0")
+        self.assertEqual(discover._nu_constraint_from_dep("^0.113.1"), ">=0.113.1 <0.114.0")
 
     def test_none(self):
         self.assertIsNone(discover._nu_constraint_from_dep(None))
