@@ -224,24 +224,23 @@ Optimization tips:
 
 ### Package Linting System
 
-Comprehensive linting framework integrated into repository safety checks for enhanced validation coverage.
+Package linting is integrated into repository safety checks for enhanced validation coverage.
 
 Purpose:
-- Perform deep package analysis beyond basic manifest validation
-- Validate package structure, dependencies, and lifecycle evidence
-- Enforce coding standards and security best practices
-- Provide detailed diagnostic output for developers
+- Validate index entries and artifact fields against registry conventions
+- Catch common intake mistakes before lifecycle-prove and production
+- Provide deterministic, actionable diagnostic output for maintainers
 
 Integration points:
-- Integrated into .github/workflows/repo-safety.yml with 13 lines of configuration
+- Integrated into .github/workflows/repo-safety.yml with 12 lines of configuration
 - Runs automatically as part of repository safety checks
 - Provides fail-fast behavior for critical linting violations
 
 Quality gates:
-- Structural validation of package directories and files
-- Dependency resolution and conflict detection
-- Lifecycle evidence verification for package maturity
-- Security scanning for known vulnerabilities
+- Required package and version metadata (id, description, repo, type, tags, versions, artifact)
+- Supported archive suffixes and well-formed SHA-256 digests
+- Nu version constraint form and activatable-package lifecycle evidence
+- Duplicate package IDs, duplicate versions, and duplicate SHA-256 values
 
 **Section sources**
 - [.github/workflows/repo-safety.yml](file://.github/workflows/repo-safety.yml)

@@ -376,7 +376,6 @@ The enhanced system now supports direct integration with FMotalleb's repository 
 - Port extension plugins
 - Image processing plugins
 - Desktop notification plugins
-- Audio plugins
 
 **Processing Capabilities**:
 - Automated detection of new plugin versions
