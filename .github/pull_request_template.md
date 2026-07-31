@@ -2,6 +2,8 @@
 
 <!-- What changed and why (intake package, docs, tooling, …). -->
 
+Reviewers: see [`REVIEW.md`](../REVIEW.md).
+
 ## Checklist
 
 - [ ] `python scripts/lint_packages.py --index registry/index.json`
