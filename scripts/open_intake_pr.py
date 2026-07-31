@@ -80,13 +80,17 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
         "repo": repo,
         "spec": spec_path,
     }
-    # Avoid duplicates
-    existing_ids = {e.get("id") for e in state.get("ready", [])}
-    if entry["id"] not in existing_ids:
-        state.setdefault("ready", []).append(entry)
-        INTAKE_STATE_PATH.write_text(
-            json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+    # Keep one entry per package, but refresh it when a new version is intaken.
+    ready = state.setdefault("ready", [])
+    for index, existing in enumerate(ready):
+        if existing.get("id") == entry["id"]:
+            ready[index] = entry
+            break
+    else:
+        ready.append(entry)
+    INTAKE_STATE_PATH.write_text(
+        json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def _generate_pr_body(spec: dict, evidence: dict) -> str:
@@ -181,6 +185,12 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         print("  Mode:   DRY RUN (no mutations)", file=sys.stderr)
     print("", file=sys.stderr)
 
+    # Create the branch before any tracked files are mutated.
+    if dry_run:
+        print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
+    else:
+        _run(["git", "checkout", "-b", branch])
+
     # Step 1: Copy spec to specs/ (preserve _meta provenance for reviewers)
     if dry_run:
         print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
@@ -229,16 +239,12 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         check=False,
     )
 
-    # Step 6: Create branch, commit, push
+    # Step 6: Commit and push
     if dry_run:
-        print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
         print(f"  [dry-run] would: git add specs/{spec_filename} registry/index.json docs/", file=sys.stderr)
         print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
         print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
     else:
-        # Create the branch first so mutations land on the intake branch, not the caller's
-        _run(["git", "checkout", "-b", branch])
-        # Re-stage after branch creation (files are already written to working tree)
         _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
               str(REPO_ROOT / "docs" / "intake-candidates.md")])
         _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
