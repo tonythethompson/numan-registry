@@ -183,8 +183,8 @@ def discover_github(repo: str, ref: str | None = None) -> dict:
     if isinstance(cargo_b64, dict) and cargo_b64.get("content"):
         try:
             cargo_content = base64.b64decode(cargo_b64["content"]).decode("utf-8")
-        except Exception:
-            pass
+        except (ValueError, UnicodeDecodeError) as exc:
+            print(f"warning: cannot decode Cargo.toml content: {exc}", file=sys.stderr)
 
     has_cargo = cargo_content is not None
     cargo_info = _classify_from_cargo(cargo_content) if cargo_content else {}
