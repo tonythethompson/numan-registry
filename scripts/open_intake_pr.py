@@ -19,8 +19,10 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -107,9 +109,30 @@ def _is_worktree_dirty() -> bool:
     return result.returncode == 0 and result.stdout.strip() != ""
 
 
-def _cleanup_intake_branch(branch: str, original_branch: str) -> None:
-    """Best-effort cleanup of a partially created intake branch."""
+def _cleanup_intake_branch(branch: str, original_branch: str,
+                           mutated_paths: list[Path]) -> None:
+    """Best-effort cleanup of a partially created intake branch.
+
+    Restores tracked files to their original-branch state, removes any
+    untracked files created during the failed intake, switches back to the
+    original branch, and deletes the intake branch.
+    """
     try:
+        tracked = [str(p) for p in mutated_paths if p.is_file()]
+        if tracked:
+            subprocess.run(
+                ["git", "checkout", "--", *tracked],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+        for path in mutated_paths:
+            try:
+                if path.exists():
+                    path.unlink()
+            except OSError as exc:
+                print(f"warning: could not remove {path}: {exc}", file=sys.stderr)
         subprocess.run(
             ["git", "checkout", original_branch],
             cwd=REPO_ROOT,
@@ -130,6 +153,12 @@ def _cleanup_intake_branch(branch: str, original_branch: str) -> None:
             f"warning: could not clean up intake branch {branch}: {exc}",
             file=sys.stderr,
         )
+        remaining = [str(p) for p in mutated_paths if p.exists()]
+        if remaining:
+            print(
+                f"warning: these paths may still be modified: {', '.join(remaining)}",
+                file=sys.stderr,
+            )
 
 
 def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
@@ -151,12 +180,13 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
         "owner": owner,
         "type": pkg_type,
         "version": version,
-        "platforms": "see spec targets",
         "repo": repo,
         "spec": spec_path,
     }
     # Keep one entry per package, but refresh it when a new version is intaken.
-    # Preserve optional metadata (pr, note, outreach, etc.) across refreshes.
+    # Preserve optional metadata (pr, note, outreach, platforms, etc.) across
+    # refreshes. Platforms is preserved because maintainers often hand-edit it
+    # to a descriptive value after the initial intake.
     ready = state.setdefault("ready", [])
     for index, existing in enumerate(ready):
         if existing.get("id") == core_fields["id"]:
@@ -164,7 +194,7 @@ def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
             ready[index] = {**core_fields, **preserved}
             break
     else:
-        ready.append(core_fields)
+        ready.append({**core_fields, "platforms": "see spec targets"})
     _write_json_atomic(INTAKE_STATE_PATH, state)
 
 
@@ -252,6 +282,13 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
     branch = _branch_name(owner, name, version)
     spec_filename = _spec_filename(owner, name, version)
     dest_spec = SPECS_DIR / spec_filename
+    mutated_paths = [
+        dest_spec,
+        INDEX_PATH,
+        INTAKE_STATE_PATH,
+        REPO_ROOT / "docs" / "intake-candidates.md",
+        INTAKE_STATE_PATH.with_suffix(INTAKE_STATE_PATH.suffix + ".bak"),
+    ]
 
     print(f"Intake: {owner}/{name} v{version}", file=sys.stderr)
     print(f"  Branch: {branch}", file=sys.stderr)
@@ -286,23 +323,27 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
 
         # Step 2: Run add-package.py --write to merge into index.
         # add-package.py expects bare spec fields (owner, name, …) at the top level,
-        # not the {spec, _meta} wrapper — write an unwrapped copy for it.
+        # not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
+        # and remove it even if add-package.py fails.
         if dry_run:
             effective_spec_for_add = spec_path
+            bare_tmp_dir: Path | None = None
         else:
-            effective_spec_for_add = SPECS_DIR / f".bare-{spec_filename}"
+            bare_tmp_dir = Path(tempfile.mkdtemp(prefix="intake-bare-"))
+            effective_spec_for_add = bare_tmp_dir / spec_filename
             effective_spec_for_add.write_text(
                 json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
             )
-        _run(
-            [sys.executable, str(SCRIPTS / "add-package.py"),
-             "--spec", str(effective_spec_for_add),
-             "--write", "--index", str(INDEX_PATH), "--provisional"],
-            dry_run=dry_run,
-        )
-        # Clean up the temporary bare spec
-        if not dry_run and effective_spec_for_add.exists():
-            effective_spec_for_add.unlink()
+        try:
+            _run(
+                [sys.executable, str(SCRIPTS / "add-package.py"),
+                 "--spec", str(effective_spec_for_add),
+                 "--write", "--index", str(INDEX_PATH), "--provisional"],
+                dry_run=dry_run,
+            )
+        finally:
+            if bare_tmp_dir is not None:
+                shutil.rmtree(bare_tmp_dir, ignore_errors=True)
 
         # Step 3: Lint + validate gates
         _run(
@@ -350,9 +391,9 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
                 "--body", pr_body,
                 "--base", "main",
             ])
-    except (SystemExit, Exception):
+    except BaseException:
         if push and original_branch is not None:
-            _cleanup_intake_branch(branch, original_branch)
+            _cleanup_intake_branch(branch, original_branch, mutated_paths)
         raise
 
     print("\nDone." if not dry_run else "\nDry run complete. Use --push to execute.", file=sys.stderr)
