@@ -50,9 +50,22 @@ def _run_script(args: list[str], *, label: str) -> tuple[bool, str]:
     return result.returncode == 0, output
 
 
+def _is_activatable(spec_data: dict) -> bool:
+    """Return True if the package requires lifecycle evidence before promotion.
+
+    Plugins are always activatable; modules are activatable only when they
+    declare an `activation` section. Scripts and completions are not.
+    """
+    pkg_type = spec_data.get("type", "plugin")
+    if pkg_type == "plugin":
+        return True
+    return pkg_type == "module" and "activation" in spec_data
+
+
 def validate_candidate(spec_path: Path, *, prove: bool = False,
                        numan: str | None = None, nu: str | None = None,
-                       strict: bool = False) -> dict:
+                       strict: bool = False,
+                       lifecycle_deferral: str | None = None) -> dict:
     """Run all validation steps and return an evidence report."""
     checks: list[dict] = []
     spec_data = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -173,10 +186,13 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
             ),
         })
     else:
+        detail = "not requested (use --prove)"
+        if lifecycle_deferral:
+            detail = f"deferred: {lifecycle_deferral}"
         checks.append({
             "name": "lifecycle",
             "status": "skip",
-            "detail": "not requested (use --prove)",
+            "detail": detail,
         })
 
     # Overall status
@@ -184,12 +200,21 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     core_pass = all(c["status"] == "pass" for c in core_checks)
     lifecycle_check = next((c for c in checks if c["name"] == "lifecycle"), None)
 
+    # Activatable packages must provide lifecycle evidence or a deferral reason.
+    lifecycle_required = _is_activatable(spec_data)
+    lifecycle_satisfied = (
+        lifecycle_check is not None
+        and lifecycle_check["status"] in ("pass", "fail")
+    ) or bool(lifecycle_deferral)
+
     if strict and lifecycle_check and lifecycle_check["status"] == "fail":
         overall = "fail"
-    elif core_pass:
-        overall = "pass"
-    else:
+    elif not core_pass:
         overall = "fail"
+    elif lifecycle_required and not lifecycle_satisfied:
+        overall = "fail"
+    else:
+        overall = "pass"
 
     # Human summary
     parts = []
@@ -206,8 +231,13 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         parts.append("Lifecycle passed.")
     elif lifecycle_check and lifecycle_check["status"] == "fail":
         parts.append("Lifecycle FAILED.")
+    elif lifecycle_check and lifecycle_check["status"] == "skip":
+        if lifecycle_deferral:
+            parts.append("Lifecycle deferred.")
+        elif lifecycle_required and overall == "fail":
+            parts.append("Lifecycle evidence required for activatable package.")
 
-    return {
+    evidence = {
         "schema_version": 1,
         "spec_file": str(spec_path),
         "package_id": package_id,
@@ -215,6 +245,9 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         "overall": overall,
         "human_summary": " ".join(parts),
     }
+    if lifecycle_deferral:
+        evidence["lifecycle_deferral"] = {"reason": lifecycle_deferral}
+    return evidence
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +262,10 @@ def main() -> None:
     parser.add_argument("--numan", help="Path to numan binary (for --prove)")
     parser.add_argument("--nu", help="Path to nu binary (for --prove)")
     parser.add_argument("--strict", action="store_true", help="Fail if lifecycle fails (with --prove)")
+    parser.add_argument(
+        "--lifecycle-deferral",
+        help="Reason for skipping lifecycle-prove on an activatable package",
+    )
     parser.add_argument("--out", help="Write evidence JSON to file instead of stdout")
     args = parser.parse_args()
 
@@ -243,6 +280,7 @@ def main() -> None:
         numan=args.numan,
         nu=args.nu,
         strict=args.strict,
+        lifecycle_deferral=args.lifecycle_deferral,
     )
 
     output = json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"

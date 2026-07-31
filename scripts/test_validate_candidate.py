@@ -24,7 +24,6 @@ def _write_spec(tmp: str) -> Path:
         "version": "1.2.0",
         "nu_version": "*",
         "artifact": {"kind": "archive", "url": "https://example.com/nutest.zip", "entry": "mod.nu"},
-        "activation": {"kind": "nu-module", "import": "all"},
     }
     path = Path(tmp) / "spec.json"
     path.write_text(json.dumps(spec), encoding="utf-8")
@@ -125,6 +124,108 @@ class TestValidateCandidate(unittest.TestCase):
             evidence = validate_candidate.validate_candidate(path)
 
         self.assertEqual(evidence["package_id"], "test/pkg")
+
+    @patch("validate_candidate._run_script")
+    def test_activatable_plugin_requires_lifecycle_evidence(self, mock_run):
+        """A plugin without --prove or deferral cannot report overall pass."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "nu_plugin_x",
+                "description": "d",
+                "repo": "https://x",
+                "type": "plugin",
+                "tags": ["plugin"],
+                "version": "1.0.0",
+                "nu_version": ">=0.114.0 <0.115.0",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(path)
+
+        self.assertEqual(evidence["overall"], "fail")
+        lifecycle = next(c for c in evidence["checks"] if c["name"] == "lifecycle")
+        self.assertEqual(lifecycle["status"], "skip")
+        self.assertIn("Lifecycle evidence required", evidence["human_summary"])
+
+    @patch("validate_candidate._run_script")
+    def test_activatable_plugin_with_deferral_passes(self, mock_run):
+        """A plugin can pass when lifecycle is explicitly deferred with a reason."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "nu_plugin_x",
+                "description": "d",
+                "repo": "https://x",
+                "type": "plugin",
+                "tags": ["plugin"],
+                "version": "1.0.0",
+                "nu_version": ">=0.114.0 <0.115.0",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(
+                path, lifecycle_deferral="not yet in live registry",
+            )
+
+        self.assertEqual(evidence["overall"], "pass")
+        lifecycle = next(c for c in evidence["checks"] if c["name"] == "lifecycle")
+        self.assertEqual(lifecycle["detail"], "deferred: not yet in live registry")
+        self.assertEqual(evidence.get("lifecycle_deferral"), {"reason": "not yet in live registry"})
+        self.assertIn("Lifecycle deferred", evidence["human_summary"])
+
+    @patch("validate_candidate._run_script")
+    def test_non_activatable_module_passes_without_lifecycle(self, mock_run):
+        """A module without activation does not require lifecycle evidence."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "pkg",
+                "description": "d",
+                "repo": "https://x",
+                "type": "module",
+                "tags": ["module"],
+                "version": "1.0.0",
+                "nu_version": "*",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(path)
+
+        self.assertEqual(evidence["overall"], "pass")
+
+    @patch("validate_candidate._run_script")
+    def test_activatable_module_requires_lifecycle_evidence(self, mock_run):
+        """A module with activation requires lifecycle evidence or deferral."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "pkg",
+                "description": "d",
+                "repo": "https://x",
+                "type": "module",
+                "tags": ["module"],
+                "version": "1.0.0",
+                "nu_version": "*",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+                "activation": {"kind": "nu-module", "import": "all"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(path)
+
+        self.assertEqual(evidence["overall"], "fail")
 
 
 if __name__ == "__main__":
