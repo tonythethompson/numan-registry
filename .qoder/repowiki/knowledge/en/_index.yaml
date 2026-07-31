@@ -1,0 +1,59 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: main
+nodes_managed: true
+exported_at: "2026-07-31T07:09:31Z"
+modules:
+    "":
+        dir_name: Numan Official Registry Repository
+        title: Numan Official Registry Repository
+        scope:
+            - README.md
+            - SECURITY.md
+            - AGENTS.md
+            - .gitignore
+            - .gitattributes
+            - .clineignore
+        source_files: []
+        children:
+            - docs
+            - registry_and_specs
+            - scripts
+        depends_on: []
+        related_to: []
+    docs:
+        dir_name: Numan Registry Operational Playbooks & Intake Tracking
+        title: Numan Registry Operational Playbooks & Intake Tracking
+        scope:
+            - docs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: registry_and_specs
+            - path: scripts
+    registry_and_specs:
+        dir_name: Numan Registry Index, Schema & Package Specs
+        title: Numan Registry Index, Schema & Package Specs
+        scope:
+            - registry/
+            - schemas/
+            - specs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: docs
+            - path: scripts
+    scripts:
+        dir_name: Registry Tooling & Lifecycle Scripts
+        title: Registry Tooling & Lifecycle Scripts
+        scope:
+            - scripts/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: docs
+            - path: registry_and_specs

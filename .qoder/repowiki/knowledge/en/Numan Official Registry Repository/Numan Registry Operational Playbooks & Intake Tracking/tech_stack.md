@@ -1,0 +1,1 @@
+Markdown documents plus a single JSON state file (`intake-state.json`) consumed by Python scripts such as `scripts/sync-intake-candidates.py`; outreach uses the `gh` CLI (`gh issue create --repo ... --body-file ...`).

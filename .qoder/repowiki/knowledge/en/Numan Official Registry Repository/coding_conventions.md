@@ -1,0 +1,4 @@
+- All Python scripts are invoked directly with `python3 scripts/<name>.py`; there is no virtualenv or requirements.txt — dependencies are declared inline in CI workflows.
+- Registry artifacts are treated as immutable data: indices are canonical JSON (sorted keys, compact encoding), signatures are detached `.sig` envelopes, and private keys are gitignored and never committed.
+- Intake candidates flow through staged promotion: provisional entries go to staging first, then require a successful `lifecycle-prove` before production promotion.
+- Operational procedures are codified as checklists under `docs/` (key provisioning, rotation, cutover, incident response) rather than ad-hoc instructions.

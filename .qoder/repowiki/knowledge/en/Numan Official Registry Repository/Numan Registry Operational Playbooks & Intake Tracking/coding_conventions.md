@@ -1,0 +1,4 @@
+- Each upstream outreach draft lives in its own `docs/outreach-issues/<number>-<owner>-<repo>.md` file written specifically for that maintainer rather than sharing a shared template.
+- Intake state entries use a fixed set of fields (`id`, `name`, `owner`, `type`, `version`, `platforms`, `repo`, `spec`, `pr`) and group packages into the `ready`, `mirror`, or `blocked` arrays based on their current status.
+- Outreach items include an `outreach` sub-object with `upstream_repo`, `issue_url`, and `search_terms` when applicable, keeping tracker data alongside the package record.
+- Procedural documents follow a consistent structure of goals, step-by-step actions, and explicit 'what not to do' sections to prevent accidental missteps during incidents or releases.

@@ -1,0 +1,6 @@
+- Package identifiers use a two-part `owner/name` tuple rather than a single string, mirroring GitHub ownership semantics.
+- Each package's `type` field is restricted to one of the four enum values `plugin`, `module`, `script`, `completion`, and tags consistently repeat the type plus domain keywords.
+- Binary artifacts declare per-target entries keyed by Rust-style triple targets (e.g. `x86_64-pc-windows-msvc`, `aarch64-unknown-linux-gnu`) each with `url`, `sha256`, and `executable_path`.
+- Archive-based packages pin both `entry` (the Nu module/script path inside the archive) and `archive_root` (the top-level directory name after extraction).
+- Version records always include a `nu_version` semver range and a `verified_with` list of specific Nu releases the version was tested against.
+- CI-built plugins record their build provenance via a `source` block containing `git`, `rev`, and `cargo_name`, while mirrored modules point at upstream tag/archive URLs instead.

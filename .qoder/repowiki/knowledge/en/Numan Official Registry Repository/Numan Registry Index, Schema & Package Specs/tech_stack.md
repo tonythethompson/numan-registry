@@ -1,0 +1,1 @@
+JSON Schema draft-07 for validation; base64-encoded public keys via `contentEncoding: base64`; SHA-256 checksums for artifact integrity; GPG-style detached signatures (`.sig` file alongside `index.json`).

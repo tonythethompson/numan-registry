@@ -1,0 +1,6 @@
+- Each script exposes a CLI through `argparse.ArgumentParser` with a descriptive description string and an `if __name__ == "__main__": sys.exit(main())` entry pattern.
+- Optional heavy dependencies (`cryptography`, `jsonschema`) are imported inside functions with a try/except ImportError that prints a helpful `pip install` message rather than failing at import time.
+- Error reporting follows a uniform pattern: human-readable messages printed to `sys.stderr` followed by `sys.exit(1)` or returning non-zero from `main()`, with success paths printing `OK:` prefixed lines.
+- File paths are resolved relative to `REPO_ROOT = Path(__file__).resolve().parent.parent` so scripts work regardless of cwd.
+- JSON I/O consistently uses `encoding="utf-8"` and writes trailing newlines after `json.dump(..., indent=2)`.
+- Validation helpers return either `None` on success or a descriptive error string, allowing callers to collect and report multiple issues before exiting.

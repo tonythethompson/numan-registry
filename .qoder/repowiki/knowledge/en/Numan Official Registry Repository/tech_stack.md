@@ -1,0 +1,1 @@
+Python 3.12 with `cryptography` and `jsonschema` for all CLI tooling; Ed25519 signatures over canonical JSON; GitHub Pages hosts the published registry; a pinned Rust binary (`tools/numan-parser-check`) validates the index against Numan's production parser.

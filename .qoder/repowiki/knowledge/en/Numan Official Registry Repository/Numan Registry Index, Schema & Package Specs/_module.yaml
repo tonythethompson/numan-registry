@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: registry_and_specs
+title: Numan Registry Index, Schema & Package Specs
+scope:
+    - registry/
+    - schemas/
+    - specs/
+source_files: []
+depends_on: []
+related_to:
+    - path: docs
+    - path: scripts

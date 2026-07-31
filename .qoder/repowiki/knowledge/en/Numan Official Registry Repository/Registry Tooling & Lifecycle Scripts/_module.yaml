@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: scripts
+title: Registry Tooling & Lifecycle Scripts
+scope:
+    - scripts/
+source_files: []
+depends_on: []
+related_to:
+    - path: docs
+    - path: registry_and_specs

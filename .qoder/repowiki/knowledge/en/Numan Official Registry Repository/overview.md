@@ -1,0 +1,1 @@
+Curated Nushell package registry that publishes a signed JSON index, with per-package specs, CI signing/validation scripts, and operational runbooks for key management, intake, and incident response.

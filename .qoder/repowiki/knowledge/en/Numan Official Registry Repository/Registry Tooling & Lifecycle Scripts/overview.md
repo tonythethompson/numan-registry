@@ -1,0 +1,1 @@
+Standalone Python and shell scripts that scaffold registry entries, compute artifact digests, validate index signatures and schema, provision Ed25519 signing keys, and exercise packages through a real Nu installation for lifecycle proof.

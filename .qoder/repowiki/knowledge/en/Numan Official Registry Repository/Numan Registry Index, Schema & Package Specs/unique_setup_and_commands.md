@@ -1,0 +1,1 @@
+The index is kept in sync by merging individual spec files under `specs/` into `registry/index.json`, then signing the result to produce `registry/index.json.sig`. Consumers should validate the index against `schemas/index-v1.json` before trusting any package metadata.

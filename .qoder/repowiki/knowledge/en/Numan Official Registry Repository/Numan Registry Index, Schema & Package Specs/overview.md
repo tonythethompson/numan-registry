@@ -1,0 +1,1 @@
+Defines the JSON Schema for the Numan registry index, publishes the authoritative signed index listing all packages and versions, and stores per-package spec files that are merged to produce it.
