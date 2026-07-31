@@ -98,33 +98,38 @@ the Numan client repo's
 
 ### Stage 3: Repo Discovery
 
-- [ ] Add read-only discovery for a GitHub repo, release URL, or local checkout.
-- [ ] Detect `nupm.nuon`, module/script/completion layout, plugin Cargo
+- [x] Add read-only discovery for a GitHub repo, release URL, or local checkout
+  (`scripts/discover.py`).
+- [x] Detect `nupm.nuon`, module/script/completion layout, plugin Cargo
   metadata, release assets, license, homepage, tags, Nu dependency versions,
   and platform matrix.
-- [ ] Separate discovered facts from guessed fields and maintainer decisions.
+- [x] Separate discovered facts from guessed fields and maintainer decisions.
 
 ### Stage 4: Candidate Generation
 
-- [ ] Generate draft specs, not committed registry entries.
-- [ ] Include provenance for each inferred field.
-- [ ] Mark unresolved decisions explicitly.
-- [ ] Keep generated JSON stable and reviewable.
+- [x] Generate draft specs, not committed registry entries
+  (`scripts/gen_candidate.py`).
+- [x] Include provenance for each inferred field (`_meta.field_provenance`).
+- [x] Mark unresolved decisions explicitly (`_meta.unresolved`).
+- [x] Keep generated JSON stable and reviewable.
 
 ### Stage 5: Validation Reports
 
-- [ ] Produce machine-readable and human-readable validation evidence for each
-  candidate.
-- [ ] Cover download, hash, archive layout, install, activation readiness,
-  doctor, list, deactivate/remove/gc, and final state inspection.
-- [ ] Keep production secrets unavailable to validation jobs.
+- [x] Produce machine-readable and human-readable validation evidence for each
+  candidate (`scripts/validate_candidate.py`).
+- [x] Cover download, hash, archive layout, install, activation readiness,
+  doctor, list, deactivate/remove/gc, and final state inspection (via
+  `add-package.py` + `lint_packages.py` + `validate.py` + `lifecycle-prove.py`).
+- [x] Keep production secrets unavailable to validation jobs.
 
 ### Stage 6: Registry PR Generation
 
-- [ ] Generate a PR branch from validated specs and evidence.
-- [ ] Include a concise summary of package type, provenance, supported targets,
+- [x] Generate a PR branch from validated specs and evidence
+  (`scripts/open_intake_pr.py`).
+- [x] Include a concise summary of package type, provenance, supported targets,
   lifecycle results, limitations, and publish plan.
-- [ ] Keep human review and protected signing mandatory.
+- [x] Keep human review and protected signing mandatory (`--push` required;
+  dry-run is default; never signs or pushes to main).
 
 ## Production Safety Rules
 
