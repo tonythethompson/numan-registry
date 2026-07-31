@@ -116,12 +116,12 @@ tests --> validate
 
 The validation pipeline consists of several interconnected components that work together to ensure package integrity:
 
-1. **Manifest Schema Validation**: Validates package metadata against the defined schema
-2. **Archive Format Verification**: Ensures package archives are properly formatted and accessible
-3. **Signature Checking**: Verifies cryptographic signatures for authenticity
+1. **Preflight Checks**: Performs preliminary validation before full processing
+2. **Manifest Schema Validation**: Validates package metadata against the defined schema
+3. **Plugin Specification Validation**: Validates new emoji, json_path, and parquet plugin specifications
 4. **Comprehensive Linting Process**: Checks manifest consistency, URL validity, and SHA-256 checksums
-5. **Plugin Specification Validation**: Validates new emoji, json_path, and parquet plugin specifications
-6. **Preflight Checks**: Performs preliminary validation before full processing
+5. **Archive Format Verification**: Ensures package archives are properly formatted and accessible
+6. **Signature Checking**: Verifies cryptographic signatures for authenticity
 
 ### Key Validation Tools
 
@@ -649,36 +649,46 @@ The modular architecture allows for easy extension and customization to meet evo
 ### Command-Line Usage Examples
 
 #### Basic Validation
+
 ```bash
 python scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
 ```
 
 #### Manifest Linting
+
 ```bash
 python scripts/lint-manifest-index.py --index registry/index.json --manifest <numan-plugins>/manifest.json
 ```
 
 #### Package Linting
+
 ```bash
 python scripts/lint_packages.py --index registry/index.json
 ```
 
 #### Archive Verification
+
 ```bash
 python scripts/archive_formats.py --check <archive_path>
 ```
 
 #### Signature Verification
+
 ```bash
 python scripts/ci-sign.py --verify --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub
 ```
 
 #### Candidate Validation (Stage 5)
+
+For activatable candidates, run the full lifecycle proof before intake authorization:
+
 ```bash
-python scripts/validate_candidate.py --spec specs/spec-nu_plugin_emoji.json
-python scripts/validate_candidate.py --spec specs/spec-nu_plugin_json_path.json
-python scripts/validate_candidate.py --spec specs/spec-nu_plugin_parquet.json
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_emoji.json --prove --numan /path/to/numan --nu /path/to/nu
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_json_path.json --prove --numan /path/to/numan --nu /path/to/nu
+python scripts/validate_candidate.py --spec specs/spec-nu_plugin_parquet.json --prove --numan /path/to/numan --nu /path/to/nu
 ```
+
+Omitting `--prove` runs only the static checks and cannot authorize intake.
 
 ### Testing Strategies
 

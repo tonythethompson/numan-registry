@@ -234,12 +234,12 @@ Purpose:
 Integration points:
 - Integrated into .github/workflows/repo-safety.yml with 12 lines of configuration
 - Runs automatically as part of repository safety checks
-- Provides fail-fast behavior for critical linting violations
+- Reports actionable diagnostics for each linting violation
 
 Quality gates:
 - Required package and version metadata (id, description, repo, type, tags, versions, artifact)
 - Supported archive suffixes and well-formed SHA-256 digests
-- Nu version constraint form and activatable-package lifecycle evidence
+- Nu version constraint form (and verified_with format when present)
 - Duplicate package IDs, duplicate versions, and duplicate SHA-256 values
 
 **Section sources**

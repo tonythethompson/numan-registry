@@ -404,25 +404,28 @@ The registry now supports a systematic approach to plugin development through st
 **Stage 2: Validation and Testing**
 - Schema validation against index-v1.json requirements
 - Comprehensive linting for consistency and completeness
-- Security scanning for vulnerabilities
-- Performance benchmarking and compatibility testing
+- Security scanning for vulnerabilities (planned)
+- Performance benchmarking and compatibility testing (planned)
 
 **Stage 3: Registry Integration**
 - Generation of standardized spec files
 - Integration with existing linting and validation pipelines
-- Automated index updates via add-package.py
+- Manual index updates via add-package.py
 - Signature generation and verification
 
 **Stage 4: Production Deployment**
 - Automated staging in development environment
-- Manual approval gates for production deployment
+- Manual approval gates for production deployment (relies on external GitHub environment settings)
 - Automated signing and distribution
-- Rollback capability for failed deployments
+- Rollback capability for failed deployments (planned)
 
 ### Multi-Target Build Support
-The enhanced system now handles multiple CI-built targets effectively:
+The enhanced system now handles multiple CI-built targets effectively. Build
+evidence (compiled binaries, checksums, and standardized specs) is produced by
+`numan-plugins` release jobs; `numan-registry` hashes, validates, signs, and
+publishes those assets rather than building them.
 
-**Build Process**:
+**Build Process** (performed by `numan-plugins` CI):
 - Automated compilation and packaging of plugin binaries
 - Generation of checksums and integrity hashes
 - Creation of standardized spec files
@@ -431,14 +434,14 @@ The enhanced system now handles multiple CI-built targets effectively:
 **Quality Gates**:
 - Schema validation against index-v1.json
 - Linting for consistency and completeness
-- Security scanning for vulnerabilities
-- Performance benchmarking
+- Security scanning for vulnerabilities (planned)
+- Performance benchmarking (planned)
 
 **Deployment Workflow**:
 - Automatic staging in development environment
-- Manual approval for production deployment
+- Manual approval for production deployment (relies on external GitHub environment settings)
 - Automated signing and distribution
-- Rollback capability for failed deployments
+- Rollback capability for failed deployments (planned)
 
 **Section sources**
 - [scripts/sync-intake-candidates.py](file://scripts/sync-intake-candidates.py)
