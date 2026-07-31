@@ -228,7 +228,7 @@ Package linting is integrated into repository safety checks for enhanced validat
 
 Purpose:
 - Validate index entries and artifact fields against registry conventions
-- Catch common intake mistakes before lifecycle-prove and production
+- Catch common intake mistakes before lifecycle proof and production
 - Provide deterministic, actionable diagnostic output for maintainers
 
 Integration points:
