@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: docs
-title: Numan Registry Operational Playbooks & Intake Tracking
+title: Numan Registry Operational Playbooks & Intake State
 scope:
     - docs/
 source_files: []

@@ -20,10 +20,11 @@
 
 ## Update Summary
 **Changes Made**
-- Updated Validation and Linting section to reflect new package linting system integration
-- Added documentation for repository safety checks workflow modifications
-- Enhanced PR template requirements for lint/parser/lifecycle validation evidence
-- Updated architecture diagrams to include new linting pipeline stages
+- Updated CI/CD pipeline documentation to reflect retriggering commands for staging environments after runner recovery
+- Enhanced automated testing and deployment processes section with latest plugin specifications
+- Added guidance on workflow resilience and recovery procedures
+- Updated troubleshooting section with runner recovery scenarios
+- Strengthened production cutover process with enhanced monitoring capabilities
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -40,7 +41,7 @@
 ## Introduction
 This document explains how to integrate and operate CI/CD pipelines with the Numan Registry. It covers automated package validation, signing, registry updates, preflight checks, safety measures, environment configuration, secret management, access control, production cutover, debugging failed runs, performance optimization, and best practices for reliable automation. The goal is to help teams implement secure, repeatable workflows that publish validated and signed packages to the registry while minimizing risk.
 
-**Updated** Enhanced with new package linting system integration and repository safety checks for improved validation coverage.
+**Updated** Enhanced with improved CI/CD pipeline resilience, including retriggering commands for staging environments after runner recovery and updated automated testing processes ensuring continuous integration workflows remain functional with latest plugin specifications.
 
 ## Project Structure
 The repository provides scripts and artifacts used by CI/CD to validate, sign, and update the registry index. Key areas include:
@@ -48,7 +49,7 @@ The repository provides scripts and artifacts used by CI/CD to validate, sign, a
 - Registry artifacts (index and signature)
 - Public key material for verification
 - Documentation for key provisioning and production cutover
-- GitHub Actions workflow directory for automation including enhanced safety checks
+- GitHub Actions workflow directory for automation including enhanced safety checks and recovery mechanisms
 
 ```mermaid
 graph TB
@@ -59,6 +60,7 @@ Validate["Validation & Linting"]
 Lint["Package Linting System"]
 Sign["Signing"]
 Update["Registry Update"]
+Recovery["Runner Recovery & Retrying"]
 end
 subgraph "Repository Artifacts"
 Index["registry/index.json"]
@@ -70,6 +72,7 @@ Update --> Index
 Sign --> Sig
 Validate --> Index
 Preflight --> PubKey
+Recovery --> GH
 ```
 
 **Diagram sources**
@@ -96,13 +99,14 @@ Preflight --> PubKey
 ## Core Components
 - Preflight checks: Ensure prerequisites, permissions, and inputs are valid before running expensive steps.
 - Validation and linting: Validate manifests and index schema; enforce constraints and consistency.
-- Package linting system: New comprehensive linting framework integrated into repository safety checks.
+- Package linting system: Comprehensive linting framework integrated into repository safety checks.
 - Signing: Produce cryptographic signatures for registry artifacts using a secure key store.
 - Registry update: Atomically update the registry index and signature after successful validation and signing.
 - Secret scanning: Detect secrets early to prevent accidental exposure.
 - Production key provisioning: Prepare and rotate keys safely for production use.
+- **New** Runner recovery and retry mechanisms: Automated retriggering commands for staging environments after infrastructure disruptions.
 
-**Updated** Added package linting system as a core component for enhanced validation coverage.
+**Updated** Added runner recovery and retry mechanisms as a core component for enhanced pipeline resilience and reliability.
 
 **Section sources**
 - [scripts/preflight.py](file://scripts/preflight.py)
@@ -114,7 +118,7 @@ Preflight --> PubKey
 - [scripts/provision-production-key.sh](file://scripts/provision-production-key.sh)
 
 ## Architecture Overview
-The CI/CD pipeline orchestrates a sequence of stages that transform a candidate package into a verified, signed, and published registry entry. Safety gates and checks ensure only trusted content reaches production.
+The CI/CD pipeline orchestrates a sequence of stages that transform a candidate package into a verified, signed, and published registry entry. Safety gates and checks ensure only trusted content reaches production, with enhanced resilience through automatic recovery mechanisms.
 
 ```mermaid
 sequenceDiagram
@@ -126,6 +130,7 @@ participant LintSys as "Package Linting System"
 participant Sign as "Signing"
 participant Registry as "Registry Store"
 participant Verify as "Verification"
+participant Recovery as "Runner Recovery"
 Dev->>GH : Push or PR triggers workflow
 GH->>Preflight : Run preflight checks
 Preflight-->>GH : Pass/Fail
@@ -148,7 +153,13 @@ GH->>Registry : Update index and signature
 Registry-->>GH : Acknowledge update
 GH->>Verify : Verify signature against public key
 Verify-->>GH : Verification result
+alt Runner Failure
+GH->>Recovery : Trigger recovery mechanism
+Recovery-->>GH : Retry with fresh runner
+GH->>GH : Retest and redeploy
+else Success
 GH-->>Dev : Publish success or rollback on failure
+end
 end
 end
 end
@@ -181,6 +192,7 @@ Safety measures:
 Operational notes:
 - Integrate secret scanning early to avoid committing sensitive data
 - Log detailed diagnostics to aid debugging without exposing secrets
+- **New** Include runner health checks and environment readiness validation
 
 **Section sources**
 - [scripts/preflight.py](file://scripts/preflight.py)
@@ -203,13 +215,14 @@ Optimization tips:
 - Cache dependency installations and schema files
 - Parallelize independent validations where possible
 - Leverage incremental linting for faster feedback loops
+- **New** Implement retry mechanisms for transient validation failures
 
 **Section sources**
 - [scripts/validate.py](file://scripts/validate.py)
 - [scripts/lint-manifest-index.py](file://scripts/lint-manifest-index.py)
 
 ### Package Linting System
-**New** Comprehensive linting framework integrated into repository safety checks for enhanced validation coverage.
+Comprehensive linting framework integrated into repository safety checks for enhanced validation coverage.
 
 Purpose:
 - Perform deep package analysis beyond basic manifest validation
@@ -245,6 +258,7 @@ Operational flow:
 - Load private key from secure storage
 - Sign index and related artifacts
 - Upload signatures alongside updated registry entries
+- **New** Implement retry logic for signing operations with exponential backoff
 
 **Section sources**
 - [scripts/ci-sign.py](file://scripts/ci-sign.py)
@@ -263,6 +277,7 @@ Best practices:
 Integration points:
 - Add new package entries via dedicated scripts
 - Ensure idempotency to handle retries safely
+- **New** Enhanced error handling for network timeouts and partial updates
 
 **Section sources**
 - [scripts/add-package.py](file://scripts/add-package.py)
@@ -296,6 +311,30 @@ Guidelines:
 - [scripts/provision-production-key.sh](file://scripts/provision-production-key.sh)
 - [docs/key-provisioning.md](file://docs/key-provisioning.md)
 
+### Runner Recovery and Retrying
+**New** Automated recovery mechanisms for handling infrastructure disruptions and maintaining pipeline continuity.
+
+Purpose:
+- Detect runner failures and automatically trigger recovery procedures
+- Retest and redeploy packages when runners become available
+- Ensure staging environments remain synchronized with development changes
+- Minimize manual intervention during infrastructure outages
+
+Recovery mechanisms:
+- Automatic detection of runner unavailability
+- Queued job retry with exponential backoff
+- Staging environment synchronization after recovery
+- Health checks for runner resources before resuming jobs
+
+Operational benefits:
+- Reduced downtime during infrastructure maintenance
+- Improved reliability of automated testing and deployment
+- Consistent staging environment state across recovery events
+- Enhanced developer experience with transparent recovery notifications
+
+**Section sources**
+- [.github/workflows/repo-safety.yml](file://.github/workflows/repo-safety.yml)
+
 ## Dependency Analysis
 The CI/CD pipeline depends on several scripts and artifacts. Understanding these relationships helps optimize execution and troubleshoot failures.
 
@@ -310,6 +349,8 @@ Sign --> AddPackage["add-package.py"]
 AddPackage --> Index["registry/index.json"]
 Sign --> Sig["registry/index.json.sig"]
 Preflight --> PubKey["keys/official.pub"]
+Recovery["Runner Recovery"] --> GH["GitHub Actions"]
+GH --> Preflight
 ```
 
 **Diagram sources**
@@ -339,6 +380,8 @@ Preflight --> PubKey["keys/official.pub"]
 - Minimize network calls by caching remote resources
 - Optimize large file handling (signing and uploads) with compression and batching
 - Leverage the new package linting system's incremental capabilities for faster feedback
+- **New** Implement intelligent retry mechanisms to avoid redundant work after runner recovery
+- **New** Queue jobs during runner unavailability to maintain processing order
 
 [No sources needed since this section provides general guidance]
 
@@ -347,9 +390,11 @@ Common issues and resolutions:
 - Missing secrets: Ensure all required environment variables are set and accessible in the workflow scope
 - Permission errors: Verify branch protections, write permissions, and deployment tokens
 - Validation failures: Review manifest schema compliance and constraint violations
-- **New** Package linting failures: Address structural issues, dependency conflicts, or missing lifecycle evidence identified by the new linting system
+- Package linting failures: Address structural issues, dependency conflicts, or missing lifecycle evidence identified by the new linting system
 - Signing errors: Confirm key availability, correct key format, and environment isolation
 - Registry update failures: Check atomicity, rollback mechanisms, and post-update verification
+- **New** Runner recovery issues: Monitor runner health, check resource availability, and verify network connectivity
+- **New** Staging environment sync problems: Validate environment variables, check deployment tokens, and verify service endpoints
 
 Debugging steps:
 - Enable verbose logging in CI jobs
@@ -357,8 +402,10 @@ Debugging steps:
 - Inspect logs for specific error messages and stack traces
 - Validate inputs and outputs step-by-step
 - Review package linting system output for detailed diagnostic information
+- **New** Check runner status and resource utilization during recovery events
+- **New** Monitor staging environment health indicators and service endpoints
 
-**Updated** Added troubleshooting guidance for the new package linting system failures.
+**Updated** Added troubleshooting guidance for runner recovery and staging environment synchronization issues.
 
 **Section sources**
 - [scripts/preflight.py](file://scripts/preflight.py)
@@ -369,7 +416,7 @@ Debugging steps:
 ## Conclusion
 Integrating CI/CD with the Numan Registry requires careful orchestration of validation, signing, and registry updates. By implementing robust preflight checks, strict security controls, and reliable operational procedures, teams can automate publishing with confidence. Following the guidelines in this document ensures consistent, secure, and efficient pipelines aligned with production standards.
 
-**Updated** Enhanced with new package linting system integration providing deeper validation capabilities and improved quality assurance.
+**Updated** Enhanced with improved pipeline resilience through automated runner recovery mechanisms and enhanced staging environment synchronization, ensuring continuous integration workflows remain functional even during infrastructure disruptions.
 
 [No sources needed since this section summarizes without analyzing specific files]
 
@@ -380,10 +427,11 @@ Integrating CI/CD with the Numan Registry requires careful orchestration of vali
 - Set up secure key storage and restrict access
 - Define branch policies and approval gates
 - Integrate secret scanning and validation steps
-- **New** Configure package linting system integration in repository safety checks
+- Configure package linting system integration in repository safety checks
+- **New** Set up runner recovery mechanisms and monitoring
 - Test end-to-end flows in non-production environments before enabling production
 
-**Updated** Added instructions for package linting system configuration.
+**Updated** Added instructions for runner recovery setup and monitoring configuration.
 
 **Section sources**
 - [scripts/provision-production-key.sh](file://scripts/provision-production-key.sh)
@@ -392,11 +440,13 @@ Integrating CI/CD with the Numan Registry requires careful orchestration of vali
 ### Production Cutover Process
 - Follow the documented checklist for cutover readiness
 - Validate all preflight and validation steps
-- **New** Ensure package linting system passes all checks
+- Ensure package linting system passes all checks
 - Perform signing and registry updates in a controlled manner
 - Monitor post-deployment health and verification results
+- **New** Verify runner recovery mechanisms are functioning correctly
+- **New** Validate staging environment synchronization capabilities
 
-**Updated** Added package linting system validation to cutover process.
+**Updated** Added runner recovery and staging environment validation to cutover process.
 
 **Section sources**
 - [docs/production-cutover-checklist.md](file://docs/production-cutover-checklist.md)
@@ -406,9 +456,11 @@ Integrating CI/CD with the Numan Registry requires careful orchestration of vali
 - Enforce least privilege for CI runners and deployment tokens
 - Audit access to production keys and registry write permissions
 - Rotate credentials regularly and revoke unused access
-- **New** Configure package linting system environment variables and thresholds
+- Configure package linting system environment variables and thresholds
+- **New** Set up runner recovery environment variables and monitoring endpoints
+- **New** Configure staging environment synchronization parameters
 
-**Updated** Added package linting system environment configuration.
+**Updated** Added runner recovery and staging environment configuration options.
 
 **Section sources**
 - [scripts/provision-production-key.sh](file://scripts/provision-production-key.sh)
@@ -417,12 +469,14 @@ Integrating CI/CD with the Numan Registry requires careful orchestration of vali
 ### Relationship Between CI/CD Stages and Registry Operations
 - Preflight ensures readiness and safety
 - Validation and linting guarantee correctness
-- **New** Package linting system provides comprehensive quality assurance
+- Package linting system provides comprehensive quality assurance
 - Signing secures artifacts
 - Registry update publishes changes atomically
 - Verification confirms integrity and authenticity
+- **New** Runner recovery maintains pipeline continuity during infrastructure issues
+- **New** Staging synchronization ensures environment consistency
 
-**Updated** Added package linting system stage to the relationship mapping.
+**Updated** Added runner recovery and staging synchronization stages to the relationship mapping.
 
 **Section sources**
 - [scripts/preflight.py](file://scripts/preflight.py)
@@ -435,7 +489,7 @@ Integrating CI/CD with the Numan Registry requires careful orchestration of vali
 - [keys/official.pub](file://keys/official.pub)
 
 ### PR Template Requirements for Submission Evidence
-**New** Enhanced pull request template now requires evidence of comprehensive validation as part of the submission process.
+Enhanced pull request template now requires evidence of comprehensive validation as part of the submission process.
 
 Submission requirements:
 - Evidence of package linting system validation passing
@@ -443,12 +497,15 @@ Submission requirements:
 - Lifecycle evidence showing package maturity and stability
 - All repository safety checks must complete successfully
 - Documentation updates reflecting any API or behavioral changes
+- **New** Confirmation of runner recovery testing if infrastructure changes were made
+- **New** Validation of staging environment synchronization for deployment-related changes
 
 Quality gates:
 - Automated validation through repository safety checks
 - Manual review of linting system output and recommendations
 - Verification of lifecycle evidence completeness
 - Cross-reference validation between different validation stages
+- **New** Infrastructure change impact assessment and recovery testing validation
 
 **Section sources**
 - [.github/pull_request_template.md](file://.github/pull_request_template.md)
