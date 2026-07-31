@@ -187,13 +187,25 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
     else:
         dest_spec.write_text(json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-    # Step 2: Run add-package.py --write to merge into index
+    # Step 2: Run add-package.py --write to merge into index.
+    # add-package.py expects bare spec fields (owner, name, …) at the top level,
+    # not the {spec, _meta} wrapper — write an unwrapped copy for it.
+    if dry_run:
+        effective_spec_for_add = spec_path
+    else:
+        effective_spec_for_add = SPECS_DIR / f".bare-{spec_filename}"
+        effective_spec_for_add.write_text(
+            json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
     _run(
         [sys.executable, str(SCRIPTS / "add-package.py"),
-         "--spec", str(dest_spec if not dry_run else spec_path),
+         "--spec", str(effective_spec_for_add),
          "--write", "--index", str(INDEX_PATH), "--provisional"],
         dry_run=dry_run,
     )
+    # Clean up the temporary bare spec
+    if not dry_run and effective_spec_for_add.exists():
+        effective_spec_for_add.unlink()
 
     # Step 3: Lint + validate gates
     _run(
