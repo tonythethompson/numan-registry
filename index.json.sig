@@ -1,5 +1,5 @@
 {
   "key_id": "official-2026-07-01",
   "algorithm": "ed25519",
-  "signature": "FzpoRxOjqMTr/t17b4Pp8xMHbLd7Iftth1cCfvio/fv4l13Lao+D+NlBiR0MQacsuPl2ppginQmXml7vc5XKCw=="
+  "signature": "dHSmU7uCah9X9v2iEyM9ju1gXjzb+PfndB6/Q9CvHoN9ibyeUjdrDRGUHTrCfX2Rt7Oii6EwO83LU4QOnmHrDw=="
 }
