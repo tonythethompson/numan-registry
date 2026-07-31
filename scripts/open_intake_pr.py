@@ -99,14 +99,20 @@ def _current_branch() -> str:
 
 
 def _is_worktree_dirty() -> bool:
-    """Return True if the git worktree has uncommitted changes."""
+    """Return True if the git worktree has uncommitted changes.
+
+    Fail-closed: if ``git status`` itself fails (non-zero exit), treat the
+    worktree as dirty so we do not risk mutating an unknown state.
+    """
     result = subprocess.run(
         ["git", "status", "--porcelain"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
     )
-    return result.returncode == 0 and result.stdout.strip() != ""
+    if result.returncode != 0:
+        return True
+    return result.stdout.strip() != ""
 
 
 def _cleanup_intake_branch(branch: str, original_branch: str,
