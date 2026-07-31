@@ -150,6 +150,7 @@ class TestUpdateIntakeState(unittest.TestCase):
             entry = state["ready"][0]
             self.assertEqual(entry["version"], "1.0.0")
             self.assertEqual(entry["spec"], "specs/test-pkg-1.0.0.json")
+            self.assertEqual(entry["platforms"], "all")
             self.assertEqual(entry["pr"], 42)
             self.assertEqual(entry["note"], "tracked")
             self.assertEqual(entry["outreach"], {"upstream_repo": "test/pkg"})
