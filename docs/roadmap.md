@@ -1,6 +1,6 @@
 # Numan Registry Roadmap
 
-**Status date:** 2026-07-30
+**Status date:** 2026-07-31
 
 **Consolidated plan:** Cross-repo priorities and the Wave 1 → registry → client
 critical path live in
@@ -23,10 +23,15 @@ JSON edits.
   `numan-plugins/manifest.json`.
 - Stage 1 lifecycle evidence is mandatory for activatable package promotion.
   The harness writes local evidence; the workflow uploads it.
+- Stage 2 package lint + PR evidence checklist landed in
+  [PR #31](https://github.com/tonythethompson/numan-registry/pull/31).
 - The live candidate list is
   [`docs/intake-candidates.md`](intake-candidates.md).
-- `numan-plugins` Wave 1 release assets are published for
-  `port_extension@0.113.1` and `image@0.112.2`.
+- Wave 1 CI-built packages are in production:
+  `port_extension@0.113.1` and `image@0.112.2`
+  ([intake PR #32](https://github.com/tonythethompson/numan-registry/pull/32);
+  production run
+  [30600799679](https://github.com/tonythethompson/numan-registry/actions/runs/30600799679)).
 
 ## Highest Priority: Import The Next CI-Built Plugin Wave
 
@@ -53,11 +58,10 @@ Checklist:
   and `python scripts/lint-manifest-index.py --index registry/index.json --manifest ../numan-plugins/manifest.json`.
 - [x] Open a PR with the spec artifacts, generated index diff, intake doc
   updates, and clear test evidence.
-- [ ] Run staging after review if needed.
-- [ ] Run lifecycle-prove against a real Nu matching each package constraint
-  before production promotion.
-- [ ] Dispatch production only after validation is green and reviewer approval
-  exists.
+- [x] Staging after merge (green on `main`).
+- [x] Lifecycle-prove against real Nu matching each package constraint
+  (Linux x86_64: Nu 0.113.1 / 0.112.2).
+- [x] Production dispatch after validation and approval.
 
 ## Catalog Maintenance
 
