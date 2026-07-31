@@ -1,0 +1,19 @@
+.github/workflows/production.yml
+  s_be2715c0c11930::t_6dce11106ad7b5 110-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "deae78917e23a0fbcd5c2a91a829929554a058aa",
+  "prompts": {},
+  "sessions": {
+    "s_be2715c0c11930": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7f2a6aef-c99b-4472-a41e-bd4ede9222f6",
+        "model": "default"
+      },
+      "human_author": "tonythethompson <github@trackdub.com>"
+    }
+  }
+}
