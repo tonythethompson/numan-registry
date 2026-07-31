@@ -107,4 +107,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./registry
           destination_dir: ""
-          keep_files: false
+          # Preserve gh-pages/staging published by staging.yml.
+          # Removals from the production index require manual gh-pages cleanup.
+          keep_files: true
