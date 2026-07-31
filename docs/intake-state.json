@@ -158,6 +158,17 @@
       "repo": "https://github.com/FMotalleb/nu_plugin_desktop_notifications",
       "spec": "specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json",
       "pr": 23
+    },
+    {
+      "id": "drbrain/nu_plugin_prometheus",
+      "name": "nu_plugin_prometheus",
+      "owner": "drbrain",
+      "type": "plugin",
+      "version": "0.12.0",
+      "platforms": "linux x64, macOS arm64/x64, Windows x64 (no linux aarch64 — openssl cross)",
+      "note": "ci-built via numan-plugins",
+      "repo": "https://github.com/drbrain/nu_plugin_prometheus",
+      "spec": "specs/spec-nu_plugin_prometheus.json"
     }
   ],
   "mirror": [
@@ -345,6 +356,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-07-31",
+      "change": "Intake drbrain/nu_plugin_prometheus@0.12.0 (ci-built via numan-plugins; 4 targets, linux aarch64 excluded — openssl cross)"
+    },
     {
       "date": "2026-07-30",
       "change": "Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries)."
