@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-22T18:33:55Z",
+  "updated_at": "2026-07-30T12:37:23Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -8,7 +8,7 @@
         "owner": "abusch",
         "name": "nu_plugin_semver"
       },
-      "description": "A Nushell plugin to manipulate SemVer versions: parse, compare, sort, bump, and match against version requirements. Windows-only for now: upstream only publishes .tar.xz archives for Linux/macOS, and Numan's installer does not support that format yet.",
+      "description": "A Nushell plugin to manipulate SemVer versions: parse, compare, sort, bump, and match against version requirements. The catalog remains Windows-only pending intake and lifecycle evidence for the supported upstream Linux/macOS .tar.xz assets.",
       "repo": "https://github.com/abusch/nu_plugin_semver",
       "type": "plugin",
       "tags": [
@@ -146,7 +146,7 @@
         "owner": "SuaveIV",
         "name": "nu_plugin_audio"
       },
-      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Partial platform support: Windows and Linux aarch64 only \u2014 upstream publishes macOS and x86_64-linux as .tar.xz, which Numan does not install yet.",
+      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Partial catalog support: Windows and Linux aarch64 only; supported upstream macOS and x86_64-linux .tar.xz targets are pending intake and lifecycle evidence.",
       "repo": "https://github.com/SuaveIV/nu_plugin_audio",
       "type": "plugin",
       "tags": [
@@ -185,7 +185,7 @@
         "owner": "fdncred",
         "name": "nu_plugin_file"
       },
-      "description": "Nushell plugin that inspects a file and returns information based on its magic number. Windows-only for now: upstream publishes macOS and Linux as .tar.xz, which Numan's installer does not support yet.",
+      "description": "Nushell plugin that inspects a file and returns information based on its magic number. The catalog remains Windows-only pending intake and lifecycle evidence for the supported upstream macOS/Linux .tar.xz assets.",
       "repo": "https://github.com/fdncred/nu_plugin_file",
       "type": "plugin",
       "tags": [
@@ -521,7 +521,7 @@
         "owner": "Trivernis",
         "name": "nu-plugin-dialog"
       },
-      "description": "Nushell plugin for user interaction dialogs. Windows-only for now: upstream ships .tar.xz archives for Linux/macOS, and Numan's installer does not support that format yet.",
+      "description": "Nushell plugin for user interaction dialogs. The catalog remains Windows-only pending intake and lifecycle evidence for the supported upstream Linux/macOS .tar.xz assets.",
       "repo": "https://github.com/Trivernis/nu-plugin-dialog",
       "type": "plugin",
       "tags": [
@@ -895,6 +895,124 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_desktop_notifications-0.114.1/nu_plugin_desktop_notifications-0.114.1-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "206db4e3b30be12068b45963bb8eeace62d7813e717ce1c9cfc4ba9120e0fba3",
                 "executable_path": "nu_plugin_desktop_notifications"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "FMotalleb",
+        "name": "nu_plugin_port_extension"
+      },
+      "description": "Inspect active network connections and scan ports from Nushell. CI-built from FMotalleb/nu_plugin_port_extension@v0.113.1 and signed under the official trust root.",
+      "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "network",
+        "ports",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.113.1",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "source": {
+            "git": "https://github.com/FMotalleb/nu_plugin_port_extension",
+            "rev": "fe8849888b4c54957afd453d711552c589f83dc3",
+            "cargo_name": "nu_plugin_port_extension"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-aarch64-apple-darwin.tar.gz",
+                "sha256": "5913f01bb11d22587e1b38a118cd90a5bf8c44a7bcf18c862e9e23aedbb0dc98",
+                "executable_path": "nu_plugin_port_extension"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "33d34cdee574074c5311fda3cf12a74c74e97a4f587f407c71f7ea1bd283f565",
+                "executable_path": "nu_plugin_port_extension"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-x86_64-apple-darwin.tar.gz",
+                "sha256": "3d0eb4633fa78a441ca2c8171442120ba420c10a82c234f50d49c9c592115733",
+                "executable_path": "nu_plugin_port_extension"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-x86_64-pc-windows-msvc.zip",
+                "sha256": "119e4ecaa097c72b6754ab6e6e598307ba35c55c9217a1b527e4a704e939fbc2",
+                "executable_path": "nu_plugin_port_extension.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "e0bcc150f81aa8829655ca09cbe7baa432131fd66de829ebdc3c269af2f0683c",
+                "executable_path": "nu_plugin_port_extension"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "FMotalleb",
+        "name": "nu_plugin_image"
+      },
+      "description": "Render images in the terminal and save ANSI text as images. CI-built from FMotalleb/nu_plugin_image@v0.112.2 and signed under the official trust root.",
+      "repo": "https://github.com/FMotalleb/nu_plugin_image",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "image",
+        "terminal",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.112.2",
+          "nu_version": ">=0.112.0 <0.113.0",
+          "verified_with": [
+            "0.112.2"
+          ],
+          "source": {
+            "git": "https://github.com/FMotalleb/nu_plugin_image",
+            "rev": "b44892a469ec3f508725220d3d71caa8342a4ab7",
+            "cargo_name": "nu_plugin_image"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-aarch64-apple-darwin.tar.gz",
+                "sha256": "42aa4e98916198c13129ce0096fdca4f4254849ea46eccbb62fbb5a4d1fef055",
+                "executable_path": "nu_plugin_image"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "79f4d9db4f1a9b8c81d336aada1ca651b083efeb36146769ffe4b4bdeef62662",
+                "executable_path": "nu_plugin_image"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-x86_64-apple-darwin.tar.gz",
+                "sha256": "aa62be918479363e69aa87ebae6bea666f4166f49bb988dfb26ded622d37576f",
+                "executable_path": "nu_plugin_image"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-x86_64-pc-windows-msvc.zip",
+                "sha256": "6c68244358e1462c9bc6513f9b02e333a49f355e11092afc835394b1999b9736",
+                "executable_path": "nu_plugin_image.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "fb81d5169424b33b0fe239e5c2f0770e6d252aec7c95b381996b70d3efebf957",
+                "executable_path": "nu_plugin_image"
               }
             }
           }
