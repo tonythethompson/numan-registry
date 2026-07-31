@@ -169,6 +169,39 @@
       "note": "ci-built via numan-plugins",
       "repo": "https://github.com/drbrain/nu_plugin_prometheus",
       "spec": "specs/spec-nu_plugin_prometheus.json"
+    },
+    {
+      "id": "fdncred/nu_plugin_emoji",
+      "name": "nu_plugin_emoji",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.23.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins; Nu 0.114",
+      "repo": "https://github.com/fdncred/nu_plugin_emoji",
+      "spec": "specs/spec-nu_plugin_emoji.json"
+    },
+    {
+      "id": "fdncred/nu_plugin_json_path",
+      "name": "nu_plugin_json_path",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.24.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins; Nu 0.114",
+      "repo": "https://github.com/fdncred/nu_plugin_json_path",
+      "spec": "specs/spec-nu_plugin_json_path.json"
+    },
+    {
+      "id": "fdncred/nu_plugin_parquet",
+      "name": "nu_plugin_parquet",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.24.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins; Nu 0.114",
+      "repo": "https://github.com/fdncred/nu_plugin_parquet",
+      "spec": "specs/spec-nu_plugin_parquet.json"
     }
   ],
   "mirror": [
@@ -356,6 +389,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-07-31",
+      "change": "Intake fdncred/nu_plugin_emoji@0.23.0, fdncred/nu_plugin_json_path@0.24.0, fdncred/nu_plugin_parquet@0.24.0 (ci-built via numan-plugins; Nu 0.114; 4 targets each)"
+    },
     {
       "date": "2026-07-31",
       "change": "Intake drbrain/nu_plugin_prometheus@0.12.0 (ci-built via numan-plugins; 4 targets, linux aarch64 excluded — openssl cross)"
