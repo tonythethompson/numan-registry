@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-30T12:37:23Z",
+  "updated_at": "2026-07-31T06:53:11Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -1013,6 +1013,60 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_image-0.112.2/nu_plugin_image-0.112.2-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "fb81d5169424b33b0fe239e5c2f0770e6d252aec7c95b381996b70d3efebf957",
                 "executable_path": "nu_plugin_image"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "drbrain",
+        "name": "nu_plugin_prometheus"
+      },
+      "description": "Query Prometheus from Nushell (instant/range queries, targets, labels, scrape). CI-built from drbrain/nu_plugin_prometheus@v0.12.0 and signed under the official trust root.",
+      "repo": "https://github.com/drbrain/nu_plugin_prometheus",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "prometheus",
+        "metrics",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.12.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/drbrain/nu_plugin_prometheus",
+            "rev": "3fed1d934ba201ce1d9b78ecb727695588de7ef9",
+            "cargo_name": "nu_plugin_prometheus"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_prometheus-0.12.0/nu_plugin_prometheus-0.12.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "27bf42f6a29f45a7bf85e8183e5212d54eb57428730c3e474e5708e0c52cbf40",
+                "executable_path": "nu_plugin_prometheus"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_prometheus-0.12.0/nu_plugin_prometheus-0.12.0-x86_64-apple-darwin.tar.gz",
+                "sha256": "21bb018e455e6392642aabb7e48c771d5666c474fb369bfc313b913173514d15",
+                "executable_path": "nu_plugin_prometheus"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_prometheus-0.12.0/nu_plugin_prometheus-0.12.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "747fa829a1456ff451604806b4f9a76b400b98836a97e232511b3e5da7fdb083",
+                "executable_path": "nu_plugin_prometheus.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_prometheus-0.12.0/nu_plugin_prometheus-0.12.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "9cb5739161e7c27ea1464e76e57315814ee847b88b833274106dc8b23839f598",
+                "executable_path": "nu_plugin_prometheus"
               }
             }
           }
