@@ -12,6 +12,7 @@
 </cite>
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -33,6 +34,7 @@ The intake process acts as a gatekeeper mechanism that automatically synchronize
 The Intake Candidates system is organized across several key directories and files:
 
 ```mermaid
+
 graph TB
 subgraph "Documentation"
 DOC1[docs/intake-candidates.md]
@@ -54,6 +56,7 @@ DOC2 --> SCRIPT1
 SCRIPT1 --> REG1
 SCRIPT1 --> SPEC1
 REG1 --> SCHEMA
+
 ```
 
 **Diagram sources**
@@ -70,6 +73,7 @@ REG1 --> SCHEMA
 ## Core Components
 
 ### Synchronization Engine
+
 The primary component responsible for coordinating the intake process is the synchronization engine, implemented in Python. This engine handles:
 
 - **Package Discovery**: Scanning external sources for new or updated packages
@@ -78,6 +82,7 @@ The primary component responsible for coordinating the intake process is the syn
 - **Error Handling**: Managing failures and retry mechanisms
 
 ### State Management System
+
 The state management system maintains the current status of all candidate packages through a JSON-based state file. This includes:
 
 - Package metadata and version information
@@ -86,6 +91,7 @@ The state management system maintains the current status of all candidate packag
 - Approval workflow status
 
 ### Registry Integration
+
 The system integrates with the main registry through:
 
 - **Schema Validation**: Ensuring package manifests conform to the defined schema
@@ -102,6 +108,7 @@ The system integrates with the main registry through:
 The Intake Candidates system follows a pipeline architecture with clear separation of concerns:
 
 ```mermaid
+
 sequenceDiagram
 participant Source as External Sources
 participant Sync as Sync Engine
@@ -116,6 +123,7 @@ State-->>Sync : Current State
 Sync->>Registry : Add to Pending Queue
 Registry-->>Sync : Acknowledgment
 Sync-->>Source : Processing Confirmation
+
 ```
 
 **Diagram sources**
@@ -137,13 +145,16 @@ The architecture emphasizes:
 The main synchronization script orchestrates the entire intake process:
 
 #### Key Responsibilities:
+
 - **Input Processing**: Reading candidate packages from various sources
 - **Parallel Processing**: Handling multiple packages simultaneously
 - **Error Recovery**: Implementing retry logic for transient failures
 - **Progress Tracking**: Updating state files with current processing status
 
 #### Processing Workflow:
+
 ```mermaid
+
 flowchart TD
 Start([Start Sync Process]) --> LoadState["Load Current State"]
 LoadState --> ScanSources["Scan External Sources"]
@@ -163,6 +174,7 @@ NextPackage --> |Yes| ProcessQueue
 NextPackage --> |No| Cleanup["Cleanup Resources"]
 Cleanup --> ExitClean
 MarkFailed --> NextPackage
+
 ```
 
 **Diagram sources**
@@ -177,12 +189,14 @@ MarkFailed --> NextPackage
 The state management system uses a JSON-based approach for persistence:
 
 #### State Structure:
+
 - **Candidate Registry**: List of all packages in the intake pipeline
 - **Processing Queue**: Currently being processed packages
 - **History Log**: Past processing attempts and results
 - **Configuration**: Runtime settings and thresholds
 
 #### Concurrency Control:
+
 - **Atomic Updates**: `open_intake_pr.py` writes `docs/intake-state.json` via a sibling temporary file and an atomic `os.replace`, so readers never see a partially-written file.
 - **Backup Mechanisms**: The previous `docs/intake-state.json` contents are copied to `docs/intake-state.json.bak` before each replacement.
 - **File Locking**: Not implemented; this is a maintainer-run tool and concurrent edits are assumed to be coordinated out of band.
@@ -195,12 +209,15 @@ The state management system uses a JSON-based approach for persistence:
 The system enforces strict schema compliance through:
 
 #### Schema Definition:
+
 - **Version Compatibility**: Supports multiple schema versions
 - **Field Validation**: Type checking and constraint enforcement
 - **Cross-field Validation**: Complex business rule validation
 
 #### Validation Process:
+
 ```mermaid
+
 classDiagram
 class SchemaValidator {
 +validateManifest(manifest) ValidationResult
@@ -225,6 +242,7 @@ class Manifest {
 }
 SchemaValidator --> ValidationResult : produces
 SchemaValidator --> Manifest : validates
+
 ```
 
 **Diagram sources**
@@ -238,9 +256,10 @@ SchemaValidator --> Manifest : validates
 The Intake Candidates system has well-defined dependencies:
 
 ```mermaid
+
 graph TB
 subgraph "External Dependencies"
-PYTHON[Python 3.x]
+PYTHON[Python 3.12]
 JSON[JSON Parser]
 HTTP[HTTP Client]
 CRYPTO[Cryptography Library]
@@ -266,6 +285,7 @@ SYNC --> CRYPTO
 PYTHON --> SYNC
 HTTP --> NETWORK
 FILESYS --> STATE
+
 ```
 
 **Diagram sources**
@@ -273,6 +293,7 @@ FILESYS --> STATE
 - [docs/intake-state.json](file://docs/intake-state.json)
 
 ### Coupling Analysis:
+
 - **Low Coupling**: Components interact through well-defined interfaces
 - **High Cohesion**: Related functionality grouped within modules
 - **Clear Boundaries**: Minimal shared state between components
@@ -285,18 +306,21 @@ FILESYS --> STATE
 The Intake Candidates system is designed with performance in mind:
 
 ### Optimization Strategies:
+
 - **Parallel Processing**: Multiple packages processed concurrently
 - **Caching**: Frequently accessed data cached in memory
 - **Lazy Loading**: Resources loaded only when needed
 - **Batch Operations**: Grouped database/file operations
 
 ### Scalability Features:
+
 - **Horizontal Scaling**: Support for multiple worker processes
 - **Queue-based Processing**: Decoupled producer-consumer pattern
 - **Resource Monitoring**: Automatic scaling based on load
 - **Graceful Degradation**: Reduced functionality under stress
 
 ### Memory Management:
+
 - **Streaming Processing**: Large files processed without full loading
 - **Garbage Collection**: Explicit cleanup of temporary resources
 - **Memory Limits**: Configurable resource constraints
@@ -306,21 +330,25 @@ The Intake Candidates system is designed with performance in mind:
 ### Common Issues and Solutions:
 
 #### Synchronization Failures:
+
 - **Network Timeouts**: Check network connectivity and retry configuration
 - **Authentication Errors**: Verify API keys and credentials
 - **Rate Limiting**: Implement exponential backoff strategies
 
 #### Validation Errors:
+
 - **Schema Mismatches**: Update package manifests to match current schema
 - **Missing Dependencies**: Ensure all required fields are present
 - **Invalid Formats**: Correct JSON/YAML formatting issues
 
 #### State Corruption:
+
 - **File Lock Conflicts**: Ensure single-process access to state files
 - **Incomplete Updates**: Use atomic write operations
 - **Backup Restoration**: Restore from last known good state
 
 ### Debugging Techniques:
+
 - **Verbose Logging**: Enable detailed log output for troubleshooting
 - **State Inspection**: Examine intermediate state files
 - **Network Tracing**: Monitor HTTP requests and responses

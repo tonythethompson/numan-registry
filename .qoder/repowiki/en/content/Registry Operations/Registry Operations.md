@@ -20,6 +20,7 @@
 </cite>
 
 ## Update Summary
+
 **Changes Made**
 - Updated documentation to reflect the registry index expansion with 163 new lines incorporating three new Nushell plugins
 - Enhanced coverage of plugin registry capabilities and systematic approach to plugin development through standardized lifecycle stages
@@ -27,6 +28,7 @@
 - Added comprehensive guidance for handling multiple CI-built targets and asset classification
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
@@ -42,9 +44,11 @@
 13. [Appendices](#appendices)
 
 ## Introduction
+
 This document provides comprehensive guidance for operating and maintaining the package registry. It covers how to add new packages, update existing entries, remove deprecated packages, and maintain registry integrity through linting and validation. The registry has been significantly enhanced with expanded capabilities supporting 163 new lines in the registry index that incorporate three new Nushell plugins. The system now features a sophisticated intake process with Wave 1 automation that supports automated processing of port_extension and image plugins from FMotalleb's repository. The documentation explains the registry index structure, version management, conflict handling, rollback procedures, backup and recovery, performance optimization, and troubleshooting common issues. The enhanced system demonstrates successful processing of multiple CI-built targets including the latest Prometheus plugin integration.
 
 ## Project Structure
+
 The repository organizes registry data, schemas, scripts, and specifications into clear directories:
 - registry: Contains the registry index and its signature.
 - schemas: Defines the JSON schema used to validate the registry index.
@@ -53,6 +57,7 @@ The repository organizes registry data, schemas, scripts, and specifications int
 - docs: Operational documentation including incident response and key provisioning.
 
 ```mermaid
+
 graph TB
 A["Registry Index<br/>registry/index.json"] --> B["Index Signature<br/>registry/index.json.sig"]
 C["Schema Definition<br/>schemas/index-v1.json"] --> A
@@ -65,6 +70,7 @@ I["FMotalleb Plugins<br/>port_extension, image plugins"] --> H
 J["Prometheus Plugin<br/>spec-nu_plugin_prometheus.json"] --> H
 K["Three New Nushell Plugins<br/>163 new registry lines"] --> H
 L["CI-Built Targets<br/>Multiple successful builds"] --> H
+
 ```
 
 **Diagram sources**
@@ -83,6 +89,7 @@ L["CI-Built Targets<br/>Multiple successful builds"] --> H
 - [README.md](file://README.md)
 
 ## Core Components
+
 - Registry Index (index.json): Central manifest listing all available packages with their versions and metadata, now expanded with 163 new lines.
 - Index Schema (index-v1.json): Validates the structure and required fields of the registry index.
 - Package Specifications (specs/*.json): Individual files describing a specific package version, including source, checksums, and metadata.
@@ -112,9 +119,11 @@ Key responsibilities:
 - [scripts/sync-intake-candidates.py](file://scripts/sync-intake-candidates.py)
 
 ## Architecture Overview
+
 The registry operates as a signed, schema-validated index backed by per-version package specifications. The workflow ensures that any change to the registry is validated, linted, and signed before publication. The enhanced intake system now supports automated processing of packages from external repositories with intelligent asset classification and handles multiple CI-built targets.
 
 ```mermaid
+
 sequenceDiagram
 participant Dev as "Developer"
 participant Add as "add-package.py"
@@ -143,6 +152,7 @@ Pref-->>Dev : "Pre-flight status"
 Dev->>Sign : "Sign updated index"
 Sign-->>Sig : "Write signature file"
 Dev-->>Dev : "Commit and push changes"
+
 ```
 
 **Diagram sources**
@@ -158,6 +168,7 @@ Dev-->>Dev : "Commit and push changes"
 ## Detailed Component Analysis
 
 ### Registry Index Structure and Metadata
+
 The registry index is a JSON document that enumerates packages and their versions. Each entry includes metadata such as name, version, source location, and checksums. The index must conform to the schema defined in schemas/index-v1.json. The registry has been expanded with 163 new lines incorporating three new Nushell plugins.
 
 - Index fields typically include:
@@ -181,6 +192,7 @@ Operational implications:
 - [schemas/index-v1.json](file://schemas/index-v1.json)
 
 ### Package Specifications Relationship
+
 Each package has a corresponding specification file under specs/. These files define:
 - Version-specific details (version string, build artifacts)
 - Source locations and integrity hashes
@@ -207,6 +219,7 @@ Examples of spec files:
 - [specs/spec-nu_plugin_prometheus.json](file://specs/spec-nu_plugin_prometheus.json)
 
 ### Adding New Packages
+
 Procedure:
 1. Prepare the package specification file under specs/ with correct metadata and integrity hashes.
 2. Run add-package.py to update the registry index with the new entry.
@@ -230,6 +243,7 @@ Automation highlights:
 - [scripts/ci-sign.py](file://scripts/ci-sign.py)
 
 ### Updating Existing Entries
+
 When updating a package:
 - Modify or replace the corresponding spec file under specs/ with the new version details.
 - Re-run add-package.py to update the index entry for the new version.
@@ -249,6 +263,7 @@ Best practices:
 - [scripts/ci-sign.py](file://scripts/ci-sign.py)
 
 ### Removing Deprecated Packages
+
 To remove a deprecated package:
 - Remove the corresponding spec file from specs/ if it is fully deprecated.
 - Update the registry index to remove the package entry via add-package.py or direct index editing.
@@ -267,6 +282,7 @@ Considerations:
 - [scripts/ci-sign.py](file://scripts/ci-sign.py)
 
 ### Linting and Validation Processes
+
 Linting and validation are critical to registry integrity:
 - lint-manifest-index.py checks for formatting, field presence, and cross-references between index and specs.
 - validate.py enforces schema compliance and semantic rules.
@@ -283,6 +299,7 @@ Workflow:
 - [scripts/preflight.py](file://scripts/preflight.py)
 
 ### Handling Package Conflicts and Version Management
+
 Conflict resolution:
 - If two entries claim the same package name and version, resolve by selecting the authoritative source and updating the index accordingly.
 - Use strict versioning policies to avoid overlapping ranges.
@@ -302,6 +319,7 @@ Operational safeguards:
 - [scripts/validate.py](file://scripts/validate.py)
 
 ### Rollback Scenarios
+
 In case of errors post-deployment:
 - Restore the previous version of registry/index.json from version control.
 - Re-sign the restored index using ci-sign.py.
@@ -319,6 +337,7 @@ Best practices:
 - [scripts/lint-manifest-index.py](file://scripts/lint-manifest-index.py)
 
 ### Backup and Recovery Procedures
+
 Backup strategy:
 - Regularly back up registry/index.json and registry/index.json.sig.
 - Snapshot the specs/ directory to preserve package specifications.
@@ -336,6 +355,7 @@ Operational notes:
 ## Enhanced Package Intake System
 
 ### Wave 1 Automation Features
+
 The package intake system has been significantly enhanced with Wave 1 automation capabilities. This enhancement introduces automated processing of packages from external repositories, specifically supporting port_extension and image plugins from FMotalleb's repository. The system now handles 163 new lines in the registry index incorporating three new Nushell plugins.
 
 Key improvements:
@@ -346,6 +366,7 @@ Key improvements:
 - **Multi-Target Processing**: Support for handling multiple CI-built targets simultaneously.
 
 ### Enhanced Sync-Intake-Candidates Functionality
+
 The sync-intake-candidates.py script has been upgraded to provide intelligent asset classification and automated processing:
 
 **Asset Classification Logic**:
@@ -370,6 +391,7 @@ The sync-intake-candidates.py script has been upgraded to provide intelligent as
 - Scalable architecture supporting growing plugin ecosystem
 
 ### FMotalleb Repository Integration
+
 The enhanced system now supports direct integration with FMotalleb's repository for automated package intake:
 
 **Supported Plugin Types**:
@@ -393,6 +415,7 @@ The enhanced system now supports direct integration with FMotalleb's repository 
 ## Plugin Development Lifecycle
 
 ### Standardized Development Stages
+
 The registry now supports a systematic approach to plugin development through standardized lifecycle stages from intake through production deployment. This framework ensures consistency and quality across all plugins in the ecosystem.
 
 **Stage 1: Intake and Classification**
@@ -420,6 +443,7 @@ The registry now supports a systematic approach to plugin development through st
 - Rollback capability for failed deployments (planned)
 
 ### Multi-Target Build Support
+
 The enhanced system now handles multiple CI-built targets effectively. Build
 evidence (compiled binaries, checksums, and standardized specs) is produced by
 `numan-plugins` release jobs; `numan-registry` hashes, validates, signs, and
@@ -451,6 +475,7 @@ publishes those assets rather than building them.
 ## CI Integration and Automated Processing
 
 ### Successful Multi-Target Processing
+
 The registry now demonstrates successful processing of multiple CI-built targets through the automated pipeline, particularly evident in the Prometheus plugin integration which showcases four CI-built targets.
 
 **Integration Highlights**:
@@ -460,6 +485,7 @@ The registry now demonstrates successful processing of multiple CI-built targets
 - **Quality Assurance**: Comprehensive linting and validation ensured registry consistency
 
 ### CI Pipeline Integration
+
 The enhanced system showcases robust CI/CD integration capabilities:
 
 **Build Process**:
@@ -481,6 +507,7 @@ The enhanced system showcases robust CI/CD integration capabilities:
 - Rollback capability for failed deployments
 
 ### Lessons Learned
+
 The enhanced intake system provides valuable insights for future plugin integrations:
 
 **Best Practices Identified**:
@@ -501,6 +528,7 @@ The enhanced intake system provides valuable insights for future plugin integrat
 - [registry/index.json](file://registry/index.json)
 
 ## Dependency Analysis
+
 The registry components have clear dependencies:
 - The index depends on the schema for validation.
 - Package specs feed into the index via add-package.py.
@@ -509,6 +537,7 @@ The registry components have clear dependencies:
 - Enhanced intake system processes external repository artifacts.
 
 ```mermaid
+
 graph LR
 Schema["schemas/index-v1.json"] --> Index["registry/index.json"]
 Specs["specs/*.json"] --> Index
@@ -523,6 +552,7 @@ CI["CI Build System"] --> Intake
 Prometheus["Prometheus Plugin"] --> Index
 FMotalleb["FMotalleb Plugins"] --> Intake
 NushellPlugins["Three New Nushell Plugins"] --> Index
+
 ```
 
 **Diagram sources**
@@ -550,6 +580,7 @@ NushellPlugins["Three New Nushell Plugins"] --> Index
 - [specs/spec-nu_plugin_prometheus.json](file://specs/spec-nu_plugin_prometheus.json)
 
 ## Performance Considerations
+
 - Keep the registry index compact and well-structured to improve download and parsing times.
 - Use incremental updates to minimize write amplification.
 - Employ caching strategies at the consumer level to reduce repeated fetches.
@@ -559,6 +590,7 @@ NushellPlugins["Three New Nushell Plugins"] --> Index
 - Scale intake processing to handle growing plugin ecosystem efficiently.
 
 ## Troubleshooting Guide
+
 Common issues and resolutions:
 - Schema validation failures:
   - Cause: Missing or incorrectly typed fields in the index or specs.
@@ -599,9 +631,11 @@ Common issues and resolutions:
 - [scripts/sync-intake-candidates.py](file://scripts/sync-intake-candidates.py)
 
 ## Conclusion
+
 Maintaining a reliable and secure registry requires disciplined processes for adding, updating, and removing packages, supported by robust linting, validation, and signing workflows. The registry has been significantly enhanced with expanded capabilities supporting 163 new lines in the registry index that incorporate three new Nushell plugins. The enhanced intake system with Wave 1 automation significantly improves the efficiency of package processing from external repositories, particularly for port_extension and image plugins from FMotalleb's repository. The successful integration of multiple CI-built targets demonstrates the system's scalability and reliability. By adhering to the documented procedures, operators can ensure registry integrity, manage versions effectively, handle conflicts and rollbacks safely, optimize performance while preserving backup and recovery capabilities, leverage automated intake systems for streamlined package management, and support the growing plugin ecosystem through standardized lifecycle management.
 
 ## Appendices
+
 - Key Provisioning: Refer to docs/key-provisioning.md for managing signing keys.
 - Incident Response: See docs/incident-response.md for handling operational incidents.
 - Production Cutover: Follow docs/production-cutover-checklist.md when deploying changes to production.
