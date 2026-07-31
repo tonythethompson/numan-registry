@@ -77,6 +77,9 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     owner = spec_data.get("owner", "unknown")
     name = spec_data.get("name", "unknown")
     package_id = f"{owner}/{name}"
+    deferral = (lifecycle_deferral or "").strip()
+    if prove and deferral:
+        raise ValueError("--prove and --lifecycle-deferral are mutually exclusive")
 
     with tempfile.TemporaryDirectory(prefix="numan-validate-") as tmp:
         tmp_index = Path(tmp) / "index.json"
@@ -187,8 +190,8 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         })
     else:
         detail = "not requested (use --prove)"
-        if lifecycle_deferral:
-            detail = f"deferred: {lifecycle_deferral}"
+        if deferral:
+            detail = f"deferred: {deferral}"
         checks.append({
             "name": "lifecycle",
             "status": "skip",
@@ -203,9 +206,9 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     # Activatable packages must provide lifecycle evidence or a deferral reason.
     lifecycle_required = _is_activatable(spec_data)
     lifecycle_satisfied = (
-        lifecycle_check is not None
-        and lifecycle_check["status"] in ("pass", "fail")
-    ) or bool(lifecycle_deferral)
+        lifecycle_check["status"] == "pass"
+        or (bool(deferral) and lifecycle_check["status"] == "skip")
+    )
 
     if strict and lifecycle_check and lifecycle_check["status"] == "fail":
         overall = "fail"
@@ -232,7 +235,7 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     elif lifecycle_check and lifecycle_check["status"] == "fail":
         parts.append("Lifecycle FAILED.")
     elif lifecycle_check and lifecycle_check["status"] == "skip":
-        if lifecycle_deferral:
+        if deferral:
             parts.append("Lifecycle deferred.")
         elif lifecycle_required and overall == "fail":
             parts.append("Lifecycle evidence required for activatable package.")
@@ -245,8 +248,8 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         "overall": overall,
         "human_summary": " ".join(parts),
     }
-    if lifecycle_deferral:
-        evidence["lifecycle_deferral"] = {"reason": lifecycle_deferral}
+    if deferral:
+        evidence["lifecycle_deferral"] = {"reason": deferral}
     return evidence
 
 
@@ -274,14 +277,18 @@ def main() -> None:
         print(f"error: spec file not found: {spec_path}", file=sys.stderr)
         sys.exit(1)
 
-    evidence = validate_candidate(
-        spec_path,
-        prove=args.prove,
-        numan=args.numan,
-        nu=args.nu,
-        strict=args.strict,
-        lifecycle_deferral=args.lifecycle_deferral,
-    )
+    try:
+        evidence = validate_candidate(
+            spec_path,
+            prove=args.prove,
+            numan=args.numan,
+            nu=args.nu,
+            strict=args.strict,
+            lifecycle_deferral=args.lifecycle_deferral,
+        )
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     output = json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"
     if args.out:

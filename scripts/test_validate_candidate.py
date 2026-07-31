@@ -228,5 +228,98 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertEqual(evidence["overall"], "fail")
 
 
+    @patch("validate_candidate._run_script")
+    def test_failed_lifecycle_proof_fails_activatable(self, mock_run):
+        """A failed lifecycle proof must not satisfy lifecycle evidence."""
+        def side_effect(args, *, label):
+            if label == "add-package":
+                idx_arg = args.index("--index") + 1 if "--index" in args else None
+                if idx_arg:
+                    Path(args[idx_arg]).write_text(json.dumps({
+                        "schema_version": 1,
+                        "registry": "test",
+                        "packages": [{
+                            "id": "test/nu_plugin_x",
+                            "versions": [{"version": "1.0.0", "artifact": {"kind": "archive", "url": "x"}}],
+                        }],
+                    }))
+                return True, "ok"
+            if label == "lifecycle-prove":
+                return False, "package not found in live registry"
+            return True, ""
+
+        mock_run.side_effect = side_effect
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "nu_plugin_x",
+                "description": "d",
+                "repo": "https://x",
+                "type": "plugin",
+                "tags": ["plugin"],
+                "version": "1.0.0",
+                "nu_version": ">=0.114.0 <0.115.0",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(path, prove=True)
+
+        self.assertEqual(evidence["overall"], "fail")
+        lifecycle = next(c for c in evidence["checks"] if c["name"] == "lifecycle")
+        self.assertEqual(lifecycle["status"], "fail")
+        self.assertIn("Lifecycle FAILED", evidence["human_summary"])
+
+    @patch("validate_candidate._run_script")
+    def test_whitespace_deferral_treated_as_missing(self, mock_run):
+        """A whitespace-only deferral is not a valid reason."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "nu_plugin_x",
+                "description": "d",
+                "repo": "https://x",
+                "type": "plugin",
+                "tags": ["plugin"],
+                "version": "1.0.0",
+                "nu_version": ">=0.114.0 <0.115.0",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            evidence = validate_candidate.validate_candidate(path, lifecycle_deferral="   ")
+
+        self.assertEqual(evidence["overall"], "fail")
+        self.assertNotIn("lifecycle_deferral", evidence)
+        self.assertIn("Lifecycle evidence required", evidence["human_summary"])
+
+    @patch("validate_candidate._run_script")
+    def test_prove_and_deferral_mutually_exclusive(self, mock_run):
+        """--prove cannot be combined with --lifecycle-deferral."""
+        mock_run.return_value = (True, "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = {
+                "owner": "test",
+                "name": "nu_plugin_x",
+                "description": "d",
+                "repo": "https://x",
+                "type": "plugin",
+                "tags": ["plugin"],
+                "version": "1.0.0",
+                "nu_version": ">=0.114.0 <0.115.0",
+                "artifact": {"kind": "archive", "url": "https://x/a.zip", "entry": "mod.nu"},
+            }
+            path = Path(tmp) / "spec.json"
+            path.write_text(json.dumps(spec), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                validate_candidate.validate_candidate(
+                    path, prove=True, lifecycle_deferral="not yet staged"
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
