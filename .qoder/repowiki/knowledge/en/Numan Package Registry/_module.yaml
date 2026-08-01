@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: Numan Official Registry Repository
+title: Numan Package Registry
 scope:
     - README.md
     - SECURITY.md

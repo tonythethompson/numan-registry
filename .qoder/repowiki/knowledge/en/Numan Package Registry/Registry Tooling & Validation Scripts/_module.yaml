@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: scripts
-title: Registry Tooling & Lifecycle Scripts
+title: Registry Tooling & Validation Scripts
 scope:
     - scripts/
 source_files: []

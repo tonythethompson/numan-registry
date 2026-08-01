@@ -3,11 +3,11 @@ schema_version: 1
 locale: en-US
 branch: main
 nodes_managed: true
-exported_at: "2026-07-31T10:38:52Z"
+exported_at: "2026-08-01T04:12:48Z"
 modules:
     "":
-        dir_name: Numan Official Registry Repository
-        title: Numan Official Registry Repository
+        dir_name: Numan Package Registry
+        title: Numan Package Registry
         scope:
             - README.md
             - SECURITY.md
@@ -23,8 +23,8 @@ modules:
         depends_on: []
         related_to: []
     docs:
-        dir_name: Numan Registry Operational Playbooks & Intake State
-        title: Numan Registry Operational Playbooks & Intake State
+        dir_name: Registry Operational Playbooks & Intake State
+        title: Registry Operational Playbooks & Intake State
         scope:
             - docs/
         source_files: []
@@ -47,8 +47,8 @@ modules:
             - path: docs
             - path: scripts
     scripts:
-        dir_name: Registry Tooling & Lifecycle Scripts
-        title: Registry Tooling & Lifecycle Scripts
+        dir_name: Registry Tooling & Validation Scripts
+        title: Registry Tooling & Validation Scripts
         scope:
             - scripts/
         source_files: []

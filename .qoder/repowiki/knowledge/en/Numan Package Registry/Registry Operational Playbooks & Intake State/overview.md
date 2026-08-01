@@ -1,0 +1,1 @@
+Markdown playbooks and machine-readable intake state for the Numan registry covering upstream release outreach, incident response, key provisioning/rotation, lifecycle verification, production cutover, and candidate tracking.

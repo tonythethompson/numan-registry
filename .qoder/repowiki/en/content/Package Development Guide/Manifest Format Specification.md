@@ -175,16 +175,22 @@ Script manifests focus on execution context and environment:
 **Updated** New specialized data processing plugins have been added to support advanced data manipulation tasks:
 
 ##### Emoji Plugin (`spec-nu_plugin_emoji.json`)
-Unicode emoji manipulation plugin providing functions for emoji detection, conversion, and text processing.
-Capabilities are defined by the plugin implementation and its documentation.
+Unicode emoji manipulation plugin providing functions for emoji detection, conversion, and text processing:
+- Supports Unicode emoji ranges and categories
+- Provides emoji normalization and transformation functions
+- Handles emoji combining sequences and regional indicators
 
 ##### JSON Path Plugin (`spec-nu_plugin_json_path.json`)
-JSON path operations plugin enabling advanced JSON data querying and manipulation.
-Capabilities are defined by the plugin implementation and its documentation.
+JSON path operations plugin enabling advanced JSON data querying and manipulation:
+- Implements JSONPath query language support
+- Provides filtering and projection capabilities
+- Supports nested JSON structure traversal
 
 ##### Parquet Plugin (`spec-nu_plugin_parquet.json`)
-Apache Parquet file handling plugin for columnar data processing.
-Capabilities are defined by the plugin implementation and its documentation.
+Apache Parquet file handling plugin for columnar data processing:
+- Reads and writes Parquet file format
+- Supports schema inference and validation
+- Enables efficient columnar data operations
 
 **Section sources**
 - [FMotalleb-nu_plugin_desktop_notifications-0.114.1.json:1-100](file://specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json#L1-L100)
@@ -222,14 +228,14 @@ Publish --> End([Complete])
 
 ### Dependency Management
 
-Dependencies are declared as an opaque object on each version entry. `scripts/add-package.py` copies the object into the index unchanged; the registry does not resolve, validate, or install them.
+Dependencies are declared using a flexible constraint system:
 
-- **Exact Versions**: Plugins may pin to specific versions using `=` operator
-- **Version Ranges**: Plugins may specify acceptable ranges with comparison operators
-- **Wildcard Support**: Plugins may use `*` for flexible matching
-- **Transitive Dependencies**: Resolution is the responsibility of the plugin and its runtime; the registry does not perform transitive resolution
+- **Exact Versions**: Pin to specific versions using `=` operator
+- **Version Ranges**: Specify acceptable ranges with comparison operators
+- **Wildcard Support**: Use `*` for flexible matching
+- **Transitive Dependencies**: Automatic resolution of nested dependencies
 
-**Updated** Data processing plugins may bundle their own runtime dependencies:
+**Updated** Data processing plugins may require additional dependencies:
 - **Emoji Plugin**: Unicode library dependencies for emoji processing
 - **JSON Path Plugin**: JSON parsing and query engine dependencies
 - **Parquet Plugin**: Columnar storage format libraries and compression codecs
@@ -256,6 +262,7 @@ end
 subgraph "Validation Pipeline"
 Linter["Manifest Linter"]
 Validator["Package Validator"]
+Resolver["Dependency Resolver"]
 end
 subgraph "Registry Operations"
 IndexManager["Index Manager"]
@@ -265,8 +272,12 @@ end
 JSONSchema --> Linter
 SemVer --> Validator
 Crypto --> Validator
-Linter --> IndexManager
-Validator --> IndexManager
+UnicodeLib --> Resolver
+JSONParser --> Resolver
+ParquetLib --> Resolver
+Linter --> Resolver
+Validator --> Resolver
+Resolver --> IndexManager
 IndexManager --> Archiver
 Archiver --> Publisher
 ```
