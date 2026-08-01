@@ -1,11 +1,11 @@
 # Registry intake candidates
 
 Running list of packages evaluated for the official Numan registry.
-_Auto-synced 2026-07-31 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
+_Auto-synced 2026-08-01 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, `.tar.xz`, `.txz`, or `.tar`; prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, the package **must be staged or published** in the configured registry before running Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`), unless a registry-target override is added. Run lifecycle-prove on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
-**Currently in registry:** `FMotalleb/nu_plugin_desktop_notifications@0.114.1` (ci-built), `FMotalleb/nu_plugin_image@0.112.2` (ci-built), `FMotalleb/nu_plugin_port_extension@0.113.1` (ci-built), `SuaveIV/nu_plugin_audio@0.2.8` (upstream), `SuaveIV/nu_script_wttr@0.1.0-main` (mirror), `Trivernis/nu-plugin-dialog@0.1.0` (upstream), `abusch/nu_plugin_semver@0.11.17` (upstream), `alex-kattathra-johnson/nu_plugin_ws@1.0.6` (upstream), `amtoine/nu-git-manager@0.8.0` (mirror), `amtoine/nu-git-manager-sugar@0.7.0` (mirror), `b4nst/nu_plugin_format_pcap@0.1.0` (upstream), `cptpiepmatz/nu_plugin_highlight@1.4.15` (ci-built), `dead10ck/nu_plugin_dns@4.0.10` (ci-built), `drbrain/nu_plugin_prometheus@0.12.0` (ci-built), `fdncred/nu_plugin_emoji@0.23.0` (ci-built), `fdncred/nu_plugin_file@0.25.2` (upstream), `fdncred/nu_plugin_json_path@0.24.0` (ci-built), `fdncred/nu_plugin_parquet@0.24.0` (ci-built), `fdncred/nu_plugin_regex@0.22.0` (ci-built), `idanarye/nu_plugin_skim@0.29.1` (ci-built), `nushell-prophet/dotnu@0.0.18` (mirror), `nushell-prophet/numd@0.4.0` (mirror), `nushell-works/nu_plugin_nw_ulid@0.2.0` (upstream), `nushell/custom-completions@0.1.0-f04cb44` (mirror), `nushell/git-completions@0.1.0-f04cb44` (mirror), `nushell/nu-hooks@0.1.0` (mirror), `tesujimath/bash-env-nushell@0.19.0` (upstream), `vyadh/nutest` (1.1.0, 1.2.0).
+**Currently in registry:** `FMotalleb/nu_plugin_desktop_notifications@0.114.1` (ci-built), `FMotalleb/nu_plugin_image@0.112.2` (ci-built), `FMotalleb/nu_plugin_port_extension@0.113.1` (ci-built), `Kissaki/nu_plugin_bson@26.1140.0` (ci-built), `SuaveIV/nu_plugin_audio@0.2.8` (upstream), `SuaveIV/nu_script_wttr@0.1.0-main` (mirror), `Trivernis/nu-plugin-dialog@0.1.0` (upstream), `abusch/nu_plugin_semver@0.11.17` (upstream), `alex-kattathra-johnson/nu_plugin_ws@1.0.6` (upstream), `amtoine/nu-git-manager@0.8.0` (mirror), `amtoine/nu-git-manager-sugar@0.7.0` (mirror), `b4nst/nu_plugin_format_pcap@0.1.0` (upstream), `cptpiepmatz/nu_plugin_highlight@1.4.15` (ci-built), `dead10ck/nu_plugin_dns@4.0.10` (ci-built), `drbrain/nu_plugin_prometheus@0.12.0` (ci-built), `fdncred/nu_plugin_emoji@0.23.0` (ci-built), `fdncred/nu_plugin_file@0.25.2` (upstream), `fdncred/nu_plugin_json_path@0.24.0` (ci-built), `fdncred/nu_plugin_parquet@0.24.0` (ci-built), `fdncred/nu_plugin_regex@0.22.0` (ci-built), `fnuttens/nu_plugin_hmac@0.27.0` (ci-built), `idanarye/nu_plugin_skim@0.29.1` (ci-built), `nushell-prophet/dotnu@0.0.18` (mirror), `nushell-prophet/numd@0.4.0` (mirror), `nushell-works/nu_plugin_nw_ulid@0.2.0` (upstream), `nushell/custom-completions@0.1.0-f04cb44` (mirror), `nushell/git-completions@0.1.0-f04cb44` (mirror), `nushell/nu-hooks@0.1.0` (mirror), `tesujimath/bash-env-nushell@0.19.0` (upstream), `vyadh/nutest` (1.1.0, 1.2.0).
 
 ---
 
@@ -33,6 +33,8 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 | [`fdncred/nu_plugin_emoji`](https://github.com/fdncred/nu_plugin_emoji) | plugin | v0.23.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (ci-built asset) — ci-built via numan-plugins; Nu 0.114 |
 | [`fdncred/nu_plugin_json_path`](https://github.com/fdncred/nu_plugin_json_path) | plugin | v0.24.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (ci-built asset) — ci-built via numan-plugins; Nu 0.114 |
 | [`fdncred/nu_plugin_parquet`](https://github.com/fdncred/nu_plugin_parquet) | plugin | v0.24.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (ci-built asset) — ci-built via numan-plugins; Nu 0.114 |
+| [`Kissaki/nu_plugin_bson`](https://github.com/Kissaki/nu_plugin_bson) | plugin | v26.1140.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (ci-built asset) — ci-built via numan-plugins; Nu 0.114 |
+| [`fnuttens/nu_plugin_hmac`](https://github.com/fnuttens/nu_plugin_hmac) | plugin | v0.27.0 | linux x64/arm64, macOS arm64, Windows x64 (no intel mac) | live (ci-built asset) — ci-built via numan-plugins; Nu 0.113 |
 
 ---
 
@@ -60,7 +62,6 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 | [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | nupm git-only; no release binaries (and other FMotalleb plugins) |
 | [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | mac/linux targets now have supported tar.xz assets (registry remains Windows-only pending intake and lifecycle evidence) |
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | tar.xz assets are supported; no Windows release asset |
-| [`fnuttens/nu_plugin_hmac`](https://github.com/fnuttens/nu_plugin_hmac) | Bare binary upload, not zip/tar archive |
 | fdncred/abusch cargo-dist plugins | Unix targets ship `.tar.xz`; Windows ships `.zip` |
 | MCP / AI agent tooling | Not a Numan package type; would need module/script packaging |
 
@@ -70,6 +71,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
+| 2026-07-31 | Intake Kissaki/nu_plugin_bson@26.1140.0, fnuttens/nu_plugin_hmac@0.27.0 (ci-built via numan-plugins; 4 targets each) |
 | 2026-07-31 | Intake fdncred/nu_plugin_emoji@0.23.0, fdncred/nu_plugin_json_path@0.24.0, fdncred/nu_plugin_parquet@0.24.0 (ci-built via numan-plugins; Nu 0.114; 4 targets each) |
 | 2026-07-31 | Intake drbrain/nu_plugin_prometheus@0.12.0 (ci-built via numan-plugins; 4 targets, linux aarch64 excluded — openssl cross) |
 | 2026-07-30 | Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries). |

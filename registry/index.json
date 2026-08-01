@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-31T09:36:58Z",
+  "updated_at": "2026-08-01T03:37:48Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -1229,6 +1229,114 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_parquet-0.24.0/nu_plugin_parquet-0.24.0-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "d910710cb6fa957cf2c954b10d40e43105b54ee3cebcaf9348a25990e120b2e8",
                 "executable_path": "nu_plugin_parquet"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "Kissaki",
+        "name": "nu_plugin_bson"
+      },
+      "description": "Convert between BSON (Binary JSON) and Nushell values. CI-built from Kissaki/nu_plugin_bson@v26.1140.0 and signed under the official trust root.",
+      "repo": "https://github.com/Kissaki/nu_plugin_bson",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "bson",
+        "data",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "26.1140.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/Kissaki/nu_plugin_bson",
+            "rev": "252f950d01d0a9310baf9bfb22ee282e2d76161e",
+            "cargo_name": "nu_plugin_bson"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bson-26.1140.0/nu_plugin_bson-26.1140.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "ab9d41b69d7e15c8b9715a201940ec0ca92f5911a478e92951c14bf8cf2afcf5",
+                "executable_path": "nu_plugin_bson"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bson-26.1140.0/nu_plugin_bson-26.1140.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "2d1c4b1ff67acb09a78d4ecd9bf1b7aa405b38c23fd7326b08f971b4e90f0217",
+                "executable_path": "nu_plugin_bson"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bson-26.1140.0/nu_plugin_bson-26.1140.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "856fc3d6735393ec042c87b201f0ccd3b809146f06089bb409b7e932a3539dd9",
+                "executable_path": "nu_plugin_bson.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bson-26.1140.0/nu_plugin_bson-26.1140.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "f1cc82c0e1997275699179145e48ffd3dee23dd2c0b8caeb93591895649477fb",
+                "executable_path": "nu_plugin_bson"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fnuttens",
+        "name": "nu_plugin_hmac"
+      },
+      "description": "HMAC sealing and verification from Nushell. CI-built from fnuttens/nu_plugin_hmac@0.27.0 and signed under the official trust root.",
+      "repo": "https://github.com/fnuttens/nu_plugin_hmac",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "hmac",
+        "crypto",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.27.0",
+          "nu_version": ">=0.113.0 <0.114.0",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "source": {
+            "git": "https://github.com/fnuttens/nu_plugin_hmac",
+            "rev": "634f14145f88cf4a44b4172fe07a45bca5d21422",
+            "cargo_name": "nu_plugin_hmac"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hmac-0.27.0/nu_plugin_hmac-0.27.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "af8c537c3a7888536d0abe32483039e358ea4b2938bfda0527de2846d531c41f",
+                "executable_path": "nu_plugin_hmac"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hmac-0.27.0/nu_plugin_hmac-0.27.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "c7552f7945d54cb85a223035e5969e6e7cdfd501199c38bea47463a7b62b6067",
+                "executable_path": "nu_plugin_hmac"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hmac-0.27.0/nu_plugin_hmac-0.27.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "4ce1e2059144e0873b6149aa954fc34b60b61e458686ece3b9776b42f10c22b4",
+                "executable_path": "nu_plugin_hmac.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hmac-0.27.0/nu_plugin_hmac-0.27.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "7e647f24a5e001a7963c72cdee3e42e7934478b59f3c688058e42c6e3338c3d4",
+                "executable_path": "nu_plugin_hmac"
               }
             }
           }

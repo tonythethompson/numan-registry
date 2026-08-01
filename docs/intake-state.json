@@ -202,6 +202,28 @@
       "note": "ci-built via numan-plugins; Nu 0.114",
       "repo": "https://github.com/fdncred/nu_plugin_parquet",
       "spec": "specs/spec-nu_plugin_parquet.json"
+    },
+    {
+      "id": "Kissaki/nu_plugin_bson",
+      "name": "nu_plugin_bson",
+      "owner": "Kissaki",
+      "type": "plugin",
+      "version": "26.1140.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins; Nu 0.114",
+      "repo": "https://github.com/Kissaki/nu_plugin_bson",
+      "spec": "specs/spec-nu_plugin_bson.json"
+    },
+    {
+      "id": "fnuttens/nu_plugin_hmac",
+      "name": "nu_plugin_hmac",
+      "owner": "fnuttens",
+      "type": "plugin",
+      "version": "0.27.0",
+      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
+      "note": "ci-built via numan-plugins; Nu 0.113",
+      "repo": "https://github.com/fnuttens/nu_plugin_hmac",
+      "spec": "specs/spec-nu_plugin_hmac.json"
     }
   ],
   "mirror": [
@@ -376,10 +398,6 @@
       "blocker": "tar.xz assets are supported; no Windows release asset"
     },
     {
-      "id": "fnuttens/nu_plugin_hmac",
-      "blocker": "Bare binary upload, not zip/tar archive"
-    },
-    {
       "id": "fdncred/abusch cargo-dist plugins",
       "blocker": "Unix targets ship `.tar.xz`; Windows ships `.zip`"
     },
@@ -389,6 +407,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-07-31",
+      "change": "Intake Kissaki/nu_plugin_bson@26.1140.0, fnuttens/nu_plugin_hmac@0.27.0 (ci-built via numan-plugins; 4 targets each)"
+    },
     {
       "date": "2026-07-31",
       "change": "Intake fdncred/nu_plugin_emoji@0.23.0, fdncred/nu_plugin_json_path@0.24.0, fdncred/nu_plugin_parquet@0.24.0 (ci-built via numan-plugins; Nu 0.114; 4 targets each)"
