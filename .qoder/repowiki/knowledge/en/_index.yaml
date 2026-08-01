@@ -3,7 +3,7 @@ schema_version: 1
 locale: en-US
 branch: main
 nodes_managed: true
-exported_at: "2026-07-31T07:09:31Z"
+exported_at: "2026-07-31T10:38:52Z"
 modules:
     "":
         dir_name: Numan Official Registry Repository
@@ -23,8 +23,8 @@ modules:
         depends_on: []
         related_to: []
     docs:
-        dir_name: Numan Registry Operational Playbooks & Intake Tracking
-        title: Numan Registry Operational Playbooks & Intake Tracking
+        dir_name: Numan Registry Operational Playbooks & Intake State
+        title: Numan Registry Operational Playbooks & Intake State
         scope:
             - docs/
         source_files: []

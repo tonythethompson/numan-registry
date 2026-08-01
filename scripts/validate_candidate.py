@@ -50,9 +50,22 @@ def _run_script(args: list[str], *, label: str) -> tuple[bool, str]:
     return result.returncode == 0, output
 
 
+def _is_activatable(spec_data: dict) -> bool:
+    """Return True if the package requires lifecycle evidence before promotion.
+
+    Plugins are always activatable; modules are activatable only when they
+    declare an `activation` section. Scripts and completions are not.
+    """
+    pkg_type = spec_data.get("type", "plugin")
+    if pkg_type == "plugin":
+        return True
+    return pkg_type == "module" and "activation" in spec_data
+
+
 def validate_candidate(spec_path: Path, *, prove: bool = False,
                        numan: str | None = None, nu: str | None = None,
-                       strict: bool = False) -> dict:
+                       strict: bool = False,
+                       lifecycle_deferral: str | None = None) -> dict:
     """Run all validation steps and return an evidence report."""
     checks: list[dict] = []
     spec_data = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -64,6 +77,9 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     owner = spec_data.get("owner", "unknown")
     name = spec_data.get("name", "unknown")
     package_id = f"{owner}/{name}"
+    deferral = (lifecycle_deferral or "").strip()
+    if prove and deferral:
+        raise ValueError("--prove and --lifecycle-deferral are mutually exclusive")
 
     with tempfile.TemporaryDirectory(prefix="numan-validate-") as tmp:
         tmp_index = Path(tmp) / "index.json"
@@ -115,7 +131,20 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         )
         lint_errors = []
         if not ok_lint:
-            lint_errors = [line for line in output_lint.splitlines() if line.strip().startswith("ERROR")]
+            # lint_packages.py reports failures as a FAIL header followed by
+            # indented bullet diagnostics; preserve those actionable messages.
+            lines = output_lint.splitlines()
+            capturing = False
+            for line in lines:
+                if line.strip().startswith("FAIL:"):
+                    capturing = True
+                if capturing:
+                    lint_errors.append(line)
+            if not lint_errors:
+                lint_errors = lines
+            # Keep the evidence bounded while retaining the end of diagnostics.
+            joined = "\n".join(lint_errors)
+            lint_errors = joined[-2000:].splitlines()
         checks.append({
             "name": "lint",
             "status": "pass" if ok_lint else "fail",
@@ -160,10 +189,13 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
             ),
         })
     else:
+        detail = "not requested (use --prove)"
+        if deferral:
+            detail = f"deferred: {deferral}"
         checks.append({
             "name": "lifecycle",
             "status": "skip",
-            "detail": "not requested (use --prove)",
+            "detail": detail,
         })
 
     # Overall status
@@ -171,12 +203,21 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     core_pass = all(c["status"] == "pass" for c in core_checks)
     lifecycle_check = next((c for c in checks if c["name"] == "lifecycle"), None)
 
+    # Activatable packages must provide lifecycle evidence or a deferral reason.
+    lifecycle_required = _is_activatable(spec_data)
+    lifecycle_satisfied = (
+        lifecycle_check["status"] == "pass"
+        or (bool(deferral) and lifecycle_check["status"] == "skip")
+    )
+
     if strict and lifecycle_check and lifecycle_check["status"] == "fail":
         overall = "fail"
-    elif core_pass:
-        overall = "pass"
-    else:
+    elif not core_pass:
         overall = "fail"
+    elif lifecycle_required and not lifecycle_satisfied:
+        overall = "fail"
+    else:
+        overall = "pass"
 
     # Human summary
     parts = []
@@ -193,8 +234,13 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         parts.append("Lifecycle passed.")
     elif lifecycle_check and lifecycle_check["status"] == "fail":
         parts.append("Lifecycle FAILED.")
+    elif lifecycle_check and lifecycle_check["status"] == "skip":
+        if deferral:
+            parts.append("Lifecycle deferred.")
+        elif lifecycle_required and overall == "fail":
+            parts.append("Lifecycle evidence required for activatable package.")
 
-    return {
+    evidence = {
         "schema_version": 1,
         "spec_file": str(spec_path),
         "package_id": package_id,
@@ -202,6 +248,9 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
         "overall": overall,
         "human_summary": " ".join(parts),
     }
+    if deferral:
+        evidence["lifecycle_deferral"] = {"reason": deferral}
+    return evidence
 
 
 # ---------------------------------------------------------------------------
@@ -216,6 +265,10 @@ def main() -> None:
     parser.add_argument("--numan", help="Path to numan binary (for --prove)")
     parser.add_argument("--nu", help="Path to nu binary (for --prove)")
     parser.add_argument("--strict", action="store_true", help="Fail if lifecycle fails (with --prove)")
+    parser.add_argument(
+        "--lifecycle-deferral",
+        help="Reason for skipping lifecycle-prove on an activatable package",
+    )
     parser.add_argument("--out", help="Write evidence JSON to file instead of stdout")
     args = parser.parse_args()
 
@@ -224,13 +277,18 @@ def main() -> None:
         print(f"error: spec file not found: {spec_path}", file=sys.stderr)
         sys.exit(1)
 
-    evidence = validate_candidate(
-        spec_path,
-        prove=args.prove,
-        numan=args.numan,
-        nu=args.nu,
-        strict=args.strict,
-    )
+    try:
+        evidence = validate_candidate(
+            spec_path,
+            prove=args.prove,
+            numan=args.numan,
+            nu=args.nu,
+            strict=args.strict,
+            lifecycle_deferral=args.lifecycle_deferral,
+        )
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     output = json.dumps(evidence, indent=2, ensure_ascii=False) + "\n"
     if args.out:

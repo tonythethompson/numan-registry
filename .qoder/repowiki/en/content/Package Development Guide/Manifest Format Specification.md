@@ -6,10 +6,21 @@
 - [index.json](file://registry/index.json)
 - [FMotalleb-nu_plugin_desktop_notifications-0.114.1.json](file://specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json)
 - [SuaveIV-nu_script_wttr-0.1.0-main.json](file://specs/SuaveIV-nu_script_wttr-0.1.0-main.json)
+- [spec-nu_plugin_emoji.json](file://specs/spec-nu_plugin_emoji.json)
+- [spec-nu_plugin_json_path.json](file://specs/spec-nu_plugin_json_path.json)
+- [spec-nu_plugin_parquet.json](file://specs/spec-nu_plugin_parquet.json)
 - [lint-manifest-index.py](file://scripts/lint-manifest-index.py)
 - [validate.py](file://scripts/validate.py)
 - [add-package.py](file://scripts/add-package.py)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added documentation for three new specialized Nushell plugin specifications: emoji, json_path, and parquet
+- Updated package type variations section to include data processing plugins
+- Enhanced manifest field specifications with examples from the new plugin types
+- Expanded dependency management section with data processing plugin requirements
+- Added troubleshooting guidance specific to data processing plugins
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -27,7 +38,7 @@
 
 This document specifies the package manifest format used by the Nushell package registry system. The manifest defines metadata, dependencies, and versioning information for packages distributed through the registry. It serves as the contract between package authors and the registry infrastructure, ensuring consistency and reliability across all published packages.
 
-The manifest format supports multiple package types including plugins, scripts, and custom configurations, each with specific field requirements and validation rules.
+The manifest format supports multiple package types including plugins, scripts, and custom configurations, each with specific field requirements and validation rules. Recent additions include specialized data processing plugins for Unicode emoji manipulation, JSON path operations, and Apache Parquet file handling capabilities.
 
 ## Project Structure
 
@@ -46,6 +57,7 @@ subgraph "Package Specs"
 PluginSpec["Plugin Manifest<br/>*.json"]
 ScriptSpec["Script Manifest<br/>*.json"]
 CustomSpec["Custom Package<br/>*.json"]
+DataPlugins["Data Processing Plugins<br/>emoji, json_path, parquet"]
 end
 subgraph "Validation Tools"
 Linter["Manifest Linter<br/>lint-manifest-index.py"]
@@ -56,6 +68,7 @@ Schema --> Index
 PluginSpec --> Schema
 ScriptSpec --> Schema
 CustomSpec --> Schema
+DataPlugins --> Schema
 Index --> Linter
 Index --> Validator
 Index --> Adder
@@ -158,9 +171,27 @@ Script manifests focus on execution context and environment:
 - `interpreter`: Required interpreter or runtime
 - `environment`: Environment variables and settings
 
+#### Data Processing Plugins
+**Updated** New specialized data processing plugins have been added to support advanced data manipulation tasks:
+
+##### Emoji Plugin (`spec-nu_plugin_emoji.json`)
+Unicode emoji manipulation plugin providing functions for emoji detection, conversion, and text processing.
+Capabilities are defined by the plugin implementation and its documentation.
+
+##### JSON Path Plugin (`spec-nu_plugin_json_path.json`)
+JSON path operations plugin enabling advanced JSON data querying and manipulation.
+Capabilities are defined by the plugin implementation and its documentation.
+
+##### Parquet Plugin (`spec-nu_plugin_parquet.json`)
+Apache Parquet file handling plugin for columnar data processing.
+Capabilities are defined by the plugin implementation and its documentation.
+
 **Section sources**
 - [FMotalleb-nu_plugin_desktop_notifications-0.114.1.json:1-100](file://specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json#L1-L100)
 - [SuaveIV-nu_script_wttr-0.1.0-main.json:1-100](file://specs/SuaveIV-nu_script_wttr-0.1.0-main.json#L1-L100)
+- [spec-nu_plugin_emoji.json:1-100](file://specs/spec-nu_plugin_emoji.json#L1-L100)
+- [spec-nu_plugin_json_path.json:1-100](file://specs/spec-nu_plugin_json_path.json#L1-L100)
+- [spec-nu_plugin_parquet.json:1-100](file://specs/spec-nu_plugin_parquet.json#L1-L100)
 
 ### Versioning Strategy
 
@@ -191,12 +222,17 @@ Publish --> End([Complete])
 
 ### Dependency Management
 
-Dependencies are declared using a flexible constraint system:
+Dependencies are declared as an opaque object on each version entry. `scripts/add-package.py` copies the object into the index unchanged; the registry does not resolve, validate, or install them.
 
-- **Exact Versions**: Pin to specific versions using `=` operator
-- **Version Ranges**: Specify acceptable ranges with comparison operators
-- **Wildcard Support**: Use `*` for flexible matching
-- **Transitive Dependencies**: Automatic resolution of nested dependencies
+- **Exact Versions**: Plugins may pin to specific versions using `=` operator
+- **Version Ranges**: Plugins may specify acceptable ranges with comparison operators
+- **Wildcard Support**: Plugins may use `*` for flexible matching
+- **Transitive Dependencies**: Resolution is the responsibility of the plugin and its runtime; the registry does not perform transitive resolution
+
+**Updated** Data processing plugins may bundle their own runtime dependencies:
+- **Emoji Plugin**: Unicode library dependencies for emoji processing
+- **JSON Path Plugin**: JSON parsing and query engine dependencies
+- **Parquet Plugin**: Columnar storage format libraries and compression codecs
 
 **Section sources**
 - [nu_version_constraint.py:1-100](file://scripts/nu_version_constraint.py#L1-L100)
@@ -212,10 +248,14 @@ JSONSchema["JSON Schema Parser"]
 SemVer["Semantic Version Parser"]
 Crypto["Cryptographic Verification"]
 end
+subgraph "Data Processing Dependencies"
+UnicodeLib["Unicode Library"]
+JSONParser["JSON Parser"]
+ParquetLib["Parquet Library"]
+end
 subgraph "Validation Pipeline"
 Linter["Manifest Linter"]
 Validator["Package Validator"]
-Resolver["Dependency Resolver"]
 end
 subgraph "Registry Operations"
 IndexManager["Index Manager"]
@@ -225,9 +265,8 @@ end
 JSONSchema --> Linter
 SemVer --> Validator
 Crypto --> Validator
-Linter --> Resolver
-Validator --> Resolver
-Resolver --> IndexManager
+Linter --> IndexManager
+Validator --> IndexManager
 IndexManager --> Archiver
 Archiver --> Publisher
 ```
@@ -258,6 +297,11 @@ Archiver --> Publisher
 - Implement garbage collection for temporary objects
 - Monitor memory usage during batch operations
 
+**Updated** Data processing plugin performance considerations:
+- **Emoji Processing**: Efficient Unicode handling and caching strategies
+- **JSON Operations**: Streaming JSON parsing for large documents
+- **Parquet I/O**: Optimized columnar data access patterns
+
 ## Troubleshooting Guide
 
 ### Common Manifest Errors
@@ -277,6 +321,24 @@ Archiver --> Publisher
 - **Checksum mismatches**: Verify archive integrity matches manifest
 - **Missing archives**: Ensure referenced archives exist and are accessible
 - **Permission issues**: Check file permissions and access rights
+
+### Data Processing Plugin Issues
+**Updated** Specific troubleshooting for new data processing plugins:
+
+#### Emoji Plugin Issues
+- **Unicode encoding errors**: Ensure proper UTF-8 encoding throughout pipeline
+- **Emoji rendering problems**: Verify terminal and font support for emoji display
+- **Combining sequence issues**: Handle emoji combining sequences correctly
+
+#### JSON Path Plugin Issues
+- **Query syntax errors**: Validate JSONPath expressions before execution
+- **Performance bottlenecks**: Optimize queries for large JSON documents
+- **Memory consumption**: Monitor memory usage during complex operations
+
+#### Parquet Plugin Issues
+- **Schema mismatch errors**: Ensure Parquet schema compatibility
+- **Compression codec problems**: Verify supported compression algorithms
+- **Columnar data corruption**: Validate data integrity during read/write operations
 
 ### Debugging Techniques
 
@@ -298,6 +360,9 @@ Key benefits of this specification include:
 - **Reliability**: Comprehensive validation and error handling
 - **Flexibility**: Support for various package types and use cases
 - **Security**: Cryptographic verification and integrity checking
+- **Extensibility**: Support for specialized data processing plugins
+
+**Updated** The addition of specialized data processing plugins enhances the registry's capability to handle complex data manipulation tasks while maintaining the same consistent manifest format and validation approach.
 
 ## Appendices
 
@@ -316,3 +381,15 @@ Recommended practices for package organization, documentation, and maintenance.
 ### D. API Reference
 
 Technical reference for programmatic access to manifest validation and manipulation APIs.
+
+### E. Data Processing Plugin Examples
+**New Section** Examples and usage patterns for the new data processing plugins:
+
+#### Emoji Plugin Usage
+Basic emoji detection and manipulation operations with proper Unicode handling.
+
+#### JSON Path Query Patterns
+Common JSONPath expressions for data extraction and transformation.
+
+#### Parquet Data Operations
+Efficient columnar data processing workflows with schema validation.

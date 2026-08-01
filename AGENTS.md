@@ -1,5 +1,7 @@
 # AGENTS.md
 
+Automated and human PR reviewers should follow [`REVIEW.md`](REVIEW.md) for severity labels, trust invariants, and the review checklist.
+
 ## Cursor Cloud specific instructions
 
 This is a **data-only repository**: the signed Numan registry index plus Python CI
