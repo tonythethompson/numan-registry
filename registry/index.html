@@ -14,6 +14,9 @@
       --leaf-deep: #145a38;
       --line: rgba(20, 35, 28, 0.12);
       --glow: rgba(31, 122, 76, 0.14);
+      --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
     }
 
     * { box-sizing: border-box; }
@@ -22,7 +25,7 @@
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      font-family: "Source Serif 4", Georgia, serif;
+      font-family: var(--serif);
       background:
         radial-gradient(900px 420px at 12% -10%, var(--glow), transparent 60%),
         radial-gradient(700px 380px at 100% 0%, rgba(20, 90, 56, 0.08), transparent 55%),
@@ -36,7 +39,7 @@
     }
 
     .brand {
-      font-family: Outfit, system-ui, sans-serif;
+      font-family: var(--sans);
       font-weight: 700;
       font-size: clamp(1.75rem, 4vw, 2.35rem);
       letter-spacing: -0.03em;
@@ -45,7 +48,7 @@
     }
 
     h1 {
-      font-family: Outfit, system-ui, sans-serif;
+      font-family: var(--sans);
       font-weight: 500;
       font-size: clamp(1.15rem, 2.4vw, 1.35rem);
       letter-spacing: -0.02em;
@@ -71,7 +74,7 @@
     a.button {
       display: inline-flex;
       align-items: center;
-      font-family: Outfit, system-ui, sans-serif;
+      font-family: var(--sans);
       font-weight: 500;
       font-size: 0.95rem;
       text-decoration: none;
@@ -89,6 +92,11 @@
     a.button.primary:hover,
     a.button.primary:focus-visible {
       background: var(--leaf-deep);
+    }
+
+    a.button:focus-visible {
+      outline: 2px solid var(--leaf);
+      outline-offset: 2px;
     }
 
     a.button.secondary {
@@ -112,7 +120,7 @@
     }
 
     .meta code {
-      font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      font-family: var(--mono);
       font-size: 0.88em;
       background: rgba(20, 35, 28, 0.06);
       padding: 0.1em 0.35em;
@@ -121,6 +129,11 @@
 
     .meta a {
       color: var(--leaf-deep);
+    }
+
+    .meta a:hover,
+    .meta a:focus-visible {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -134,6 +147,7 @@
       Humans browse docs; clients sync the JSON index and verify its signature.
     </p>
     <div class="actions">
+      <!-- Relative ./index.json and ./index.json.sig are intentional: Numan clients and this page share the Pages root. Do not change these hrefs or the client machine URLs. -->
       <a class="button primary" href="./index.json">Open index.json</a>
       <a class="button secondary" href="./index.json.sig">Signature</a>
       <a class="button secondary" href="https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md">Catalog × Nu matrix</a>
