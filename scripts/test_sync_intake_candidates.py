@@ -78,6 +78,45 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         self.assertTrue(info["ci_built"])
         self.assertFalse(info["upstream_asset"])
         self.assertFalse(info["mirror"])
+        self.assertFalse(info["mixed"])
+
+    def test_registry_packages_preserves_mirror_when_mixed(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_partial"},
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "artifact": {
+                                "kind": "binary",
+                                "targets": {
+                                    "x86_64-pc-windows-msvc": {
+                                        "url": (
+                                            "https://github.com/tonythethompson/"
+                                            "numan-registry/releases/download/"
+                                            "mirror-partial/win.zip"
+                                        ),
+                                    },
+                                    "x86_64-unknown-linux-gnu": {
+                                        "url": (
+                                            "https://github.com/acme/plugin/"
+                                            "releases/download/v1.0.0/linux.zip"
+                                        ),
+                                    },
+                                },
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+        live = self.sync.registry_packages(index)
+        info = live["acme/nu_plugin_partial"]
+        self.assertTrue(info["mixed"])
+        self.assertTrue(info["mirror"])
+        self.assertFalse(info["ci_built"])
+        self.assertFalse(info["upstream_asset"])
 
     def test_package_status_uses_ci_built_label(self):
         entry = {
@@ -91,12 +130,28 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
                 "mirror": False,
                 "ci_built": True,
                 "upstream_asset": False,
+                "mixed": False,
             }
         }
         status = self.sync.package_status(entry, live, {}, {})
         self.assertTrue(status.startswith("live (ci-built asset)"))
         self.assertIn("ci-built via numan-plugins; wave1; Nu 0.112", status)
         self.assertNotIn("upstream asset", status)
+
+    def test_package_status_prefers_mixed_over_mirror(self):
+        entry = {"id": "acme/nu_plugin_partial", "version": "1.0.0"}
+        live = {
+            "acme/nu_plugin_partial": {
+                "version": "1.0.0",
+                "mirror": True,
+                "ci_built": False,
+                "upstream_asset": False,
+                "mixed": True,
+            }
+        }
+        status = self.sync.package_status(entry, live, {}, {})
+        self.assertTrue(status.startswith("live (mixed provenance)"))
+        self.assertNotIn("registry mirror", status)
 
     def test_registry_summary_sorts_and_marks_mixed_versions(self):
         index = {
@@ -117,6 +172,43 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         rendered = self.sync.render_intake_doc({}, {}, index, {})
         self.assertIn("`abusch/nu_plugin_semver@0.11.17` (upstream)", rendered)
         self.assertIn("`vyadh/nutest` (1.1.0, 1.2.0; mixed)", rendered)
+
+    def test_registry_summary_marks_mixed_binary_targets(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_mixed"},
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "artifact": {
+                                "kind": "binary",
+                                "targets": {
+                                    "x86_64-pc-windows-msvc": {
+                                        "url": "https://github.com/tonythethompson/numan-plugins/releases/download/x/win.zip"
+                                    },
+                                    "x86_64-unknown-linux-gnu": {
+                                        "url": "https://github.com/acme/plugin/releases/download/v1.0.0/linux.zip"
+                                    },
+                                },
+                            },
+                        }
+                    ],
+                },
+                {
+                    "id": {"owner": "acme", "name": "nu_plugin_empty_binary"},
+                    "versions": [
+                        {
+                            "version": "0.1.0",
+                            "artifact": {"kind": "binary", "targets": {}},
+                        }
+                    ],
+                },
+            ]
+        }
+        rendered = self.sync.render_intake_doc({}, {}, index, {})
+        self.assertIn("`acme/nu_plugin_mixed@1.0.0` (mixed)", rendered)
+        self.assertIn("`acme/nu_plugin_empty_binary@0.1.0` (other)", rendered)
 
 
 if __name__ == "__main__":

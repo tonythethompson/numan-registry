@@ -84,6 +84,31 @@ def artifact_provenance(url: str) -> str:
     return "other"
 
 
+def artifact_urls(artifact: dict[str, Any]) -> list[str]:
+    urls: list[str] = []
+    top = artifact.get("url") or ""
+    if top:
+        urls.append(top)
+    if artifact.get("kind") == "binary":
+        for target in artifact.get("targets", {}).values():
+            url = (target or {}).get("url") or ""
+            if url:
+                urls.append(url)
+    return urls
+
+
+def artifact_provenances(artifact: dict[str, Any]) -> set[str]:
+    urls = artifact_urls(artifact)
+    # Empty binary (no URLs) is "other", not an empty set, so package_kind stays defined.
+    if not urls:
+        return {"other"}
+    return {artifact_provenance(url) for url in urls}
+
+
+def package_kind(provenances: set[str]) -> str:
+    return next(iter(provenances)) if len(provenances) == 1 else "mixed"
+
+
 def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
     live: dict[str, dict[str, Any]] = {}
     for pkg in index.get("packages", []):
@@ -91,17 +116,15 @@ def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
         key = f"{pid['owner']}/{pid['name']}"
         versions = pkg.get("versions", [])
         latest = versions[-1] if versions else {}
-        artifact = latest.get("artifact", {})
-        url = artifact.get("url") or ""
-        if artifact.get("kind") == "binary":
-            targets = artifact.get("targets", {})
-            url = next(iter(targets.values()), {}).get("url", "")
-        provenance = artifact_provenance(url)
+        provenances = artifact_provenances(latest.get("artifact", {}))
         live[key] = {
             "version": latest.get("version", "?"),
-            "mirror": provenance == "mirror",
-            "ci_built": provenance == "ci-built",
-            "upstream_asset": provenance == "upstream",
+            # Any mirror URL keeps mirror=True so outreach stays "mirror only"
+            # until every target leaves the registry mirror.
+            "mirror": "mirror" in provenances,
+            "ci_built": provenances == {"ci-built"},
+            "upstream_asset": provenances == {"upstream"},
+            "mixed": len(provenances) > 1,
         }
     return live
 
@@ -248,7 +271,9 @@ def package_status(
 
     if pid in live:
         info = live[pid]
-        if info.get("mirror"):
+        if info.get("mixed"):
+            parts.append("live (mixed provenance)")
+        elif info.get("mirror"):
             parts.append("live (registry mirror)")
         elif info.get("ci_built"):
             parts.append("live (ci-built asset)")
@@ -321,15 +346,10 @@ def render_intake_doc(
         if not version_data:
             continue
         versions = [v["version"] for v in version_data]
-        provenances = set()
+        provenances: set[str] = set()
         for version in version_data:
-            artifact = version.get("artifact", {})
-            url = artifact.get("url") or ""
-            if artifact.get("kind") == "binary":
-                targets = artifact.get("targets", {})
-                url = next(iter(targets.values()), {}).get("url", "")
-            provenances.add(artifact_provenance(url))
-        kind = provenances.pop() if len(provenances) == 1 else "mixed"
+            provenances |= artifact_provenances(version.get("artifact", {}))
+        kind = package_kind(provenances)
         if len(versions) == 1:
             text = f"`{key}@{versions[0]}` ({kind})"
         else:
