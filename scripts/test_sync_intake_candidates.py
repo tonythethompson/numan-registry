@@ -83,7 +83,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         entry = {
             "id": "FMotalleb/nu_plugin_image",
             "version": "0.112.2",
-            "note": "ci-built via numan-plugins Wave 1",
+            "note": "ci-built via numan-plugins; wave1; Nu 0.112",
         }
         live = {
             "FMotalleb/nu_plugin_image": {
@@ -95,8 +95,28 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         }
         status = self.sync.package_status(entry, live, {}, {})
         self.assertTrue(status.startswith("live (ci-built asset)"))
-        self.assertIn("ci-built via numan-plugins Wave 1", status)
+        self.assertIn("ci-built via numan-plugins; wave1; Nu 0.112", status)
         self.assertNotIn("upstream asset", status)
+
+    def test_registry_summary_sorts_and_marks_mixed_versions(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "vyadh", "name": "nutest"},
+                    "versions": [
+                        {"version": "1.1.0", "artifact": {"url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/a.zip"}},
+                        {"version": "1.2.0", "artifact": {"url": "https://github.com/acme/nutest/releases/download/v1.2.0/a.zip"}},
+                    ],
+                },
+                {
+                    "id": {"owner": "abusch", "name": "nu_plugin_semver"},
+                    "versions": [{"version": "0.11.17", "artifact": {"url": "https://github.com/acme/semver/releases/download/v/a.zip"}}],
+                },
+            ]
+        }
+        rendered = self.sync.render_intake_doc({}, {}, index, {})
+        self.assertIn("`abusch/nu_plugin_semver@0.11.17` (upstream)", rendered)
+        self.assertIn("`vyadh/nutest` (1.1.0, 1.2.0; mixed)", rendered)
 
 
 if __name__ == "__main__":

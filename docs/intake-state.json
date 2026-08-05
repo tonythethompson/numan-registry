@@ -33,7 +33,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_file",
       "spec": "specs/fdncred-nu_plugin_file-0.26.0.json",
-      "note": "wave1 Nu 0.114; CI-built via numan-plugins run 30976612373"
+      "note": "ci-built via numan-plugins; wave1; Nu 0.114; run 30976612373"
     },
     {
       "id": "b4nst/nu_plugin_format_pcap",
@@ -86,7 +86,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
       "spec": "specs/cptpiepmatz-nu_plugin_highlight-1.4.16.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
+      "note": "ci-built via numan-plugins; wave1; Nu 0.114; run 30976612373"
     },
     {
       "id": "fdncred/nu_plugin_regex",
@@ -97,7 +97,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_regex",
       "spec": "specs/fdncred-nu_plugin_regex-0.23.0.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
+      "note": "ci-built via numan-plugins; wave1; Nu 0.114; run 30976612373"
     },
     {
       "id": "dead10ck/nu_plugin_dns",
@@ -119,7 +119,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
       "spec": "specs/FMotalleb-nu_plugin_port_extension-0.114.1.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
+      "note": "ci-built via numan-plugins; wave1; Nu 0.114; run 30976612373"
     },
     {
       "id": "FMotalleb/nu_plugin_image",
@@ -128,7 +128,7 @@
       "type": "plugin",
       "version": "0.112.2",
       "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
-      "note": "ci-built via numan-plugins Wave 1",
+      "note": "ci-built via numan-plugins; wave1; Nu 0.112",
       "repo": "https://github.com/FMotalleb/nu_plugin_image",
       "spec": "specs/FMotalleb-nu_plugin_image-0.112.2.json",
       "pr": 32
@@ -140,7 +140,7 @@
       "type": "plugin",
       "version": "0.29.1",
       "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
-      "note": "ci-built via numan-plugins",
+      "note": "ci-built via numan-plugins; Nu 0.114",
       "repo": "https://github.com/idanarye/nu_plugin_skim",
       "spec": "specs/idanarye-nu_plugin_skim-0.29.1.json",
       "pr": 22
@@ -152,7 +152,7 @@
       "type": "plugin",
       "version": "0.114.1",
       "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
-      "note": "ci-built via numan-plugins",
+      "note": "ci-built via numan-plugins; Nu 0.114",
       "repo": "https://github.com/FMotalleb/nu_plugin_desktop_notifications",
       "spec": "specs/FMotalleb-nu_plugin_desktop_notifications-0.114.1.json",
       "pr": 23
@@ -164,7 +164,7 @@
       "type": "plugin",
       "version": "0.12.0",
       "platforms": "linux x64, macOS arm64/x64, Windows x64 (no linux aarch64 — openssl cross)",
-      "note": "ci-built via numan-plugins",
+      "note": "ci-built via numan-plugins; Nu 0.114",
       "repo": "https://github.com/drbrain/nu_plugin_prometheus",
       "spec": "specs/spec-nu_plugin_prometheus.json"
     },
@@ -232,7 +232,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/Yethal/nu_plugin_hcl",
       "spec": "specs/Yethal-nu_plugin_hcl-0.114.1.json",
-      "note": "wave1 Nu 0.114; CI-built via numan-plugins run 30976612373"
+      "note": "ci-built via numan-plugins; wave1; Nu 0.114; run 30976612373"
     },
     {
       "id": "fdncred/nu_plugin_jwalk",
@@ -243,7 +243,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_jwalk",
       "spec": "specs/fdncred-nu_plugin_jwalk-0.26.0.json",
-      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+      "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217"
     },
     {
       "id": "fdncred/nu_plugin_strutils",
@@ -254,7 +254,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_strutils",
       "spec": "specs/fdncred-nu_plugin_strutils-0.22.0.json",
-      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+      "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217"
     },
     {
       "id": "fdncred/nu_plugin_query_git",
@@ -265,7 +265,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_query_git",
       "spec": "specs/fdncred-nu_plugin_query_git-0.24.0.json",
-      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+      "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217"
     },
     {
       "id": "lizclipse/nu_plugin_ulid",
@@ -276,7 +276,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/lizclipse/nu_plugin_ulid",
       "spec": "specs/lizclipse-nu_plugin_ulid-0.23.0.json",
-      "note": "wave2 Nu 0.114; distinct from nushell-works/nu_plugin_nw_ulid; CI-built via numan-plugins run 30985049217"
+      "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217; distinct from nushell-works/nu_plugin_nw_ulid"
     },
     {
       "id": "rhino-linux/nu_plugin_nutext",
@@ -287,7 +287,7 @@
       "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/rhino-linux/nu_plugin_nutext",
       "spec": "specs/rhino-linux-nu_plugin_nutext-0.6.2.json",
-      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+      "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217"
     }
   ],
   "mirror": [
