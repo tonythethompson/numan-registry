@@ -8,6 +8,8 @@ This repository is **not** the package manager itself. It publishes the signed r
 
 The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/) and signed with the `official-2026-07-01` trust root built into Numan.
 
+**Catalog:** **36** packages today (26 plugins, 7 modules, 2 completions, 1 script). See the generated master list with Nu constraints in [`docs/catalog-compat.md`](docs/catalog-compat.md). Demand-ranked *plugin candidates* still outside the catalog live in [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json).
+
 This `main` branch is the catalog source. Its committed `registry/index.json.sig` is deliberately a placeholder: the protected production workflow signs the catalog with `NUMAN_REGISTRY_PRIVATE_KEY` and publishes the resulting detached signature to GitHub Pages. Do not use the source-tree signature for an install; use Numan's `official` registry URL.
 
 ## Layout
@@ -21,6 +23,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 │   ├── incident-response.md            # Yank, rollback, compromise, and user-remediation policy
 │   ├── intake-candidates.md           # Running intake list (auto-synced; edit intake-state.json)
 │   ├── intake-state.json              # Machine-readable intake catalog (source for sync)
+│   ├── catalog-compat.md              # Master catalog × Nu compat table (from index.json)
 │   ├── upstream-release-outreach.md   # Outreach plan + tracker (tracker auto-synced)
 │   ├── lifecycle-prove.md             # Stage 1: scripted search→…→gc against real Nu
 │   └── outreach-issues/               # Copy-paste GitHub issue drafts for upstream contact
@@ -43,7 +46,8 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 │   ├── lifecycle-prove.py             # Stage 1 acceptance: prove a package on a clean root + real Nu
 │   ├── lint-manifest-index.py         # Fail if numan-plugins manifest Nu range ≠ index (when both known)
 │   ├── build-mirror-zip.py            # Build registry-hosted mirror zips from git tags/commits
-│   └── sync-intake-candidates.py      # Regenerate intake-candidates.md from state + gh
+│   ├── sync-intake-candidates.py      # Regenerate intake-candidates.md from state + gh
+│   └── render_catalog_compat.py       # Regenerate docs/catalog-compat.md from index.json
 ├── tools/
 │   └── numan-parser-check/             # Pinned check using Numan's production registry parser
 └── .github/workflows/
