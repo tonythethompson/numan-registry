@@ -12,7 +12,7 @@ This is the **master list** of packages in the official Numan registry and the N
 - By type: `completion` 2, `module` 7, `plugin` 26, `script` 1
 - Latest version Nu band: `0.114` 18, `0.113` 4, `0.112` 1, `other` 6, `*` 7
 
-Nu band is a coarse label from the constraint **lower bound** (`>=0.114` → `0.114`, etc.; else `*` or `other`). Exact constraints are in the table and in the signed index.
+Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.113` → `0.114` / `0.113`, etc.; else `*` or `other`). Exact constraints are in the table and in the signed index.
 
 ## Catalog (latest version per package)
 

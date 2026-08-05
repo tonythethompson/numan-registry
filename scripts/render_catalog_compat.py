@@ -26,7 +26,10 @@ INDEX_PATH = REPO_ROOT / "registry" / "index.json"
 OUT_PATH = REPO_ROOT / "docs" / "catalog-compat.md"
 
 NU_BANDS = ("0.114", "0.113", "0.112", "other", "*")
-_LOWER_BOUND = re.compile(r">=\s*0\.(\d+)")
+# Named minor bands only (derived so nu_band cannot drift from NU_BANDS).
+KNOWN_MINOR_BANDS = tuple(b for b in NU_BANDS if b not in ("other", "*"))
+# Accept >= and strict > lower bounds (repo constraint lint allows both).
+_LOWER_BOUND = re.compile(r">=?\s*0\.(\d+)")
 
 
 def load_index(path: Path) -> dict[str, Any]:
@@ -45,15 +48,15 @@ def nu_band(constraint: str) -> str:
         return "*"
     match = _LOWER_BOUND.search(text)
     if match:
-        minor = match.group(1)
-        band = f"0.{minor}"
-        if band in ("0.114", "0.113", "0.112"):
+        band = f"0.{match.group(1)}"
+        if band in KNOWN_MINOR_BANDS:
             return band
         return "other"
-    # Fallback: bare minor mention without >= (rare).
-    for band in ("0.114", "0.113", "0.112"):
-        if band in text:
-            return band
+    # Fallback: bare minor mention without a comparator (rare). Prefer the
+    # earliest occurrence so upper-bound minors (e.g. <0.114.0) do not win.
+    hits = [(text.find(band), band) for band in KNOWN_MINOR_BANDS if band in text]
+    if hits:
+        return min(hits)[1]
     return "other"
 
 
@@ -165,7 +168,7 @@ def render(index: dict[str, Any], generated_at: str) -> str:
         ),
         "",
         "Nu band is a coarse label from the constraint **lower bound** "
-        "(`>=0.114` → `0.114`, etc.; else `*` or `other`). "
+        "(`>=0.114` / `>0.113` → `0.114` / `0.113`, etc.; else `*` or `other`). "
         "Exact constraints are in the table and in the signed index.",
         "",
         "## Catalog (latest version per package)",
@@ -219,7 +222,7 @@ def render(index: dict[str, Any], generated_at: str) -> str:
     return "\n".join(lines)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--check",
@@ -238,7 +241,7 @@ def main() -> int:
         default=OUT_PATH,
         help="path to docs/catalog-compat.md",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     index = load_index(args.index)
     # Stable timestamp for --check: use index updated_at so reruns don't churn.
@@ -263,7 +266,9 @@ def main() -> int:
         return 0
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(text, encoding="utf-8", newline="\n")
+    # Explicit newline keeps LF on Windows hosts too.
+    with args.out.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
     print(f"Wrote {args.out} ({text.count(chr(10))} lines)")
     return 0
 
