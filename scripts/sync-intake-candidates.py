@@ -73,43 +73,6 @@ def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def artifact_provenance(url: str) -> str:
-    """Classify a pinned artifact URL as mirror, ci-built, upstream, or other."""
-    if "numan-registry/releases/download/mirror-" in url:
-        return "mirror"
-    if "tonythethompson/numan-plugins/releases/" in url:
-        return "ci-built"
-    if url.startswith("http"):
-        return "upstream"
-    return "other"
-
-
-def artifact_urls(artifact: dict[str, Any]) -> list[str]:
-    """Collect every pinned URL on an artifact (top-level and binary targets)."""
-    urls: list[str] = []
-    top = artifact.get("url") or ""
-    if top:
-        urls.append(top)
-    if artifact.get("kind") == "binary":
-        for target in artifact.get("targets", {}).values():
-            url = (target or {}).get("url") or ""
-            if url:
-                urls.append(url)
-    return urls
-
-
-def artifact_provenances(artifact: dict[str, Any]) -> set[str]:
-    """Classify all URLs on an artifact; empty artifact yields {other}."""
-    urls = artifact_urls(artifact)
-    if not urls:
-        return {"other"}
-    return {artifact_provenance(url) for url in urls}
-
-
-def package_kind(provenances: set[str]) -> str:
-    return next(iter(provenances)) if len(provenances) == 1 else "mixed"
-
-
 def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
     live: dict[str, dict[str, Any]] = {}
     for pkg in index.get("packages", []):
@@ -117,8 +80,29 @@ def registry_packages(index: dict[str, Any]) -> dict[str, dict[str, Any]]:
         key = f"{pid['owner']}/{pid['name']}"
         versions = pkg.get("versions", [])
         latest = versions[-1] if versions else {}
-        provenances = artifact_provenances(latest.get("artifact", {}))
-        provenance = package_kind(provenances)
+        artifact = latest.get("artifact", {})
+        urls: list[str] = []
+        top_url = artifact.get("url") or ""
+        if top_url:
+            urls.append(top_url)
+        if artifact.get("kind") == "binary":
+            for target in artifact.get("targets", {}).values():
+                url = (target or {}).get("url") or ""
+                if url:
+                    urls.append(url)
+        provenances = {
+            (
+                "mirror"
+                if "numan-registry/releases/download/mirror-" in url
+                else "ci-built"
+                if "tonythethompson/numan-plugins/releases/" in url
+                else "upstream"
+                if url.startswith("http")
+                else "other"
+            )
+            for url in urls
+        } or {"other"}
+        provenance = next(iter(provenances)) if len(provenances) == 1 else "mixed"
         live[key] = {
             "version": latest.get("version", "?"),
             "mirror": provenance == "mirror",
@@ -345,8 +329,29 @@ def render_intake_doc(
         versions = [v["version"] for v in version_data]
         provenances: set[str] = set()
         for version in version_data:
-            provenances |= artifact_provenances(version.get("artifact", {}))
-        kind = package_kind(provenances)
+            artifact = version.get("artifact", {})
+            urls: list[str] = []
+            top_url = artifact.get("url") or ""
+            if top_url:
+                urls.append(top_url)
+            if artifact.get("kind") == "binary":
+                for target in artifact.get("targets", {}).values():
+                    url = (target or {}).get("url") or ""
+                    if url:
+                        urls.append(url)
+            provenances |= {
+                (
+                    "mirror"
+                    if "numan-registry/releases/download/mirror-" in url
+                    else "ci-built"
+                    if "tonythethompson/numan-plugins/releases/" in url
+                    else "upstream"
+                    if url.startswith("http")
+                    else "other"
+                )
+                for url in urls
+            } or {"other"}
+        kind = next(iter(provenances)) if len(provenances) == 1 else "mixed"
         if len(versions) == 1:
             text = f"`{key}@{versions[0]}` ({kind})"
         else:
