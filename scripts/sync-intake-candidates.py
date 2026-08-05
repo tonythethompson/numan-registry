@@ -85,7 +85,6 @@ def artifact_provenance(url: str) -> str:
 
 
 def artifact_urls(artifact: dict[str, Any]) -> list[str]:
-    """Collect every pinned URL on an artifact (top-level and binary targets)."""
     urls: list[str] = []
     top = artifact.get("url") or ""
     if top:
@@ -99,8 +98,8 @@ def artifact_urls(artifact: dict[str, Any]) -> list[str]:
 
 
 def artifact_provenances(artifact: dict[str, Any]) -> set[str]:
-    """Classify all URLs on an artifact; empty artifact yields {other}."""
     urls = artifact_urls(artifact)
+    # Empty binary (no URLs) is "other", not an empty set, so package_kind stays defined.
     if not urls:
         return {"other"}
     return {artifact_provenance(url) for url in urls}
