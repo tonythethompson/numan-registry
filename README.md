@@ -6,7 +6,7 @@ This repository is **not** the package manager itself. It publishes the signed r
 
 ## Status
 
-The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/) and signed with the `official-2026-07-01` trust root built into Numan.
+The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/) (human landing page) and signed with the `official-2026-07-01` trust root built into Numan. Clients sync [`index.json`](https://tonythethompson.github.io/numan-registry/index.json) and verify [`index.json.sig`](https://tonythethompson.github.io/numan-registry/index.json.sig); do not treat the HTML landing page as machine input.
 
 **Catalog:** **36** packages today (26 plugins, 7 modules, 2 completions, 1 script). See the generated master list with Nu constraints in [`docs/catalog-compat.md`](docs/catalog-compat.md). Demand-ranked *plugin candidates* still outside the catalog live in [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json).
 
@@ -32,6 +32,7 @@ This `main` branch is the catalog source. Its committed `registry/index.json.sig
 ├── keys/
 │   └── official.pub               # Committed production public key
 ├── registry/
+│   ├── index.html                 # Human-facing GitHub Pages landing (not signed)
 │   ├── index.json                 # Signed registry index
 │   └── index.json.sig             # Detached signature envelope
 ├── schemas/
