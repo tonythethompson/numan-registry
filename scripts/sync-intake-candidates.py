@@ -287,6 +287,42 @@ def package_status(
     return " — ".join(parts)
 
 
+
+def package_kind(info: dict[str, Any]) -> str:
+    if info.get("mirror"):
+        return "mirror"
+    if info.get("ci_built"):
+        return "ci-built"
+    if info.get("upstream_asset"):
+        return "upstream"
+    return "other"
+
+
+def format_registry_line(
+    live: dict[str, dict[str, Any]],
+    index: dict[str, Any],
+) -> str:
+    """Alphabetical owner/pkg list with consistent single- and multi-version forms.
+
+    Single version: `owner/pkg@ver` (kind)
+    Multi version:  `owner/pkg` (ver1, ver2; kind)
+    """
+    entries: list[tuple[str, str]] = []
+    for pkg in index.get("packages", []):
+        pid = pkg["id"]
+        key = f"{pid['owner']}/{pid['name']}"
+        versions = [v.get("version") for v in pkg.get("versions", []) if v.get("version")]
+        if not versions:
+            continue
+        kind = package_kind(live.get(key, {}))
+        if len(versions) == 1:
+            entries.append((key, f"`{key}@{versions[0]}` ({kind})"))
+        else:
+            entries.append((key, f"`{key}` ({', '.join(versions)}; {kind})"))
+    entries.sort(key=lambda item: item[0].casefold())
+    return ", ".join(text for _, text in entries) if entries else "(none)"
+
+
 def render_intake_doc(
     state: dict[str, Any],
     live: dict[str, dict[str, Any]],
@@ -313,27 +349,7 @@ def render_intake_doc(
     }
     pr_map = {n: pr_state(n) for n in pr_nums if n}
 
-    registry_summary = []
-    for key in sorted(live):
-        info = live[key]
-        if info.get("mirror"):
-            kind = "mirror"
-        elif info.get("ci_built"):
-            kind = "ci-built"
-        elif info.get("upstream_asset"):
-            kind = "upstream"
-        else:
-            kind = "other"
-        registry_summary.append(f"`{key}@{info['version']}` ({kind})")
-    # Include multi-version packages explicitly (e.g. nutest).
-    for pkg in index.get("packages", []):
-        pid = pkg["id"]
-        key = f"{pid['owner']}/{pid['name']}"
-        versions = [v.get("version") for v in pkg.get("versions", []) if v.get("version")]
-        if len(versions) > 1:
-            registry_summary = [s for s in registry_summary if not s.startswith(f"`{key}@")]
-            registry_summary.append(f"`{key}` ({', '.join(versions)})")
-    registry_line = ", ".join(registry_summary) if registry_summary else "(none)"
+    registry_line = format_registry_line(live, index)
 
     lines = [
         "# Registry intake candidates",

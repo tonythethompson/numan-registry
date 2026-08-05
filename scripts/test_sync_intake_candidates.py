@@ -83,7 +83,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         entry = {
             "id": "FMotalleb/nu_plugin_image",
             "version": "0.112.2",
-            "note": "ci-built via numan-plugins Wave 1",
+            "note": "ci-built via numan-plugins; wave1; Nu 0.112",
         }
         live = {
             "FMotalleb/nu_plugin_image": {
@@ -95,8 +95,53 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         }
         status = self.sync.package_status(entry, live, {}, {})
         self.assertTrue(status.startswith("live (ci-built asset)"))
-        self.assertIn("ci-built via numan-plugins Wave 1", status)
+        self.assertIn("ci-built via numan-plugins; wave1; Nu 0.112", status)
         self.assertNotIn("upstream asset", status)
+
+    def test_format_registry_line_sorts_and_groups_versions(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "vyadh", "name": "nutest"},
+                    "versions": [{"version": "1.1.0"}, {"version": "1.2.0"}],
+                },
+                {
+                    "id": {"owner": "abusch", "name": "nu_plugin_semver"},
+                    "versions": [{"version": "0.11.17"}],
+                },
+                {
+                    "id": {"owner": "FMotalleb", "name": "nu_plugin_image"},
+                    "versions": [{"version": "0.112.2"}],
+                },
+            ]
+        }
+        live = {
+            "vyadh/nutest": {
+                "version": "1.2.0",
+                "mirror": False,
+                "ci_built": False,
+                "upstream_asset": True,
+            },
+            "abusch/nu_plugin_semver": {
+                "version": "0.11.17",
+                "mirror": False,
+                "ci_built": False,
+                "upstream_asset": True,
+            },
+            "FMotalleb/nu_plugin_image": {
+                "version": "0.112.2",
+                "mirror": False,
+                "ci_built": True,
+                "upstream_asset": False,
+            },
+        }
+        line = self.sync.format_registry_line(live, index)
+        self.assertEqual(
+            line,
+            "`abusch/nu_plugin_semver@0.11.17` (upstream), "
+            "`FMotalleb/nu_plugin_image@0.112.2` (ci-built), "
+            "`vyadh/nutest` (1.1.0, 1.2.0; upstream)",
+        )
 
 
 if __name__ == "__main__":
