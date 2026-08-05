@@ -233,6 +233,61 @@
       "repo": "https://github.com/Yethal/nu_plugin_hcl",
       "spec": "specs/Yethal-nu_plugin_hcl-0.114.1.json",
       "note": "wave1 Nu 0.114; CI-built via numan-plugins run 30976612373"
+    },
+    {
+      "id": "fdncred/nu_plugin_jwalk",
+      "name": "nu_plugin_jwalk",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.26.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
+      "repo": "https://github.com/fdncred/nu_plugin_jwalk",
+      "spec": "specs/fdncred-nu_plugin_jwalk-0.26.0.json",
+      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+    },
+    {
+      "id": "fdncred/nu_plugin_strutils",
+      "name": "nu_plugin_strutils",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.22.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
+      "repo": "https://github.com/fdncred/nu_plugin_strutils",
+      "spec": "specs/fdncred-nu_plugin_strutils-0.22.0.json",
+      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+    },
+    {
+      "id": "fdncred/nu_plugin_query_git",
+      "name": "nu_plugin_query_git",
+      "owner": "fdncred",
+      "type": "plugin",
+      "version": "0.24.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
+      "repo": "https://github.com/fdncred/nu_plugin_query_git",
+      "spec": "specs/fdncred-nu_plugin_query_git-0.24.0.json",
+      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
+    },
+    {
+      "id": "lizclipse/nu_plugin_ulid",
+      "name": "nu_plugin_ulid",
+      "owner": "lizclipse",
+      "type": "plugin",
+      "version": "0.23.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
+      "repo": "https://github.com/lizclipse/nu_plugin_ulid",
+      "spec": "specs/lizclipse-nu_plugin_ulid-0.23.0.json",
+      "note": "wave2 Nu 0.114; distinct from nushell-works/nu_plugin_nw_ulid; CI-built via numan-plugins run 30985049217"
+    },
+    {
+      "id": "rhino-linux/nu_plugin_nutext",
+      "name": "nu_plugin_nutext",
+      "owner": "rhino-linux",
+      "type": "plugin",
+      "version": "0.6.2",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
+      "repo": "https://github.com/rhino-linux/nu_plugin_nutext",
+      "spec": "specs/rhino-linux-nu_plugin_nutext-0.6.2.json",
+      "note": "wave2 Nu 0.114; CI-built via numan-plugins run 30985049217"
     }
   ],
   "mirror": [
@@ -416,6 +471,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-08-05",
+      "change": "Wave 2 intake: jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2 (numan-plugins run 30985049217)."
+    },
     {
       "date": "2026-08-05",
       "change": "Intake wave1 Nu 0.114: highlight@1.4.16, regex@0.23.0, port_extension@0.114.1, file@0.26.0, hcl@0.114.1 (ci-built via numan-plugins; 4 targets each)"
