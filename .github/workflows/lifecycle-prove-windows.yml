@@ -93,30 +93,40 @@ jobs:
           $logDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows-lifecycle-prove"
           New-Item -ItemType Directory -Force -Path $logDir | Out-Null
           $log = Join-Path $logDir "wave2-lifecycle-prove.log"
+          if (Test-Path $log) { Remove-Item $log -Force }
           Add-Content -Path $env:GITHUB_ENV -Value "PROVE_LOG=$log"
           $packages = "${{ steps.pkgs.outputs.packages }}" -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $numan = (Get-Command numan).Source
+          $nu = (Get-Command nu).Source
 
-          {
-            Write-Output "=== WINDOWS LIFECYCLE-PROVE ==="
-            Write-Output "nu=$(nu --version)"
-            Write-Output "numan=$(numan --version)"
-            Write-Output "date=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
-            Write-Output "packages=$($packages -join ', ')"
-            Write-Output ""
+          function Write-Log([string]$Message) {
+            Write-Host $Message
+            Add-Content -Path $log -Value $Message
+          }
 
-            foreach ($pkg in $packages) {
-              Write-Output "----- $pkg -----"
-              python scripts/lifecycle-prove.py --package $pkg --numan (Get-Command numan).Source --nu (Get-Command nu).Source
-              if ($LASTEXITCODE -ne 0) {
-                throw "lifecycle-prove failed for $pkg (exit $LASTEXITCODE)"
-              }
-              Write-Output "OK $pkg"
-              Write-Output ""
+          Write-Log "=== WINDOWS LIFECYCLE-PROVE ==="
+          Write-Log "nu=$(nu --version)"
+          Write-Log "numan=$(numan --version)"
+          Write-Log "date=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+          Write-Log "packages=$($packages -join ', ')"
+          Write-Log ""
+
+          foreach ($pkg in $packages) {
+            Write-Log "----- $pkg -----"
+            $output = & python scripts/lifecycle-prove.py --package $pkg --numan $numan --nu $nu 2>&1
+            $code = $LASTEXITCODE
+            foreach ($line in $output) {
+              Write-Log "$line"
             }
-            Write-Output "WINDOWS_LIFECYCLE_PROVE_OK"
-          } 2>&1 | Tee-Object -FilePath $log
+            if ($code -ne 0) {
+              throw "lifecycle-prove failed for $pkg (exit $code)"
+            }
+            Write-Log "OK $pkg"
+            Write-Log ""
+          }
+          Write-Log "WINDOWS_LIFECYCLE_PROVE_OK"
 
-          if (-not (Select-String -Path $log -Pattern "WINDOWS_LIFECYCLE_PROVE_OK" -Quiet)) {
+          if (-not (Select-String -Path $log -Pattern "^WINDOWS_LIFECYCLE_PROVE_OK$" -Quiet)) {
             throw "Success marker missing from $log"
           }
 
