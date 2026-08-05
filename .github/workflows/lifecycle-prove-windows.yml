@@ -1,6 +1,8 @@
 name: Windows lifecycle-prove (Nu 0.114.1)
 
 # One-shot / reusable Stage 1 prove on windows-latest against production.
+# Builds numan from tonythethompson/numan@master so activate matches current
+# non-TTY auto-confirm (published v0.1.5 still requires activate --yes).
 # First registration: open a PR (main is protected for bare dispatch).
 # Later: workflow_dispatch with a package list.
 
@@ -45,22 +47,31 @@ jobs:
             throw "Expected Nushell 0.114.1, found '$version'"
           }
 
-      - name: Install numan 0.1.5 (Windows x64)
+      - name: Check out numan (client CLI)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: tonythethompson/numan
+          path: _numan
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: stable
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: _numan
+
+      - name: Build numan (release)
         shell: pwsh
+        working-directory: _numan
         run: |
-          $ver = "0.1.5"
-          $asset = "numan-$ver-x86_64-pc-windows-msvc.zip"
-          $url = "https://github.com/tonythethompson/numan/releases/download/v$ver/$asset"
-          $tools = Join-Path $env:USERPROFILE "tools\numan-$ver"
-          New-Item -ItemType Directory -Force -Path $tools | Out-Null
-          $zip = Join-Path $env:RUNNER_TEMP $asset
-          Invoke-WebRequest -Uri $url -OutFile $zip
-          Expand-Archive -Path $zip -DestinationPath $tools -Force
-          $bin = Get-ChildItem -Path $tools -Recurse -Filter numan.exe | Select-Object -First 1
-          if (-not $bin) { throw "numan.exe not found in $asset" }
+          cargo build --locked --release
           $bindir = Join-Path $env:USERPROFILE "tools\numan-bin"
           New-Item -ItemType Directory -Force -Path $bindir | Out-Null
-          Copy-Item $bin.FullName (Join-Path $bindir "numan.exe") -Force
+          Copy-Item "target\release\numan.exe" (Join-Path $bindir "numan.exe") -Force
           Add-Content -Path $env:GITHUB_PATH -Value $bindir
           & (Join-Path $bindir "numan.exe") --version
 
