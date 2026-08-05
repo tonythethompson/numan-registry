@@ -287,42 +287,6 @@ def package_status(
     return " — ".join(parts)
 
 
-
-def package_kind(info: dict[str, Any]) -> str:
-    if info.get("mirror"):
-        return "mirror"
-    if info.get("ci_built"):
-        return "ci-built"
-    if info.get("upstream_asset"):
-        return "upstream"
-    return "other"
-
-
-def format_registry_line(
-    live: dict[str, dict[str, Any]],
-    index: dict[str, Any],
-) -> str:
-    """Alphabetical owner/pkg list with consistent single- and multi-version forms.
-
-    Single version: `owner/pkg@ver` (kind)
-    Multi version:  `owner/pkg` (ver1, ver2; kind)
-    """
-    entries: list[tuple[str, str]] = []
-    for pkg in index.get("packages", []):
-        pid = pkg["id"]
-        key = f"{pid['owner']}/{pid['name']}"
-        versions = [v.get("version") for v in pkg.get("versions", []) if v.get("version")]
-        if not versions:
-            continue
-        kind = package_kind(live.get(key, {}))
-        if len(versions) == 1:
-            entries.append((key, f"`{key}@{versions[0]}` ({kind})"))
-        else:
-            entries.append((key, f"`{key}` ({', '.join(versions)}; {kind})"))
-    entries.sort(key=lambda item: item[0].casefold())
-    return ", ".join(text for _, text in entries) if entries else "(none)"
-
-
 def render_intake_doc(
     state: dict[str, Any],
     live: dict[str, dict[str, Any]],
@@ -349,7 +313,30 @@ def render_intake_doc(
     }
     pr_map = {n: pr_state(n) for n in pr_nums if n}
 
-    registry_line = format_registry_line(live, index)
+    entries: list[tuple[str, str]] = []
+    for pkg in index.get("packages", []):
+        pid = pkg["id"]
+        key = f"{pid['owner']}/{pid['name']}"
+        version_data = [v for v in pkg.get("versions", []) if v.get("version")]
+        if not version_data:
+            continue
+        versions = [v["version"] for v in version_data]
+        provenances = set()
+        for version in version_data:
+            artifact = version.get("artifact", {})
+            url = artifact.get("url") or ""
+            if artifact.get("kind") == "binary":
+                targets = artifact.get("targets", {})
+                url = next(iter(targets.values()), {}).get("url", "")
+            provenances.add(artifact_provenance(url))
+        kind = provenances.pop() if len(provenances) == 1 else "mixed"
+        if len(versions) == 1:
+            text = f"`{key}@{versions[0]}` ({kind})"
+        else:
+            text = f"`{key}` ({', '.join(versions)}; {kind})"
+        entries.append((key, text))
+    entries.sort(key=lambda item: item[0].casefold())
+    registry_line = ", ".join(text for _, text in entries) if entries else "(none)"
 
     lines = [
         "# Registry intake candidates",

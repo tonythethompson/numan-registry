@@ -98,50 +98,25 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         self.assertIn("ci-built via numan-plugins; wave1; Nu 0.112", status)
         self.assertNotIn("upstream asset", status)
 
-    def test_format_registry_line_sorts_and_groups_versions(self):
+    def test_registry_summary_sorts_and_marks_mixed_versions(self):
         index = {
             "packages": [
                 {
                     "id": {"owner": "vyadh", "name": "nutest"},
-                    "versions": [{"version": "1.1.0"}, {"version": "1.2.0"}],
+                    "versions": [
+                        {"version": "1.1.0", "artifact": {"url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/a.zip"}},
+                        {"version": "1.2.0", "artifact": {"url": "https://github.com/acme/nutest/releases/download/v1.2.0/a.zip"}},
+                    ],
                 },
                 {
                     "id": {"owner": "abusch", "name": "nu_plugin_semver"},
-                    "versions": [{"version": "0.11.17"}],
-                },
-                {
-                    "id": {"owner": "FMotalleb", "name": "nu_plugin_image"},
-                    "versions": [{"version": "0.112.2"}],
+                    "versions": [{"version": "0.11.17", "artifact": {"url": "https://github.com/acme/semver/releases/download/v/a.zip"}}],
                 },
             ]
         }
-        live = {
-            "vyadh/nutest": {
-                "version": "1.2.0",
-                "mirror": False,
-                "ci_built": False,
-                "upstream_asset": True,
-            },
-            "abusch/nu_plugin_semver": {
-                "version": "0.11.17",
-                "mirror": False,
-                "ci_built": False,
-                "upstream_asset": True,
-            },
-            "FMotalleb/nu_plugin_image": {
-                "version": "0.112.2",
-                "mirror": False,
-                "ci_built": True,
-                "upstream_asset": False,
-            },
-        }
-        line = self.sync.format_registry_line(live, index)
-        self.assertEqual(
-            line,
-            "`abusch/nu_plugin_semver@0.11.17` (upstream), "
-            "`FMotalleb/nu_plugin_image@0.112.2` (ci-built), "
-            "`vyadh/nutest` (1.1.0, 1.2.0; upstream)",
-        )
+        rendered = self.sync.render_intake_doc({}, {}, index, {})
+        self.assertIn("`abusch/nu_plugin_semver@0.11.17` (upstream)", rendered)
+        self.assertIn("`vyadh/nutest` (1.1.0, 1.2.0; mixed)", rendered)
 
 
 if __name__ == "__main__":
