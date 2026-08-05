@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-01T03:37:48Z",
+  "updated_at": "2026-08-05T07:36:40Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -185,14 +185,14 @@
         "owner": "fdncred",
         "name": "nu_plugin_file"
       },
-      "description": "Nushell plugin that inspects a file and returns information based on its magic number. The catalog remains Windows-only pending intake and lifecycle evidence for the supported upstream macOS/Linux .tar.xz assets.",
+      "description": "Inspect a file and return information based on its magic number. CI-built from fdncred/nu_plugin_file@v0.26.0 and signed under the official trust root.",
       "repo": "https://github.com/fdncred/nu_plugin_file",
       "type": "plugin",
       "tags": [
         "plugin",
         "file",
-        "magic-number",
-        "windows-only"
+        "filesystem",
+        "ci-built"
       ],
       "versions": [
         {
@@ -213,6 +213,43 @@
                 "url": "https://github.com/fdncred/nu_plugin_file/releases/download/v0.25.2/nu_plugin_file-aarch64-pc-windows-msvc.zip",
                 "sha256": "aea553a76fc7bdd30fe9d6f2d11876244ba29cca2690cbafe470563c32e9932a",
                 "executable_path": "nu_plugin_file.exe"
+              }
+            }
+          }
+        },
+        {
+          "version": "0.26.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/fdncred/nu_plugin_file",
+            "rev": "97efd18e8df8ea6e33d8c4b6b64c2fa717a647d6",
+            "cargo_name": "nu_plugin_file"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_file-0.26.0/nu_plugin_file-0.26.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "6a5744831068e2f71e3acdba58bd2cc8d00cca85d8495f0fe6a394c77d49e123",
+                "executable_path": "nu_plugin_file"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_file-0.26.0/nu_plugin_file-0.26.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "b35dce641e4458a0b02486adf0492abce762811fefd8ce1b65f2930a5d804e30",
+                "executable_path": "nu_plugin_file"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_file-0.26.0/nu_plugin_file-0.26.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "2f672c467e21c40769ca451b6d2ec9f18f0b388a92dd4361803cadf773acfd0b",
+                "executable_path": "nu_plugin_file.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_file-0.26.0/nu_plugin_file-0.26.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "639f382f8c6b0d1931ed9aa670467c4325bf3032175199ec3fc1412190e2e861",
+                "executable_path": "nu_plugin_file"
               }
             }
           }
@@ -650,7 +687,7 @@
         "owner": "cptpiepmatz",
         "name": "nu_plugin_highlight"
       },
-      "description": "Syntax highlighting for Nushell values and code. CI-built from cptpiepmatz/nu-plugin-highlight@v1.4.15+0.113.1. Pending official trust-root signing on production publish.",
+      "description": "Syntax highlighting for Nushell values and code. CI-built from cptpiepmatz/nu-plugin-highlight@v1.4.16+0.114.1 and signed under the official trust root.",
       "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
       "type": "plugin",
       "tags": [
@@ -696,6 +733,43 @@
               }
             }
           }
+        },
+        {
+          "version": "1.4.16",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/cptpiepmatz/nu-plugin-highlight",
+            "rev": "c0e768d66e9cff17c791e1c5138d518409285599",
+            "cargo_name": "nu_plugin_highlight"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.16/nu_plugin_highlight-1.4.16-aarch64-apple-darwin.tar.gz",
+                "sha256": "f69515a4688b628aee041f7e0bbd3a4bbd1581dd2a3aefc83322295b8856d921",
+                "executable_path": "nu_plugin_highlight"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.16/nu_plugin_highlight-1.4.16-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "279da1d86efcd11432a1c8ad3ccf75827ce8e03480ac08d3ccd47d6c74deecd2",
+                "executable_path": "nu_plugin_highlight"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.16/nu_plugin_highlight-1.4.16-x86_64-pc-windows-msvc.zip",
+                "sha256": "94b6de356e2de54fc05647c412224840814d8d6c7f2347c8a1f51f380f2727f6",
+                "executable_path": "nu_plugin_highlight.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_highlight-1.4.16/nu_plugin_highlight-1.4.16-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "5413ef961ff40c382a476581804b828dba700febfc7b468e07dd8f1e374058f1",
+                "executable_path": "nu_plugin_highlight"
+              }
+            }
+          }
         }
       ]
     },
@@ -704,7 +778,7 @@
         "owner": "fdncred",
         "name": "nu_plugin_regex"
       },
-      "description": "Search text with regular expressions in Nushell pipelines. CI-built from fdncred/nu_plugin_regex@v0.22.0. Pending official trust-root signing on production publish.",
+      "description": "Search text with regular expressions in Nushell pipelines. CI-built from fdncred/nu_plugin_regex@v0.23.0 and signed under the official trust root.",
       "repo": "https://github.com/fdncred/nu_plugin_regex",
       "type": "plugin",
       "tags": [
@@ -741,6 +815,43 @@
               "x86_64-unknown-linux-gnu": {
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.22.0/nu_plugin_regex-0.22.0-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "e21010b79260f10659864b53ca2c1362afac5c6c111ef475a05d0568fee36238",
+                "executable_path": "nu_plugin_regex"
+              }
+            }
+          }
+        },
+        {
+          "version": "0.23.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/fdncred/nu_plugin_regex",
+            "rev": "8c7864a8050d75869af8ad5e6a961da23eb71ae9",
+            "cargo_name": "nu_plugin_regex"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.23.0/nu_plugin_regex-0.23.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "6922a1d508a060b85213608f39d377bfed7b4a9e7cb13a44b38fddf9547d23d1",
+                "executable_path": "nu_plugin_regex"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.23.0/nu_plugin_regex-0.23.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "9d7f40f98e778f94741d6433869c99eb43f95fe5331b040d23c367ac882e35d6",
+                "executable_path": "nu_plugin_regex"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.23.0/nu_plugin_regex-0.23.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "fac769df9a8c93e18e2f8dfc027ac7bb3dc68e82cff728caf55edcb20006408a",
+                "executable_path": "nu_plugin_regex.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_regex-0.23.0/nu_plugin_regex-0.23.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "f7003fe4afccc053cfeb544e5a76d12102541f66ed642a1de99f4db9ae776d21",
                 "executable_path": "nu_plugin_regex"
               }
             }
@@ -906,7 +1017,7 @@
         "owner": "FMotalleb",
         "name": "nu_plugin_port_extension"
       },
-      "description": "Inspect active network connections and scan ports from Nushell. CI-built from FMotalleb/nu_plugin_port_extension@v0.113.1 and signed under the official trust root.",
+      "description": "Inspect active network connections and scan ports from Nushell. CI-built from FMotalleb/nu_plugin_port_extension@v0.114.1 and signed under the official trust root.",
       "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
       "type": "plugin",
       "tags": [
@@ -953,6 +1064,43 @@
               "x86_64-unknown-linux-gnu": {
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.113.1/nu_plugin_port_extension-0.113.1-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "e0bcc150f81aa8829655ca09cbe7baa432131fd66de829ebdc3c269af2f0683c",
+                "executable_path": "nu_plugin_port_extension"
+              }
+            }
+          }
+        },
+        {
+          "version": "0.114.1",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/FMotalleb/nu_plugin_port_extension",
+            "rev": "d4918db40f6feca8cc1d2ad965141e5b205e13f0",
+            "cargo_name": "nu_plugin_port_extension"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.114.1/nu_plugin_port_extension-0.114.1-aarch64-apple-darwin.tar.gz",
+                "sha256": "73389080d3864e85c79b467e92d4cf9745be6c448fed4c3ee3a838f1a300bd11",
+                "executable_path": "nu_plugin_port_extension"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.114.1/nu_plugin_port_extension-0.114.1-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "9ea92b9bfbaeacd40f1542399fa60efa62cc9ba77a100aee5afb79ce1feb69f7",
+                "executable_path": "nu_plugin_port_extension"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.114.1/nu_plugin_port_extension-0.114.1-x86_64-pc-windows-msvc.zip",
+                "sha256": "649689c990178b2eb754cec1b4f6ff4a63a4ef3d98eda33b6e5bcc9010dcaac4",
+                "executable_path": "nu_plugin_port_extension.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_port_extension-0.114.1/nu_plugin_port_extension-0.114.1-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "3bf45e85dd48c6807d6685a1d354865444ef6c2f40727de4249211e90902327a",
                 "executable_path": "nu_plugin_port_extension"
               }
             }
@@ -1337,6 +1485,330 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hmac-0.27.0/nu_plugin_hmac-0.27.0-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "7e647f24a5e001a7963c72cdee3e42e7934478b59f3c688058e42c6e3338c3d4",
                 "executable_path": "nu_plugin_hmac"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "Yethal",
+        "name": "nu_plugin_hcl"
+      },
+      "description": "Parse HashiCorp HCL into Nushell values. CI-built from Yethal/nu_plugin_hcl@0.114.1 and signed under the official trust root.",
+      "repo": "https://github.com/Yethal/nu_plugin_hcl",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "hcl",
+        "config",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.114.1",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/Yethal/nu_plugin_hcl",
+            "rev": "71985a31326d074d23ee6c9cea88bc032d267f72",
+            "cargo_name": "nu_plugin_hcl"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hcl-0.114.1/nu_plugin_hcl-0.114.1-aarch64-apple-darwin.tar.gz",
+                "sha256": "c653ac652e0c7098f4f0c16fad369d2f3266d1a1c220741558a0d6ca2afbb11c",
+                "executable_path": "nu_plugin_hcl"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hcl-0.114.1/nu_plugin_hcl-0.114.1-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "8c3c6e808d98a732a77f5e635407c06a95fa9816ea04ca4c02e64ad1ea07a208",
+                "executable_path": "nu_plugin_hcl"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hcl-0.114.1/nu_plugin_hcl-0.114.1-x86_64-pc-windows-msvc.zip",
+                "sha256": "72c3560cf90af3b159142b05024465ec7a29110ab9ea721e80c663f8f81eac14",
+                "executable_path": "nu_plugin_hcl.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_hcl-0.114.1/nu_plugin_hcl-0.114.1-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "d55ee7fa042f3cfe0dc06f7e31515efa70d79993806d2d0a17a21c792ce78992",
+                "executable_path": "nu_plugin_hcl"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_jwalk"
+      },
+      "description": "Walk directory trees with the jwalk crate. CI-built from fdncred/nu_plugin_jwalk@v0.26.0 and signed under the official trust root.",
+      "repo": "https://github.com/fdncred/nu_plugin_jwalk",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "filesystem",
+        "walk",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.26.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/fdncred/nu_plugin_jwalk",
+            "rev": "51d162849b8ac9a8e187923f3bc45fde4bd1a0ec",
+            "cargo_name": "nu_plugin_jwalk"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_jwalk-0.26.0/nu_plugin_jwalk-0.26.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "c75c34dbe4dbcc69527bdf0778dab851d9721da298b12d706aa8842af735dc60",
+                "executable_path": "nu_plugin_jwalk"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_jwalk-0.26.0/nu_plugin_jwalk-0.26.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "1b33319655b64b597556af7ffb63b524d34773b870728cd13fb2e15f54d7e9a0",
+                "executable_path": "nu_plugin_jwalk"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_jwalk-0.26.0/nu_plugin_jwalk-0.26.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "35658ee6796cfa5c1c733103e761397e792697308c389d5cd505bf6fbf54a605",
+                "executable_path": "nu_plugin_jwalk.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_jwalk-0.26.0/nu_plugin_jwalk-0.26.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "e782ce540268457e0c1c12f91ddf7a9d23737331518d1bb22d8e58a3bf62dcbe",
+                "executable_path": "nu_plugin_jwalk"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_strutils"
+      },
+      "description": "A collection of string utilities for Nushell. CI-built from fdncred/nu_plugin_strutils@v0.22.0 and signed under the official trust root.",
+      "repo": "https://github.com/fdncred/nu_plugin_strutils",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "text",
+        "string",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.22.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/fdncred/nu_plugin_strutils",
+            "rev": "69d6fe1cadec263897333dc4373da7c9b8c67316",
+            "cargo_name": "nu_plugin_strutils"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_strutils-0.22.0/nu_plugin_strutils-0.22.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "ee4c4d9c894fc088cf8d87b39e61b6dccfd0ca73071fce4e298cfa009fbedf0e",
+                "executable_path": "nu_plugin_strutils"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_strutils-0.22.0/nu_plugin_strutils-0.22.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "95b12d0cac9d7d60d6042fa8e41643b020b7e71bb7c478ca973924973332d542",
+                "executable_path": "nu_plugin_strutils"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_strutils-0.22.0/nu_plugin_strutils-0.22.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "d60947f33130172c0a9acb0f9bb69ed9a14e651994cf7fd0f43e0afe41f71054",
+                "executable_path": "nu_plugin_strutils.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_strutils-0.22.0/nu_plugin_strutils-0.22.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "1de1e960f03703dd48b5942afbd5126d9b6ec58381131ac1d2e3193d0bce6266",
+                "executable_path": "nu_plugin_strutils"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fdncred",
+        "name": "nu_plugin_query_git"
+      },
+      "description": "Query git repositories with GQL and return structured Nushell data. CI-built from fdncred/nu_plugin_query_git@v0.24.0 and signed under the official trust root.",
+      "repo": "https://github.com/fdncred/nu_plugin_query_git",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "git",
+        "query",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.24.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/fdncred/nu_plugin_query_git",
+            "rev": "5d30cdebc68a958732632b6bc9d152a16ab5aaff",
+            "cargo_name": "nu_plugin_query_git"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_query_git-0.24.0/nu_plugin_query_git-0.24.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "1543169ba124b4549a585f8599a4db808eb116798150032db5810ff79224fd12",
+                "executable_path": "nu_plugin_query_git"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_query_git-0.24.0/nu_plugin_query_git-0.24.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "ba8cfb54d5ad2a36ac17883a8b5539825bf71888afeb48036cc22e1431eae867",
+                "executable_path": "nu_plugin_query_git"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_query_git-0.24.0/nu_plugin_query_git-0.24.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "3beee87649632ad0966372630aa1cad71fe7a58bf7d00155645bc103d1ecf5e3",
+                "executable_path": "nu_plugin_query_git.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_query_git-0.24.0/nu_plugin_query_git-0.24.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "7ca7b1ffca2f44404f5c9959eaa35434d5625b88e2237a54aad04bb59a87486f",
+                "executable_path": "nu_plugin_query_git"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "lizclipse",
+        "name": "nu_plugin_ulid"
+      },
+      "description": "Generate and parse ULIDs in Nushell. CI-built from lizclipse/nu_plugin_ulid@v0.23.0 and signed under the official trust root.",
+      "repo": "https://github.com/lizclipse/nu_plugin_ulid",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "ulid",
+        "id",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.23.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/lizclipse/nu_plugin_ulid",
+            "rev": "3f1df977a727da35ae4afc0a40d21f35b85df7b5",
+            "cargo_name": "nu_plugin_ulid"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_ulid-0.23.0/nu_plugin_ulid-0.23.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "a4bddea83965d805f85eea5c4e1369634f82c33a5f01016d047d70165c346037",
+                "executable_path": "nu_plugin_ulid"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_ulid-0.23.0/nu_plugin_ulid-0.23.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "3d70576d51e56cd0550ead95c42b01c2ebe4763079b950a1301693f4ccaa009c",
+                "executable_path": "nu_plugin_ulid"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_ulid-0.23.0/nu_plugin_ulid-0.23.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "9cb726f213a897eaf7fee19487415b9282b7a58d18bd54d4bc7286f7717bc801",
+                "executable_path": "nu_plugin_ulid.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_ulid-0.23.0/nu_plugin_ulid-0.23.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "55e3ab70ab75c47e469bc0e4296538f90a5ca074706b88d0a9d56db185860608",
+                "executable_path": "nu_plugin_ulid"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "rhino-linux",
+        "name": "nu_plugin_nutext"
+      },
+      "description": "gettext-style translation helpers for Nushell programs. CI-built from rhino-linux/nu_plugin_nutext@0.6.2 and signed under the official trust root.",
+      "repo": "https://github.com/rhino-linux/nu_plugin_nutext",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "i18n",
+        "gettext",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.6.2",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "source": {
+            "git": "https://github.com/rhino-linux/nu_plugin_nutext",
+            "rev": "c0c0c3afaae0f6a09f7c923acc89c7f21a10ae05",
+            "cargo_name": "nu_plugin_nutext"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_nutext-0.6.2/nu_plugin_nutext-0.6.2-aarch64-apple-darwin.tar.gz",
+                "sha256": "01486204db1324c0669566854bc28c4cf4add38a4bcfaa1923e3b35b3810944a",
+                "executable_path": "nu_plugin_nutext"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_nutext-0.6.2/nu_plugin_nutext-0.6.2-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "f15111a77c79f88ffee8f620064b57ac2f60e9e313b391986b6a6e9e45a4e09d",
+                "executable_path": "nu_plugin_nutext"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_nutext-0.6.2/nu_plugin_nutext-0.6.2-x86_64-pc-windows-msvc.zip",
+                "sha256": "36d567eea40cbcbdab301f1bb40a4aa400119643d40a809b2938377e5ea5c0ab",
+                "executable_path": "nu_plugin_nutext.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_nutext-0.6.2/nu_plugin_nutext-0.6.2-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "9bbbb81abeb5a604b32ba9fece69f68650e498e374eab2b643fc24710fcc4a14",
+                "executable_path": "nu_plugin_nutext"
               }
             }
           }

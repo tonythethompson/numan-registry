@@ -313,27 +313,30 @@ def render_intake_doc(
     }
     pr_map = {n: pr_state(n) for n in pr_nums if n}
 
-    registry_summary = []
-    for key in sorted(live):
-        info = live[key]
-        if info.get("mirror"):
-            kind = "mirror"
-        elif info.get("ci_built"):
-            kind = "ci-built"
-        elif info.get("upstream_asset"):
-            kind = "upstream"
-        else:
-            kind = "other"
-        registry_summary.append(f"`{key}@{info['version']}` ({kind})")
-    # Include multi-version packages explicitly (e.g. nutest).
+    entries: list[tuple[str, str]] = []
     for pkg in index.get("packages", []):
         pid = pkg["id"]
         key = f"{pid['owner']}/{pid['name']}"
-        versions = [v.get("version") for v in pkg.get("versions", []) if v.get("version")]
-        if len(versions) > 1:
-            registry_summary = [s for s in registry_summary if not s.startswith(f"`{key}@")]
-            registry_summary.append(f"`{key}` ({', '.join(versions)})")
-    registry_line = ", ".join(registry_summary) if registry_summary else "(none)"
+        version_data = [v for v in pkg.get("versions", []) if v.get("version")]
+        if not version_data:
+            continue
+        versions = [v["version"] for v in version_data]
+        provenances = set()
+        for version in version_data:
+            artifact = version.get("artifact", {})
+            url = artifact.get("url") or ""
+            if artifact.get("kind") == "binary":
+                targets = artifact.get("targets", {})
+                url = next(iter(targets.values()), {}).get("url", "")
+            provenances.add(artifact_provenance(url))
+        kind = provenances.pop() if len(provenances) == 1 else "mixed"
+        if len(versions) == 1:
+            text = f"`{key}@{versions[0]}` ({kind})"
+        else:
+            text = f"`{key}` ({', '.join(versions)}; {kind})"
+        entries.append((key, text))
+    entries.sort(key=lambda item: item[0].casefold())
+    registry_line = ", ".join(text for _, text in entries) if entries else "(none)"
 
     lines = [
         "# Registry intake candidates",

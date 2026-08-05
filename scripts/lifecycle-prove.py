@@ -141,12 +141,12 @@ def build_steps(package_id: str) -> list[Step]:
         Step("search", ["search", query]),
         Step("info", ["info", package_id]),
         Step("install", ["install", package_id]),
-        Step("activate", ["activate", "--yes", package_id]),
+        Step("activate", ["activate", package_id]),
         Step("doctor", ["doctor"]),
         Step("list", ["list"]),
         # Plugins gate remove while active; deactivate first (modules too).
-        Step("deactivate", ["deactivate", "--yes", package_id]),
-        Step("remove", ["remove", package_id]),
+        Step("deactivate", ["deactivate", package_id]),
+        Step("remove", ["remove", "--yes", package_id]),
         Step("gc", ["gc"]),
     ]
 
