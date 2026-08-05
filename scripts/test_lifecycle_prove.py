@@ -54,6 +54,13 @@ class LifecycleProveTests(unittest.TestCase):
             ],
         )
 
+    def test_build_steps_mutation_flags(self):
+        """Guard activate/deactivate/remove args against CLI flag drift."""
+        by_name = {s.name: s.args for s in self.mod.build_steps("acme/pkg")}
+        self.assertEqual(by_name["activate"], ["activate", "acme/pkg"])
+        self.assertEqual(by_name["deactivate"], ["deactivate", "acme/pkg"])
+        self.assertEqual(by_name["remove"], ["remove", "--yes", "acme/pkg"])
+
     def test_render_windows_shim_exact_crlf_and_quoted_path(self):
         nu = Path(r"C:\Program Files\Nushell\nu.exe")
         self.assertEqual(
