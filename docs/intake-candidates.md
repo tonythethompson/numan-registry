@@ -1,7 +1,7 @@
 # Registry intake candidates
 
 Running list of packages evaluated for the official Numan registry.
-_Auto-synced 2026-08-03 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
+_Auto-synced 2026-08-04 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, `.tar.xz`, `.txz`, or `.tar`; prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, the package **must be staged or published** in the configured registry before running Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`), unless a registry-target override is added. Run lifecycle-prove on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
