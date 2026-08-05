@@ -29,12 +29,11 @@
       "name": "nu_plugin_file",
       "owner": "fdncred",
       "type": "plugin",
-      "version": "0.25.2",
-      "platforms": "Windows x64 + arm64 zip only",
-      "note": "Windows-only",
+      "version": "0.26.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_file",
-      "spec": "specs/fdncred-nu_plugin_file-0.25.2.json",
-      "pr": 11
+      "spec": "specs/fdncred-nu_plugin_file-0.26.0.json",
+      "note": "wave1 Nu 0.114; CI-built via numan-plugins run 30976612373"
     },
     {
       "id": "b4nst/nu_plugin_format_pcap",
@@ -83,22 +82,22 @@
       "name": "nu_plugin_highlight",
       "owner": "cptpiepmatz",
       "type": "plugin",
-      "version": "1.4.15",
-      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
-      "note": "ci-built via numan-plugins",
+      "version": "1.4.16",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
-      "spec": "specs/cptpiepmatz-nu_plugin_highlight-1.4.15.json"
+      "spec": "specs/cptpiepmatz-nu_plugin_highlight-1.4.16.json",
+      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
     },
     {
       "id": "fdncred/nu_plugin_regex",
       "name": "nu_plugin_regex",
       "owner": "fdncred",
       "type": "plugin",
-      "version": "0.22.0",
-      "platforms": "linux x64/arm64, macOS arm64, Windows x64 (no intel mac)",
-      "note": "ci-built via numan-plugins",
+      "version": "0.23.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/fdncred/nu_plugin_regex",
-      "spec": "specs/fdncred-nu_plugin_regex-0.22.0.json"
+      "spec": "specs/fdncred-nu_plugin_regex-0.23.0.json",
+      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
     },
     {
       "id": "dead10ck/nu_plugin_dns",
@@ -116,12 +115,11 @@
       "name": "nu_plugin_port_extension",
       "owner": "FMotalleb",
       "type": "plugin",
-      "version": "0.113.1",
-      "platforms": "linux x64/arm64, macOS x64/arm64, Windows x64",
-      "note": "ci-built via numan-plugins Wave 1",
+      "version": "0.114.1",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
       "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
-      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.113.1.json",
-      "pr": 32
+      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.114.1.json",
+      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
     },
     {
       "id": "FMotalleb/nu_plugin_image",
@@ -224,50 +222,6 @@
       "note": "ci-built via numan-plugins; Nu 0.113",
       "repo": "https://github.com/fnuttens/nu_plugin_hmac",
       "spec": "specs/spec-nu_plugin_hmac.json"
-    },
-    {
-      "id": "cptpiepmatz/nu_plugin_highlight",
-      "name": "nu_plugin_highlight",
-      "owner": "cptpiepmatz",
-      "type": "plugin",
-      "version": "1.4.16",
-      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
-      "repo": "https://github.com/cptpiepmatz/nu-plugin-highlight",
-      "spec": "specs/cptpiepmatz-nu_plugin_highlight-1.4.16.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
-    },
-    {
-      "id": "fdncred/nu_plugin_regex",
-      "name": "nu_plugin_regex",
-      "owner": "fdncred",
-      "type": "plugin",
-      "version": "0.23.0",
-      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
-      "repo": "https://github.com/fdncred/nu_plugin_regex",
-      "spec": "specs/fdncred-nu_plugin_regex-0.23.0.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
-    },
-    {
-      "id": "FMotalleb/nu_plugin_port_extension",
-      "name": "nu_plugin_port_extension",
-      "owner": "FMotalleb",
-      "type": "plugin",
-      "version": "0.114.1",
-      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
-      "repo": "https://github.com/FMotalleb/nu_plugin_port_extension",
-      "spec": "specs/FMotalleb-nu_plugin_port_extension-0.114.1.json",
-      "note": "wave1 Nu 0.114 upgrade; CI-built via numan-plugins run 30976612373"
-    },
-    {
-      "id": "fdncred/nu_plugin_file",
-      "name": "nu_plugin_file",
-      "owner": "fdncred",
-      "type": "plugin",
-      "version": "0.26.0",
-      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64 (intel mac excluded)",
-      "repo": "https://github.com/fdncred/nu_plugin_file",
-      "spec": "specs/fdncred-nu_plugin_file-0.26.0.json",
-      "note": "wave1 Nu 0.114; CI-built via numan-plugins run 30976612373"
     },
     {
       "id": "Yethal/nu_plugin_hcl",
