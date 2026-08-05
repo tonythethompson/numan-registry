@@ -1,0 +1,151 @@
+name: Windows lifecycle-prove (Nu 0.114.1)
+
+# One-shot / reusable Stage 1 prove on windows-latest against production.
+# Builds numan from tonythethompson/numan@master so activate matches current
+# non-TTY auto-confirm (published v0.1.5 still requires activate --yes).
+# First registration: open a PR (main is protected for bare dispatch).
+# Later: workflow_dispatch with a package list.
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Comma-separated owner/name packages
+        required: true
+        default: >-
+          fdncred/nu_plugin_jwalk,fdncred/nu_plugin_strutils,fdncred/nu_plugin_query_git,lizclipse/nu_plugin_ulid,rhino-linux/nu_plugin_nutext
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/lifecycle-prove-windows.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    name: Windows x64 / Nu 0.114.1
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Nushell 0.114.1
+        uses: hustcer/setup-nu@v3
+        with:
+          version: "0.114.1"
+
+      - name: Verify Nushell version
+        shell: pwsh
+        run: |
+          $version = (nu --version).Trim()
+          if ($version -ne "0.114.1") {
+            throw "Expected Nushell 0.114.1, found '$version'"
+          }
+
+      - name: Check out numan (client CLI)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: tonythethompson/numan
+          path: _numan
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          toolchain: stable
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: _numan
+
+      - name: Build numan (release)
+        shell: pwsh
+        working-directory: _numan
+        run: |
+          cargo build --locked --release
+          $bindir = Join-Path $env:USERPROFILE "tools\numan-bin"
+          New-Item -ItemType Directory -Force -Path $bindir | Out-Null
+          Copy-Item "target\release\numan.exe" (Join-Path $bindir "numan.exe") -Force
+          Add-Content -Path $env:GITHUB_PATH -Value $bindir
+          & (Join-Path $bindir "numan.exe") --version
+
+      - name: Prepare Nu config dirs
+        shell: pwsh
+        run: |
+          $config = Join-Path $env:APPDATA "nushell"
+          $autoload = Join-Path $env:APPDATA "nushell\vendor\autoload"
+          New-Item -ItemType Directory -Force -Path $config | Out-Null
+          New-Item -ItemType Directory -Force -Path $autoload | Out-Null
+          nu --version
+          numan --version
+
+      - name: Resolve package list
+        id: pkgs
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $list = "${{ inputs.packages }}"
+          } else {
+            $list = "fdncred/nu_plugin_jwalk,fdncred/nu_plugin_strutils,fdncred/nu_plugin_query_git,lizclipse/nu_plugin_ulid,rhino-linux/nu_plugin_nutext"
+          }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "packages=$list"
+          Write-Host "packages=$list"
+
+      - name: Run lifecycle-prove for each package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $logDir = Join-Path $env:GITHUB_WORKSPACE "artifacts\windows-lifecycle-prove"
+          New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+          $log = Join-Path $logDir "wave2-lifecycle-prove.log"
+          if (Test-Path $log) { Remove-Item $log -Force }
+          Add-Content -Path $env:GITHUB_ENV -Value "PROVE_LOG=$log"
+          $packages = "${{ steps.pkgs.outputs.packages }}" -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $numan = (Get-Command numan).Source
+          $nu = (Get-Command nu).Source
+
+          function Write-Log([string]$Message) {
+            Write-Host $Message
+            Add-Content -Path $log -Value $Message
+          }
+
+          Write-Log "=== WINDOWS LIFECYCLE-PROVE ==="
+          Write-Log "nu=$(nu --version)"
+          Write-Log "numan=$(numan --version)"
+          Write-Log "date=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+          Write-Log "packages=$($packages -join ', ')"
+          Write-Log ""
+
+          foreach ($pkg in $packages) {
+            Write-Log "----- $pkg -----"
+            $output = & python scripts/lifecycle-prove.py --package $pkg --numan $numan --nu $nu 2>&1
+            $code = $LASTEXITCODE
+            foreach ($line in $output) {
+              Write-Log "$line"
+            }
+            if ($code -ne 0) {
+              throw "lifecycle-prove failed for $pkg (exit $code)"
+            }
+            Write-Log "OK $pkg"
+            Write-Log ""
+          }
+          Write-Log "WINDOWS_LIFECYCLE_PROVE_OK"
+
+          if (-not (Select-String -Path $log -Pattern "^WINDOWS_LIFECYCLE_PROVE_OK$" -Quiet)) {
+            throw "Success marker missing from $log"
+          }
+
+      - name: Upload prove log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-lifecycle-prove-log
+          path: artifacts/windows-lifecycle-prove/wave2-lifecycle-prove.log
+          if-no-files-found: warn
+          retention-days: 30
