@@ -16,7 +16,7 @@ def _parse_expr(source: str) -> ast.AST:
 
 
 class TestComplexityOf(unittest.TestCase):
-    """Unit tests for the McCabe counter on individual statements."""
+    """Unit tests for the CodeFactor-style complexity counter on statements."""
 
     def test_plain_expression_is_1(self):
         expr = _parse_expr("x = 1 + 2")
@@ -55,9 +55,9 @@ class TestComplexityOf(unittest.TestCase):
 
     def test_boolop_counts_operands_minus_one(self):
         node = _parse_expr("if a and b:\n    x = 1")
-        self.assertEqual(complexity_of(node), 3)  # if + and
+        self.assertEqual(complexity_of(node), 3)
         node = _parse_expr("if a and b and c:\n    x = 1")
-        self.assertEqual(complexity_of(node), 4)  # if + two ands
+        self.assertEqual(complexity_of(node), 4)
 
     def test_while_and_assert(self):
         node = _parse_expr(
@@ -76,7 +76,7 @@ class TestComplexityOf(unittest.TestCase):
             "except TypeError:\n"
             "    x = 3\n"
         )
-        self.assertEqual(complexity_of(node), 3)  # two except handlers
+        self.assertEqual(complexity_of(node), 3)
 
     def test_ternary_ifexp(self):
         node = _parse_expr("x = 1 if cond else 2")
@@ -162,6 +162,82 @@ class TestAnalyzeSource(unittest.TestCase):
         by_name = {fn.name: fn for fn in functions}
         self.assertEqual(by_name["inner"].complexity, 2)
         self.assertEqual(by_name["outer"].complexity, 2)  # outer if only
+
+    def test_nested_def_inside_if_does_not_inflate_outer(self):
+        # A nested def reached through control flow (not a direct body
+        # statement) must still be measured independently.
+        source = textwrap.dedent(
+            """\
+            def outer(x):
+                if x:
+                    def inner(y):
+                        if y:
+                            return 1
+                        return 0
+                    return inner(x)
+                return 0
+            """
+        )
+        functions = analyze_source(source)
+        by_name = {fn.name: fn for fn in functions}
+        self.assertEqual(by_name["inner"].complexity, 2)
+        self.assertEqual(by_name["outer"].complexity, 2)  # outer if only
+
+    def test_nested_async_def_inside_loop_does_not_inflate_outer(self):
+        source = textwrap.dedent(
+            """\
+            def outer(items):
+                for item in items:
+                    async def inner(y):
+                        if y:
+                            return 1
+                        return 0
+                return 0
+            """
+        )
+        functions = analyze_source(source)
+        by_name = {fn.name: fn for fn in functions}
+        self.assertEqual(by_name["inner"].complexity, 2)
+        self.assertEqual(by_name["outer"].complexity, 2)  # outer for only
+
+    def test_def_inside_class_inside_with_does_not_inflate_outer(self):
+        # Deepest nesting: a def inside an if inside a class inside a with.
+        # Old code inflated outer via visit_ClassDef -> visit(if) -> _bump
+        # -> generic_visit reaching the method's if.
+        source = textwrap.dedent(
+            """\
+            def outer():
+                with ctx:
+                    class Inner:
+                        if flag:
+                            def method(self, y):
+                                if y:
+                                    return 1
+                                return 0
+                return 0
+            """
+        )
+        functions = analyze_source(source)
+        by_name = {fn.name: fn for fn in functions}
+        self.assertEqual(by_name["method"].complexity, 2)
+        self.assertEqual(by_name["outer"].complexity, 2)  # with only
+
+    def test_def_inside_while_does_not_inflate_outer(self):
+        source = textwrap.dedent(
+            """\
+            def outer():
+                while cond:
+                    def inner(y):
+                        if y:
+                            return 1
+                        return 0
+                return 0
+            """
+        )
+        functions = analyze_source(source)
+        by_name = {fn.name: fn for fn in functions}
+        self.assertEqual(by_name["inner"].complexity, 2)
+        self.assertEqual(by_name["outer"].complexity, 2)  # while only
 
     def test_analyze_file(self):
         import tempfile

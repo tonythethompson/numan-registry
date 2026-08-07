@@ -3,9 +3,12 @@
 
 Dev utility for tracking CodeFactor-style \"Complex Method\" findings
 (e.g. the open items in issue #42). Uses an ``ast``-based counter that
-mirrors mccabe's counting rules: base 1, plus 1 for each if/elif, for,
-while, except, with, assert, ternary-if, bool-op branch, and
-comprehension.
+implements the repository's tracked complexity metric: base 1, plus 1
+for each if/elif, for, while, except, with, assert, ternary-if, bool-op
+branch, and comprehension. This is a CodeFactor-style metric rather
+than a strict mccabe port: raw mccabe omits assert, ternary, bool-op,
+and comprehension decision points, while CodeFactor's reported numbers
+for issue #42 match this counter's output, so the rules stay as-is.
 
 Usage:
   python scripts/measure_complexity.py [FILES...] [--min 15]
@@ -32,16 +35,33 @@ class FunctionComplexity:
 
 
 class McCabeCounter(ast.NodeVisitor):
-    """Count cyclomatic complexity using mccabe-compatible rules.
+    """Count cyclomatic complexity using the repository's CodeFactor-style rules.
 
     Base complexity is 1. Each decision point adds 1: ``if``/``elif``,
     ``for``, ``while``, ``except``, ``with``, ``assert``, ternary
     ``if/else`` expressions, each ``and``/``or`` operand pair, and each
-    comprehension (list/set/dict/generator).
+    comprehension (list/set/dict/generator). This is intentionally a
+    superset of raw mccabe so the counter reproduces CodeFactor's
+    reported numbers for the issue #42 backlog.
     """
 
     def __init__(self) -> None:
         self.complexity = 1
+
+    _NESTED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
+    def generic_visit(self, node: ast.AST) -> None:
+        """Visit children without descending into nested defs/classes.
+
+        Nested definitions are measured independently (their own graph,
+        like mccabe), so they must be excluded at any depth — including
+        when reached through an ``if``, loop, ``except`` handler, or other
+        control-flow node — not just as direct body statements.
+        """
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, self._NESTED_DEFS):
+                continue
+            self.visit(child)
 
     def _bump(self, node: ast.AST) -> None:
         self.complexity += 1
@@ -87,10 +107,10 @@ class McCabeCounter(ast.NodeVisitor):
         return self._bump(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        # Like mccabe, count each function independently: walk this function's
-        # own body statements but do not descend into nested defs/classes.
+        # Count each function independently: walk this function's own body
+        # statements but do not descend into nested defs/classes.
         for stmt in node.body:
-            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if isinstance(stmt, self._NESTED_DEFS):
                 continue
             self.visit(stmt)
 
@@ -101,7 +121,7 @@ class McCabeCounter(ast.NodeVisitor):
         # Methods are counted as separate functions; a class body adds no
         # decision points of its own.
         for stmt in node.body:
-            if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if isinstance(stmt, self._NESTED_DEFS):
                 continue
             self.visit(stmt)
 
