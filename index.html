@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Numan Official Registry</title>
+  <meta name="description" content="Signed catalog CDN for the Numan Nushell package manager. Clients sync index.json; this page is human-facing only.">
+  <style>
+    :root {
+      --ink: #14231c;
+      --muted: #3d5348;
+      --paper: #f3f7f2;
+      --leaf: #1f7a4c;
+      --leaf-deep: #145a38;
+      --line: rgba(20, 35, 28, 0.12);
+      --glow: rgba(31, 122, 76, 0.14);
+      --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--serif);
+      background:
+        radial-gradient(900px 420px at 12% -10%, var(--glow), transparent 60%),
+        radial-gradient(700px 380px at 100% 0%, rgba(20, 90, 56, 0.08), transparent 55%),
+        linear-gradient(180deg, #e8f0e7 0%, var(--paper) 45%, #eef4ec 100%);
+    }
+
+    main {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: clamp(3rem, 8vw, 6rem) 1.5rem 4rem;
+    }
+
+    .brand {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0 0 1rem;
+    }
+
+    h1 {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: clamp(1.15rem, 2.4vw, 1.35rem);
+      letter-spacing: -0.02em;
+      line-height: 1.35;
+      margin: 0 0 0.85rem;
+      color: var(--muted);
+    }
+
+    p {
+      margin: 0 0 1.75rem;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      margin-bottom: 2.25rem;
+    }
+
+    a.button {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 0.95rem;
+      text-decoration: none;
+      padding: 0.7rem 1.05rem;
+      border-radius: 0.45rem;
+      border: 1px solid transparent;
+      transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+
+    a.button.primary {
+      background: var(--leaf);
+      color: #f7fbf8;
+    }
+
+    a.button.primary:hover,
+    a.button.primary:focus-visible {
+      background: var(--leaf-deep);
+    }
+
+    a.button:focus-visible {
+      outline: 2px solid var(--leaf);
+      outline-offset: 2px;
+    }
+
+    a.button.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    a.button.secondary:hover,
+    a.button.secondary:focus-visible {
+      border-color: var(--leaf);
+      color: var(--leaf-deep);
+    }
+
+    .meta {
+      border-top: 1px solid var(--line);
+      padding-top: 1.25rem;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .meta code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(20, 35, 28, 0.06);
+      padding: 0.1em 0.35em;
+      border-radius: 0.25rem;
+    }
+
+    .meta a {
+      color: var(--leaf-deep);
+    }
+
+    .meta a:hover,
+    .meta a:focus-visible {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">Numan</p>
+    <h1>Official package registry CDN</h1>
+    <p>
+      This site is the signed catalog endpoint for
+      <a href="https://github.com/tonythethompson/numan">Numan</a>.
+      Humans browse docs; clients sync the JSON index and verify its signature.
+    </p>
+    <div class="actions">
+      <!-- Relative ./index.json and ./index.json.sig are intentional: Numan clients and this page share the Pages root. Do not change these hrefs or the client machine URLs. -->
+      <a class="button primary" href="./index.json">Open index.json</a>
+      <a class="button secondary" href="./index.json.sig">Signature</a>
+      <a class="button secondary" href="https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md">Catalog × Nu matrix</a>
+    </div>
+    <div class="meta">
+      Sync with <code>numan registry sync</code> against the built-in
+      <code>official</code> trust root.
+      Source and intake live in
+      <a href="https://github.com/tonythethompson/numan-registry">tonythethompson/numan-registry</a>.
+    </div>
+  </main>
+</body>
+</html>
