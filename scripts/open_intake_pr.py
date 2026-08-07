@@ -26,6 +26,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from gh_helpers import gh_run
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO_ROOT / "scripts"
 SPECS_DIR = REPO_ROOT / "specs"
@@ -168,7 +170,7 @@ def _cleanup_intake_branch(branch: str, original_branch: str,
 
 
 def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
-                         spec_path: str, repo: str, dry_run: bool) -> None:
+                         spec_path: str, repo: str, *, dry_run: bool) -> None:
     """Append or refresh an entry in docs/intake-state.json ready[]."""
     if dry_run:
         print(f"  [dry-run] would update {INTAKE_STATE_PATH}", file=sys.stderr)
@@ -290,8 +292,8 @@ def _print_intake_header(owner: str, name: str, version: str, branch: str,
     print("", file=sys.stderr)
 
 
-def _prepare_push_branch() -> str | None:
-    """Return the current branch for cleanup, refusing dirty worktrees."""
+def _prepare_push_branch() -> str:
+    """Return the current branch for cleanup, refusing dirty/detached worktrees."""
     if _is_worktree_dirty():
         print(
             "error: refusing to create intake branch with a dirty worktree; "
@@ -299,7 +301,15 @@ def _prepare_push_branch() -> str | None:
             file=sys.stderr,
         )
         sys.exit(1)
-    return _current_branch()
+    branch = _current_branch()
+    if not branch:
+        print(
+            "error: refusing to create intake branch from a detached HEAD; "
+            "check out a branch first",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return branch
 
 
 def _stage_create_branch(branch: str, *, dry_run: bool) -> None:
@@ -374,13 +384,18 @@ def _stage_refresh_docs(*, dry_run: bool) -> None:
 def _stage_commit_and_push(owner: str, name: str, version: str, branch: str,
                            dest_spec: Path, *, dry_run: bool) -> None:
     """Commit the intake and push the branch (or print what would happen)."""
+    add_paths = [
+        str(dest_spec),
+        str(INDEX_PATH),
+        str(INTAKE_STATE_PATH),
+        str(REPO_ROOT / "docs" / "intake-candidates.md"),
+    ]
     if dry_run:
-        print(f"  [dry-run] would: git add specs/{dest_spec.name} registry/index.json docs/", file=sys.stderr)
+        print(f"  [dry-run] would: git add {' '.join(add_paths)}", file=sys.stderr)
         print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
         print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
     else:
-        _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
-              str(REPO_ROOT / "docs" / "intake-candidates.md")])
+        _run(["git", "add", *add_paths])
         _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
         _run(["git", "push", "origin", branch])
 
@@ -394,12 +409,19 @@ def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
         print("\n--- PR body preview ---", file=sys.stderr)
         print(pr_body, file=sys.stderr)
     else:
-        _run([
-            "gh", "pr", "create",
+        # gh pr create is mutating, so unlike the fail-soft gh_json/gh_text
+        # paths it must fail closed: any non-zero exit aborts the intake.
+        result = gh_run([
+            "pr", "create",
             "--title", f"Intake: {owner}/{name} v{version}",
             "--body", pr_body,
             "--base", "main",
         ])
+        if result is None or result.returncode != 0:
+            print("error: gh pr create failed", file=sys.stderr)
+            if result is not None and result.stderr:
+                print(result.stderr, file=sys.stderr)
+            sys.exit(1)
 
 
 def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) -> None:
@@ -437,7 +459,10 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         _stage_copy_spec(dest_spec, spec_data, spec_filename, dry_run=dry_run)
         _stage_merge_into_index(spec_path, spec, spec_filename, dry_run=dry_run)
         _stage_lint_and_validate(dry_run=dry_run)
-        _update_intake_state(owner, name, version, pkg_type, f"specs/{spec_filename}", repo, dry_run)
+        _update_intake_state(
+            owner, name, version, pkg_type, f"specs/{spec_filename}", repo,
+            dry_run=dry_run,
+        )
         _stage_refresh_docs(dry_run=dry_run)
         _stage_commit_and_push(owner, name, version, branch, dest_spec, dry_run=dry_run)
         _stage_open_pr(owner, name, version, spec, evidence, dry_run=dry_run)

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3.12
 """Shared `gh` CLI wrappers for registry tooling.
 
-Both sync-intake-candidates.py and discover.py shell out to the GitHub CLI
-and parse its output; the wrappers live here so the two scripts do not
-duplicate the same helpers (CodeFactor issue #40).
+sync-intake-candidates.py, discover.py, and open_intake_pr.py shell out to
+the GitHub CLI; the wrappers live here so the scripts do not duplicate the
+same invocation plumbing (binary name, repo cwd, timeout) or output parsing
+(CodeFactor issue #40).
 """
 
 from __future__ import annotations
@@ -15,8 +16,15 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _run_gh(args: list[str]) -> subprocess.CompletedProcess[str] | None:
-    """Run a `gh` command, returning its result or ``None`` if gh is missing."""
+def gh_run(args: list[str]) -> subprocess.CompletedProcess[str] | None:
+    """Run a `gh` command and return its full result.
+
+    ``None`` covers gh missing from PATH or a hung invocation exceeding the
+    timeout. The command runs with ``check=False``: a non-zero exit is
+    reported in the returned ``returncode`` so fail-closed callers (e.g.
+    mutating commands like ``gh pr create``) can inspect stderr, while
+    fail-soft callers (``gh_json``/``gh_text``) treat it as failure.
+    """
     try:
         return subprocess.run(
             ["gh", *args],
@@ -24,8 +32,9 @@ def _run_gh(args: list[str]) -> subprocess.CompletedProcess[str] | None:
             check=False,
             capture_output=True,
             text=True,
+            timeout=60,
         )
-    except FileNotFoundError:
+    except (FileNotFoundError, subprocess.TimeoutExpired):
         return None
 
 
@@ -35,7 +44,7 @@ def gh_json(args: list[str]) -> object | None:
     Returns ``None`` when gh is unavailable, the command fails, or stdout is
     not parseable JSON.
     """
-    out = _run_gh(args)
+    out = gh_run(args)
     if out is None or out.returncode != 0 or not out.stdout.strip():
         return None
     try:
@@ -49,7 +58,7 @@ def gh_text(args: list[str]) -> str | None:
 
     Returns ``None`` when gh is unavailable or the command fails.
     """
-    out = _run_gh(args)
+    out = gh_run(args)
     if out is None or out.returncode != 0:
         return None
     text = out.stdout.strip()

@@ -210,14 +210,12 @@ class TestStageHelpers(unittest.TestCase):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
         with (
             patch.object(open_intake_pr, "_run") as run,
-            tempfile.TemporaryDirectory() as tmp,
+            tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp,
+            patch.object(open_intake_pr.tempfile, "mkdtemp", return_value=tmp),
         ):
-            with patch.object(
-                open_intake_pr.tempfile, "mkdtemp", return_value=tmp
-            ):
-                open_intake_pr._stage_merge_into_index(
-                    Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json", dry_run=False
-                )
+            open_intake_pr._stage_merge_into_index(
+                Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json", dry_run=False
+            )
         args, kwargs = run.call_args
         self.assertIn("add-package.py", " ".join(args[0]))
         self.assertIn("--spec", args[0])
@@ -233,7 +231,15 @@ class TestStageHelpers(unittest.TestCase):
                     Path("specs/acme-pkg-1.0.0.json"), dry_run=True,
                 )
             )
-        self.assertIn("[dry-run] would: git add specs/acme-pkg-1.0.0.json registry/index.json docs/", out)
+        expected_add = " ".join(
+            [
+                str(Path("specs/acme-pkg-1.0.0.json")),
+                str(open_intake_pr.INDEX_PATH),
+                str(open_intake_pr.INTAKE_STATE_PATH),
+                str(open_intake_pr.REPO_ROOT / "docs" / "intake-candidates.md"),
+            ]
+        )
+        self.assertIn(f"[dry-run] would: git add {expected_add}", out)
         self.assertIn("[dry-run] would: git commit -m 'Intake acme/pkg v1.0.0'", out)
         self.assertIn("[dry-run] would: git push origin intake/acme-pkg-1.0.0", out)
         run.assert_not_called()
@@ -267,14 +273,32 @@ class TestStageHelpers(unittest.TestCase):
     def test_stage_open_pr_real_runs_gh(self):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
         evidence = {"overall": "pass", "human_summary": "ok"}
-        with patch.object(open_intake_pr, "_run") as run:
+        success = subprocess.CompletedProcess(
+            args=["gh", "pr", "create"], returncode=0, stdout="", stderr=""
+        )
+        with patch.object(open_intake_pr, "gh_run", return_value=success) as run:
             open_intake_pr._stage_open_pr(
                 "acme", "pkg", "1.0.0", spec, evidence, dry_run=False
             )
         args, _kwargs = run.call_args
-        self.assertEqual(args[0][:3], ["gh", "pr", "create"])
+        self.assertEqual(args[0][:2], ["pr", "create"])
         self.assertIn("--body", args[0])
         self.assertIn("--base", args[0])
+
+    def test_stage_open_pr_real_exits_when_gh_fails(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        failed = subprocess.CompletedProcess(
+            args=["gh", "pr", "create"], returncode=1, stdout="", stderr="boom"
+        )
+        with patch.object(open_intake_pr, "gh_run", return_value=failed):
+            with self.assertRaises(SystemExit) as raised:
+                self._stderr_of(
+                    lambda: open_intake_pr._stage_open_pr(
+                        "acme", "pkg", "1.0.0", spec, evidence, dry_run=False
+                    )
+                )
+        self.assertEqual(raised.exception.code, 1)
 
     def test_print_intake_header_includes_dry_run_mode(self):
         out = self._stderr_of(

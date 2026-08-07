@@ -43,6 +43,25 @@ class TestLoadSpec(unittest.TestCase):
             path.write_text(json.dumps({"spec": {"owner": "a"}, "_meta": {"x": 1}}), encoding="utf-8")
             self.assertEqual(validate_candidate._load_spec(path), {"owner": "a"})
 
+    def test_scalar_or_array_root_raises(self):
+        for payload in ("[]", "42", "\"not-an-object\""):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "spec.json"
+                path.write_text(payload, encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    validate_candidate._load_spec(path)
+
+    def test_wrapped_scalar_or_array_spec_raises(self):
+        for inner in ("[]", "42", "\"not-an-object\""):
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "spec.json"
+                path.write_text(
+                    json.dumps({"spec": json.loads(inner), "_meta": {"x": 1}}),
+                    encoding="utf-8",
+                )
+                with self.assertRaises(ValueError):
+                    validate_candidate._load_spec(path)
+
 
 class TestSeedWorkdir(unittest.TestCase):
     def test_writes_spec_and_index(self):
@@ -95,15 +114,17 @@ class TestStepHelpers(unittest.TestCase):
         self.assertEqual(validate_candidate._extract_lint_errors("weird output"), ["weird output"])
 
     def test_step_lint_pass_has_empty_errors(self):
-        with patch("validate_candidate._run_script", return_value=(True, "")):
-            check = validate_candidate._step_lint(Path("/tmp/index.json"))
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("validate_candidate._run_script", return_value=(True, "")):
+                check = validate_candidate._step_lint(Path(tmp) / "index.json")
         self.assertEqual(check["name"], "lint")
         self.assertEqual(check["status"], "pass")
         self.assertEqual(check["errors"], [])
 
     def test_step_schema_fail_truncates_detail(self):
-        with patch("validate_candidate._run_script", return_value=(False, "y" * 1000)):
-            check = validate_candidate._step_schema(Path("/tmp/index.json"))
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("validate_candidate._run_script", return_value=(False, "y" * 1000)):
+                check = validate_candidate._step_schema(Path(tmp) / "index.json")
         self.assertEqual(check["status"], "fail")
         self.assertEqual(len(check["detail"]), 500)
 
