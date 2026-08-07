@@ -16,13 +16,13 @@ import argparse
 import hashlib
 import json
 import re
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN
+from gh_helpers import gh_json, gh_text
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 STATE_PATH = REPO_ROOT / "docs" / "intake-state.json"
@@ -31,42 +31,6 @@ INDEX_PATH = REPO_ROOT / "registry" / "index.json"
 OUTREACH_DOC = REPO_ROOT / "docs" / "upstream-release-outreach.md"
 CHECKSUM_CACHE = REPO_ROOT / ".mrge" / "sync-checksums.json"
 REGISTRY_REPO = "tonythethompson/numan-registry"
-
-
-def gh_json(args: list[str]) -> Any | None:
-    try:
-        out = subprocess.run(
-            ["gh", *args],
-            cwd=REPO_ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
-        return None
-    if out.returncode != 0 or not out.stdout.strip():
-        return None
-    try:
-        return json.loads(out.stdout)
-    except json.JSONDecodeError:
-        return None
-
-
-def gh_text(args: list[str]) -> str | None:
-    try:
-        out = subprocess.run(
-            ["gh", *args],
-            cwd=REPO_ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
-        return None
-    if out.returncode != 0:
-        return None
-    text = out.stdout.strip()
-    return text or None
 
 
 def load_json(path: Path) -> Any:

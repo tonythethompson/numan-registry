@@ -19,56 +19,11 @@ import argparse
 import base64
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-
-# ---------------------------------------------------------------------------
-# GitHub helpers (same pattern as sync-intake-candidates.py)
-# ---------------------------------------------------------------------------
-
-
-def gh_json(args: list[str]) -> object | None:
-    """Run a gh CLI command and parse JSON output."""
-    try:
-        out = subprocess.run(
-            ["gh", *args],
-            cwd=REPO_ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
-        return None
-    if out.returncode != 0 or not out.stdout.strip():
-        return None
-    try:
-        return json.loads(out.stdout)
-    except json.JSONDecodeError:
-        return None
-
-
-def gh_text(args: list[str]) -> str | None:
-    """Run a gh CLI command and return stripped text output."""
-    try:
-        out = subprocess.run(
-            ["gh", *args],
-            cwd=REPO_ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-    except FileNotFoundError:
-        return None
-    if out.returncode != 0:
-        return None
-    text = out.stdout.strip()
-    return text or None
-
+from gh_helpers import gh_json, gh_text
 
 # ---------------------------------------------------------------------------
 # Classification helpers
