@@ -124,8 +124,15 @@ successful real-Nu lifecycle proof. Each value is an exact `MAJOR.MINOR.PATCH`
 version satisfying `nu_version`; the intake PR carries the command, OS, package
 version, and detailed result.
 
+## Security
+
+Report vulnerabilities and see the trust summary in [SECURITY.md](SECURITY.md).
+Operational yank, rollback, and user-remediation procedures are in
+[docs/incident-response.md](docs/incident-response.md).
+
 ## Operations
 
+- [Security policy](SECURITY.md)
 - [Incident response and user remediation](docs/incident-response.md)
 - [Production cutover and key-exposure runbook](docs/production-cutover-checklist.md)
 - [Signing-key rotation checklist](docs/key-rotation-checklist.md)
