@@ -660,6 +660,7 @@
 
       function constraintMatches(constraint, version) {
         if (!constraint || !version) return false;
+        if (String(constraint).trim() === "*") return true;
         var tokens = String(constraint).trim().split(/\s+/);
         for (var i = 0; i < tokens.length; i++) {
           var token = tokens[i];
