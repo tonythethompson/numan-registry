@@ -90,6 +90,17 @@ class AddPackageArchiveTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 1)
         urlopen.assert_not_called()
 
+    def test_rejects_non_http_scheme_before_download(self):
+        with (
+            mock.patch.object(self.mod.urllib.request, "urlopen") as urlopen,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            self.mod.build_artifact(
+                {"kind": "archive", "url": "file:///etc/passwd.tar.gz"}
+            )
+        self.assertEqual(raised.exception.code, 1)
+        urlopen.assert_not_called()
+
     def test_generated_intake_doc_uses_shared_archive_suffixes(self):
         self.assertEqual(
             self.mod.SUPPORTED_ARCHIVE_SUFFIXES,

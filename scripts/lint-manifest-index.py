@@ -26,6 +26,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from url_safety import ensure_http_url
+
 DEFAULT_MANIFEST_URL = (
     "https://raw.githubusercontent.com/tonythethompson/numan-plugins/"
     "master/manifest.json"
@@ -39,10 +41,9 @@ def load_json_path(path: Path) -> object:
 
 
 def load_json_url(url: str) -> object:
-    if not url.startswith(("https://", "http://")):
-        raise ValueError(f"manifest URL must be http(s), got {url!r}")
+    ensure_http_url(url)
     req = urllib.request.Request(url, headers={"User-Agent": "numan-registry-lint"})
-    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — scheme checked above
+    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — scheme checked in ensure_http_url
         return json.loads(resp.read().decode("utf-8"))
 
 

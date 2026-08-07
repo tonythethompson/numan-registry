@@ -22,6 +22,7 @@ import urllib.request
 from pathlib import Path
 
 from nu_version_constraint import lifecycle_evidence_error
+from url_safety import ensure_http_url
 
 
 def canonical_json(value):
@@ -141,6 +142,10 @@ def download_and_verify(url, expected_sha256):
     """
     if not expected_sha256:
         return False, "missing expected sha256"
+    try:
+        ensure_http_url(url)
+    except ValueError as exc:
+        return False, str(exc)
     req = urllib.request.Request(url, method="GET")
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:

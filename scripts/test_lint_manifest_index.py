@@ -9,8 +9,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "lint-manifest-index.py"
+if str(SCRIPT.parent) not in sys.path:
+    sys.path.insert(0, str(SCRIPT.parent))
 
 
 def load_lint():
@@ -26,6 +29,29 @@ class LintManifestIndexTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.lint = load_lint()
+
+    def test_load_json_url_rejects_non_http_scheme(self):
+        with self.assertRaises(ValueError):
+            self.lint.load_json_url("file:///etc/passwd")
+
+    def test_load_json_url_accepts_https(self):
+        # No network in unit tests: mock urlopen to prove the guard passes
+        # http(s) URLs through to the opener.
+        class _Resp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b'{"active": []}'
+
+        with mock.patch.object(
+            self.lint.urllib.request, "urlopen", return_value=_Resp()
+        ) as urlopen:
+            self.assertEqual(self.lint.load_json_url("https://example.invalid/manifest.json"), {"active": []})
+        urlopen.assert_called_once()
 
     def test_agreeing_constraints_pass(self):
         manifest = {

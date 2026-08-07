@@ -83,6 +83,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
+from url_safety import ensure_http_url
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
@@ -122,6 +123,11 @@ def check_archive_format_supported(url, label):
 
 
 def download_and_hash(url):
+    try:
+        ensure_http_url(url)
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        sys.exit(1)
     print(f"  downloading {url} ...", file=sys.stderr)
     req = urllib.request.Request(url, method="GET")
     with urllib.request.urlopen(req, timeout=60) as resp:
