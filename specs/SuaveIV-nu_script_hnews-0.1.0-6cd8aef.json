@@ -6,7 +6,7 @@
   "type": "script",
   "tags": ["script", "news", "mirror", "install-only"],
   "version": "0.1.0-6cd8aef",
-  "nu_version": "*",
+  "nu_version": ">=0.97.0",
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",

@@ -151,7 +151,8 @@ def render(index: dict[str, Any], generated_at: str) -> str:
         f"Generated: `{generated_at}` · Index `updated_at`: `{updated}` · "
         f"`registry_revision`: `{revision}`",
         "",
-        "This is the **master list** of packages in the official Numan registry "
+        "This is the **master list** of packages in the committed `registry/index.json` "
+        "(in-tree; the public CDN updates after production signing/publish) "
         "and the Nu constraint on each package's **latest** version. For demand-"
         "ranked *plugin candidates* not yet in the registry, see "
         "[`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json). "
