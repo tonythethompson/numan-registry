@@ -817,7 +817,7 @@
         var nuQuery = (nuEl.value || "").trim();
         if (isValidNuVersion(nuQuery)) {
           var matches = visible.filter(function (row) {
-            return !collapsed[row.type] && constraintMatches(row.nu, nuQuery);
+            return constraintMatches(row.nu, nuQuery);
           }).length;
           bits.push(matches + " match Nu " + nuQuery);
         }
