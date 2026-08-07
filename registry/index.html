@@ -17,6 +17,7 @@
       --head: #d7e6d9;
       --match: rgba(31, 122, 76, 0.1);
       --dim: 0.42;
+      --head-h: 2.05rem;
       --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --serif: Georgia, "Times New Roman", Times, serif;
       --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
@@ -263,6 +264,10 @@
       border-top: 1px solid var(--line);
     }
 
+    .table-wrap:has(table[hidden]) {
+      border-top: 0;
+    }
+
     table.packages {
       width: 100%;
       border-collapse: collapse;
@@ -294,7 +299,7 @@
 
     table.packages tr.group td {
       position: sticky;
-      top: 2.05rem;
+      top: var(--head-h);
       z-index: 1;
       padding-top: 0.7rem;
       padding-bottom: 0.4rem;
@@ -501,7 +506,7 @@
 
     <section class="catalog" id="catalog" aria-labelledby="catalog-heading">
       <h2 id="catalog-heading">Packages</h2>
-      <p class="catalog-status" id="catalog-status" data-state="loading">Loading catalog…</p>
+      <p class="catalog-status" id="catalog-status" data-state="loading" role="status" aria-live="polite">Loading catalog…</p>
       <div class="catalog-controls" id="catalog-controls" hidden>
         <div class="type-tabs" id="type-tabs" role="group" aria-label="Package type"></div>
         <div class="filters">
@@ -519,7 +524,7 @@
             class="nu-filter"
             id="nu-filter"
             type="text"
-            inputmode="decimal"
+            inputmode="text"
             placeholder="Highlight Nu (e.g. 0.114.1)"
             autocomplete="off"
             spellcheck="false"
@@ -612,13 +617,9 @@
 
       function pickLatestVersion(versions) {
         if (!versions || !versions.length) return null;
-        var best = versions[0];
-        for (var i = 1; i < versions.length; i++) {
-          if (compareSemver(versions[i].version, best.version) > 0) {
-            best = versions[i];
-          }
-        }
-        return best;
+        // Index append order is authoritative (add-package.py); last entry wins,
+        // including same-core suffixes such as 0.1.0-<commit>.
+        return versions[versions.length - 1];
       }
 
       function formatUpdatedAt(iso) {
@@ -833,7 +834,13 @@
           return res.json();
         })
         .then(function (index) {
-          var packages = Array.isArray(index.packages) ? index.packages : [];
+          if (index.schema_version !== 1) {
+            throw new Error("Unsupported schema_version: " + index.schema_version);
+          }
+          if (!Array.isArray(index.packages)) {
+            throw new Error("Malformed catalog: packages is not an array");
+          }
+          var packages = index.packages;
           catalogRows = packages.map(function (pkg) {
             var owner = (pkg.id && pkg.id.owner) || "?";
             var name = (pkg.id && pkg.id.name) || "?";
@@ -866,7 +873,10 @@
           buildTabs();
           refresh();
         })
-        .catch(function () {
+        .catch(function (err) {
+          if (window.console && console.error) {
+            console.error("Catalog load failed:", err);
+          }
           setStatus("Could not load the catalog. Open raw index.json instead.", "error");
           tableEl.hidden = true;
           controlsEl.hidden = true;
