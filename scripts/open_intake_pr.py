@@ -26,7 +26,7 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from gh_helpers import gh_run
+from gh_helpers import gh_json, gh_run
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO_ROOT / "scripts"
@@ -400,6 +400,42 @@ def _stage_commit_and_push(owner: str, name: str, version: str, branch: str,
         _run(["git", "push", "origin", branch])
 
 
+def _reconcile_failed_pr_create(owner: str, name: str, version: str) -> None:
+    """Reconcile the pushed intake branch after a failed ``gh pr create``.
+
+    _stage_commit_and_push pushed ``intake/...`` before this runs, so a failed
+    gh pr create would otherwise leave an orphaned remote branch. Look the
+    branch up in the PR list: if a PR exists (created before a timeout, or a
+    re-run of the same intake), keep the branch and report the URL; if we can
+    prove no PR exists, delete the remote ref. When the existence check itself
+    fails, keep the branch and tell the operator — never delete on an unknown
+    state, because a just-created PR would lose its head branch.
+    """
+    branch = _branch_name(owner, name, version)
+    existing = gh_json([
+        "pr", "list", "--head", branch, "--state", "all", "--json", "number,url",
+    ])
+    if isinstance(existing, list) and existing:
+        entry = existing[0]
+        url = entry.get("url") if isinstance(entry, dict) else None
+        if url:
+            print(f"warning: PR for '{branch}' may already exist: {url}; "
+                  f"remote branch kept", file=sys.stderr)
+        else:
+            print(f"warning: PR for '{branch}' may already exist (URL unavailable); "
+                  f"remote branch kept — check the PR list manually", file=sys.stderr)
+        return
+    if not isinstance(existing, list):
+        print(f"warning: could not confirm whether a PR exists for '{branch}'; "
+              f"remote branch kept — check manually", file=sys.stderr)
+        return
+    print(f"warning: no PR exists for pushed branch '{branch}'; deleting remote ref", file=sys.stderr)
+    delete_result = _run(["git", "push", "origin", "--delete", branch], check=False)
+    if delete_result is not None and delete_result.returncode != 0:
+        print(f"warning: could not delete remote branch '{branch}': "
+              f"{delete_result.stderr.strip()}", file=sys.stderr)
+
+
 def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
                    evidence: dict, *, dry_run: bool) -> None:
     """Open the intake PR with a generated body (or print a preview)."""
@@ -418,6 +454,7 @@ def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
             "--base", "main",
         ])
         if result is None or result.returncode != 0:
+            _reconcile_failed_pr_create(owner, name, version)
             print("error: gh pr create failed", file=sys.stderr)
             if result is not None and result.stderr:
                 print(result.stderr, file=sys.stderr)

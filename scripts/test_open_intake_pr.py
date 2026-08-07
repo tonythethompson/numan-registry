@@ -291,7 +291,11 @@ class TestStageHelpers(unittest.TestCase):
         failed = subprocess.CompletedProcess(
             args=["gh", "pr", "create"], returncode=1, stdout="", stderr="boom"
         )
-        with patch.object(open_intake_pr, "gh_run", return_value=failed):
+        with (
+            patch.object(open_intake_pr, "gh_run", return_value=failed),
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=None) as run,
+        ):
             with self.assertRaises(SystemExit) as raised:
                 self._stderr_of(
                     lambda: open_intake_pr._stage_open_pr(
@@ -299,6 +303,11 @@ class TestStageHelpers(unittest.TestCase):
                     )
                 )
         self.assertEqual(raised.exception.code, 1)
+        # No PR existed for the pushed branch, so the orphaned remote ref is deleted.
+        delete_calls = [c.args[0] for c in run.call_args_list]
+        self.assertTrue(
+            any(c[:4] == ["git", "push", "origin", "--delete"] for c in delete_calls)
+        )
 
     def test_print_intake_header_includes_dry_run_mode(self):
         out = self._stderr_of(
@@ -311,6 +320,77 @@ class TestStageHelpers(unittest.TestCase):
         self.assertIn("  Branch: intake/acme-pkg-1.0.0", out)
         self.assertIn("  Spec:   specs/acme-pkg-1.0.0.json", out)
         self.assertIn("  Mode:   DRY RUN (no mutations)", out)
+
+
+class TestReconcileFailedPrCreate(TestStageHelpers):
+    """Lock in the remote-branch reconcile behavior after gh pr create fails."""
+
+    def test_pr_exists_keeps_remote_branch_and_reports_url(self):
+        with (
+            patch.object(
+                open_intake_pr, "gh_json",
+                return_value=[{"number": 99, "url": "https://github.com/o/r/pull/99"}],
+            ),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("https://github.com/o/r/pull/99", out)
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_no_pr_deletes_remote_branch(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=None) as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("deleting remote ref", out)
+        run.assert_called_once()
+        cmd = run.call_args.args[0]
+        self.assertEqual(cmd[:4], ["git", "push", "origin", "--delete"])
+        self.assertEqual(cmd[4], "intake/acme-pkg-1.0.0")
+
+    def test_unknown_pr_status_keeps_branch(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=None),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_pr_entry_without_url_keeps_branch_and_warns(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[{"number": 99}]),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("URL unavailable", out)
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_delete_failure_reported_but_keeps_going(self):
+        failed_delete = subprocess.CompletedProcess(
+            args=["git", "push", "origin", "--delete", "intake/acme-pkg-1.0.0"],
+            returncode=1, stdout="", stderr="remote ref does not exist",
+        )
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=failed_delete),
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("could not delete remote branch", out)
+        self.assertIn("remote ref does not exist", out)
 
 
 class TestGitSafetyHelpers(unittest.TestCase):
