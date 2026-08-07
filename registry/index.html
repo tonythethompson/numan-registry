@@ -833,7 +833,13 @@
         });
       }
 
-      fetch("./index.json", { credentials: "same-origin" })
+      var controller = window.AbortController ? new AbortController() : null;
+      if (controller) setTimeout(function () { controller.abort(); }, 15000);
+
+      fetch("./index.json", {
+        credentials: "same-origin",
+        signal: controller ? controller.signal : undefined
+      })
         .then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
