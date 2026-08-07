@@ -440,7 +440,16 @@
       }
 
       table.packages thead {
-        display: none;
+        /* Mirror .visually-hidden: keep headers in the a11y tree on stacked layout. */
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       table.packages tr.group td {
@@ -661,6 +670,15 @@
         var tokens = normalizedConstraint.split(/\s+/);
         for (var i = 0; i < tokens.length; i++) {
           var token = tokens[i];
+          // Minor wildcards: =0.113.x / 0.113.x / 0.113.* (Numan grammar).
+          var wild = token.match(/^=?(\d+)\.(\d+)\.(?:x|X|\*)$/);
+          if (wild) {
+            var parts = parseSemverParts(version);
+            if (parts[0] !== parseInt(wild[1], 10) || parts[1] !== parseInt(wild[2], 10)) {
+              return false;
+            }
+            continue;
+          }
           var m = token.match(/^(>=|<=|>|<|=)?(.+)$/);
           if (!m) return false;
           var op = m[1] || "=";
@@ -812,7 +830,7 @@
         var nuQuery = (nuEl.value || "").trim();
         if (isValidNuVersion(nuQuery)) {
           var matches = visible.filter(function (row) {
-            return !collapsed[row.type] && constraintMatches(row.nu, nuQuery);
+            return constraintMatches(row.nu, nuQuery);
           }).length;
           bits.push(matches + " match Nu " + nuQuery);
         }
@@ -828,7 +846,18 @@
         });
       }
 
-      fetch("./index.json", { credentials: "same-origin" })
+      var controller = window.AbortController ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          controller.abort();
+        }, 15000);
+      }
+
+      fetch("./index.json", {
+        credentials: "same-origin",
+        signal: controller ? controller.signal : undefined
+      })
         .then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
@@ -849,12 +878,14 @@
             var nu = latest && latest.nu_version ? latest.nu_version : "n/a";
             var type = pkg.type || "other";
             var id = owner + "/" + name;
+            var description = pkg.description || "";
+            var tags = Array.isArray(pkg.tags) ? pkg.tags.join(" ") : "";
             return {
               id: id,
               type: type,
               version: version,
               nu: nu,
-              search: [id, type, version, nu].join(" ").toLowerCase()
+              search: [id, type, version, nu, description, tags].join(" ").toLowerCase()
             };
           });
 
@@ -880,6 +911,9 @@
           setStatus("Could not load the catalog. Open raw index.json instead.", "error");
           tableEl.hidden = true;
           controlsEl.hidden = true;
+        })
+        .then(function () {
+          if (timeoutId !== null) clearTimeout(timeoutId);
         });
 
       searchEl.addEventListener("input", refresh);
