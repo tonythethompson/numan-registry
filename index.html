@@ -14,6 +14,10 @@
       --leaf-deep: #145a38;
       --line: rgba(20, 35, 28, 0.12);
       --glow: rgba(31, 122, 76, 0.14);
+      --head: #d7e6d9;
+      --match: rgba(31, 122, 76, 0.1);
+      --dim: 0.42;
+      --head-h: 2.05rem;
       --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --serif: Georgia, "Times New Roman", Times, serif;
       --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
@@ -33,7 +37,7 @@
     }
 
     main {
-      max-width: 40rem;
+      max-width: 58rem;
       margin: 0 auto;
       padding: clamp(3rem, 8vw, 6rem) 1.5rem 4rem;
     }
@@ -57,11 +61,30 @@
       color: var(--muted);
     }
 
+    h2 {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      color: var(--ink);
+    }
+
     p {
       margin: 0 0 1.75rem;
       font-size: 1.05rem;
       line-height: 1.55;
       color: var(--muted);
+    }
+
+    .intro a,
+    .intro code {
+      color: var(--leaf-deep);
+    }
+
+    .intro code {
+      font-family: var(--mono);
+      font-size: 0.9em;
     }
 
     .actions {
@@ -111,6 +134,256 @@
       color: var(--leaf-deep);
     }
 
+    .catalog {
+      border-top: 1px solid var(--line);
+      padding-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .catalog-status {
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 0.85rem;
+      min-height: 1.4em;
+    }
+
+    .catalog-status[data-state="error"] {
+      color: #8a2f2f;
+    }
+
+    .catalog-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      align-items: center;
+      margin-bottom: 0.85rem;
+    }
+
+    .type-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .type-tabs button {
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 0.35rem;
+      padding: 0.35rem 0.65rem;
+      cursor: pointer;
+    }
+
+    .type-tabs button[aria-pressed="true"] {
+      background: var(--leaf);
+      border-color: var(--leaf);
+      color: #f7fbf8;
+    }
+
+    .type-tabs button:hover,
+    .type-tabs button:focus-visible {
+      border-color: var(--leaf);
+    }
+
+    .type-tabs button:focus-visible {
+      outline: 2px solid var(--leaf);
+      outline-offset: 2px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      flex: 1 1 18rem;
+      justify-content: flex-end;
+    }
+
+    .catalog-search,
+    .nu-filter {
+      flex: 1 1 10rem;
+      min-width: 9rem;
+      max-width: 14rem;
+      font-family: var(--sans);
+      font-size: 0.92rem;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 0.4rem;
+      padding: 0.5rem 0.7rem;
+    }
+
+    .catalog-search:focus,
+    .nu-filter:focus {
+      outline: 2px solid var(--leaf);
+      outline-offset: 1px;
+      border-color: transparent;
+    }
+
+    .catalog-search::placeholder,
+    .nu-filter::placeholder {
+      color: var(--muted);
+    }
+
+    .catalog-controls[hidden],
+    .catalog-search[hidden],
+    .nu-filter[hidden],
+    .type-tabs[hidden] {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 1.25rem;
+      transform: translateX(-50%) translateY(0.5rem);
+      opacity: 0;
+      pointer-events: none;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      background: var(--ink);
+      color: #f7fbf8;
+      padding: 0.55rem 0.85rem;
+      border-radius: 0.4rem;
+      transition: opacity 160ms ease, transform 160ms ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .table-wrap {
+      max-height: min(70vh, 36rem);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border-top: 1px solid var(--line);
+    }
+
+    .table-wrap:has(table[hidden]) {
+      border-top: 0;
+    }
+
+    table.packages {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--sans);
+      font-size: 0.92rem;
+    }
+
+    table.packages th,
+    table.packages td {
+      text-align: left;
+      padding: 0.55rem 0.85rem 0.55rem 0;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.packages th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink);
+      white-space: nowrap;
+      background: var(--head);
+      box-shadow: inset 0 -1px 0 rgba(20, 35, 28, 0.18);
+    }
+
+    table.packages tr.group td {
+      position: sticky;
+      top: var(--head-h);
+      z-index: 1;
+      padding-top: 0.7rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--line);
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--leaf-deep);
+      background: #eaf2e9;
+    }
+
+    table.packages tr.group td button {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font: inherit;
+      color: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+    }
+
+    table.packages tr.group td button:focus-visible {
+      outline: 2px solid var(--leaf);
+      outline-offset: 2px;
+    }
+
+    table.packages tr.group td .chevron {
+      display: inline-block;
+      width: 0.65rem;
+      transition: transform 120ms ease;
+    }
+
+    table.packages tr.group[data-collapsed="true"] td .chevron {
+      transform: rotate(-90deg);
+    }
+
+    table.packages tr.pkg-row.is-match td {
+      background: var(--match);
+    }
+
+    table.packages tr.pkg-row.is-dim {
+      opacity: var(--dim);
+    }
+
+    table.packages td.pkg button {
+      all: unset;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 500;
+      color: var(--ink);
+      border-bottom: 1px dotted transparent;
+    }
+
+    table.packages td.pkg button:hover,
+    table.packages td.pkg button:focus-visible {
+      color: var(--leaf-deep);
+      border-bottom-color: var(--leaf);
+    }
+
+    table.packages td.pkg button:focus-visible {
+      outline: 2px solid var(--leaf);
+      outline-offset: 2px;
+    }
+
+    table.packages td.type {
+      color: var(--muted);
+      text-transform: lowercase;
+    }
+
+    table.packages td.ver,
+    table.packages td.nu {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      color: var(--ink);
+    }
+
+    table.packages td.nu {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
     .meta {
       border-top: 1px solid var(--line);
       padding-top: 1.25rem;
@@ -135,23 +408,156 @@
     .meta a:focus-visible {
       text-decoration: underline;
     }
+
+    noscript p {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 0.95rem;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 640px) {
+      .filters {
+        justify-content: stretch;
+        width: 100%;
+      }
+
+      .catalog-search,
+      .nu-filter {
+        max-width: none;
+        flex: 1 1 100%;
+      }
+
+      table.packages thead {
+        /* Mirror .visually-hidden: keep headers in the a11y tree on stacked layout. */
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      table.packages tr.group td {
+        top: 0;
+        display: block;
+        width: 100%;
+      }
+
+      table.packages tr.pkg-row {
+        display: block;
+        padding: 0.7rem 0 0.85rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      table.packages tr.pkg-row td {
+        display: block;
+        border: 0;
+        padding: 0.12rem 0;
+      }
+
+      table.packages tr.pkg-row td.pkg {
+        margin-bottom: 0.2rem;
+      }
+
+      table.packages tr.pkg-row td.type::before,
+      table.packages tr.pkg-row td.ver::before,
+      table.packages tr.pkg-row td.nu::before {
+        font-family: var(--sans);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-right: 0.45rem;
+      }
+
+      table.packages tr.pkg-row td.type::before { content: "Type"; }
+      table.packages tr.pkg-row td.ver::before { content: "Latest"; }
+      table.packages tr.pkg-row td.nu::before { content: "Nu"; }
+
+      table.packages tr.pkg-row td.nu {
+        white-space: normal;
+      }
+    }
   </style>
 </head>
 <body>
   <main>
     <p class="brand">Numan</p>
     <h1>Official package registry CDN</h1>
-    <p>
+    <p class="intro">
       This site is the signed catalog endpoint for
       <a href="https://github.com/tonythethompson/numan">Numan</a>.
-      Humans browse docs; clients sync the JSON index and verify its signature.
+      Browse the packages below; clients sync <code>index.json</code> and verify its signature.
     </p>
     <div class="actions">
       <!-- Relative ./index.json and ./index.json.sig are intentional: Numan clients and this page share the Pages root. Do not change these hrefs or the client machine URLs. -->
-      <a class="button primary" href="./index.json">Open index.json</a>
+      <a class="button primary" href="#catalog">Browse packages</a>
+      <a class="button secondary" href="./index.json">Raw index.json</a>
       <a class="button secondary" href="./index.json.sig">Signature</a>
       <a class="button secondary" href="https://github.com/tonythethompson/numan-registry/blob/main/docs/catalog-compat.md">Catalog × Nu matrix</a>
     </div>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-heading">
+      <h2 id="catalog-heading">Packages</h2>
+      <p class="catalog-status" id="catalog-status" data-state="loading" role="status" aria-live="polite">Loading catalog…</p>
+      <div class="catalog-controls" id="catalog-controls" hidden>
+        <div class="type-tabs" id="type-tabs" role="group" aria-label="Package type"></div>
+        <div class="filters">
+          <label class="visually-hidden" for="catalog-search">Filter packages</label>
+          <input
+            class="catalog-search"
+            id="catalog-search"
+            type="search"
+            placeholder="Filter packages…"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <label class="visually-hidden" for="nu-filter">Highlight Nu version</label>
+          <input
+            class="nu-filter"
+            id="nu-filter"
+            type="text"
+            inputmode="text"
+            placeholder="Highlight Nu (e.g. 0.114.1)"
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+      </div>
+      <noscript>
+        <p>Enable JavaScript to browse the catalog here, or open <a href="./index.json">index.json</a>.</p>
+      </noscript>
+      <div class="table-wrap">
+        <table class="packages" id="package-table" hidden>
+          <thead>
+            <tr>
+              <th scope="col">Package</th>
+              <th scope="col">Type</th>
+              <th scope="col">Latest</th>
+              <th scope="col">Nu</th>
+            </tr>
+          </thead>
+          <tbody id="package-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <div class="meta">
       Sync with <code>numan registry sync</code> against the built-in
       <code>official</code> trust root.
@@ -159,5 +565,386 @@
       <a href="https://github.com/tonythethompson/numan-registry">tonythethompson/numan-registry</a>.
     </div>
   </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function () {
+      var TYPE_ORDER = ["plugin", "module", "script", "completion"];
+      var TYPE_LABELS = {
+        plugin: "Plugins",
+        module: "Modules",
+        script: "Scripts",
+        completion: "Completions"
+      };
+
+      var statusEl = document.getElementById("catalog-status");
+      var controlsEl = document.getElementById("catalog-controls");
+      var tabsEl = document.getElementById("type-tabs");
+      var tableEl = document.getElementById("package-table");
+      var rowsEl = document.getElementById("package-rows");
+      var searchEl = document.getElementById("catalog-search");
+      var nuEl = document.getElementById("nu-filter");
+      var toastEl = document.getElementById("toast");
+
+      var catalogRows = [];
+      var updatedLabel = "";
+      var activeType = "all";
+      var collapsed = {};
+      var toastTimer = null;
+
+      function setStatus(text, state) {
+        statusEl.textContent = text;
+        statusEl.setAttribute("data-state", state || "");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function parseSemverParts(version) {
+        var core = String(version || "").trim().split("+")[0].split("-")[0];
+        return core.split(".").map(function (part) {
+          var n = parseInt(part, 10);
+          return isNaN(n) ? 0 : n;
+        });
+      }
+
+      function compareSemver(a, b) {
+        var pa = parseSemverParts(a);
+        var pb = parseSemverParts(b);
+        var len = Math.max(pa.length, pb.length);
+        for (var i = 0; i < len; i++) {
+          var da = pa[i] || 0;
+          var db = pb[i] || 0;
+          if (da !== db) return da < db ? -1 : 1;
+        }
+        return 0;
+      }
+
+      function pickLatestVersion(versions) {
+        if (!versions || !versions.length) return null;
+        // Index append order is authoritative (add-package.py); last entry wins,
+        // including same-core suffixes such as 0.1.0-<commit>.
+        return versions[versions.length - 1];
+      }
+
+      function formatUpdatedAt(iso) {
+        if (!iso) return "";
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toISOString().slice(0, 10);
+      }
+
+      function typeLabel(type) {
+        return TYPE_LABELS[type] || (type ? type.charAt(0).toUpperCase() + type.slice(1) + "s" : "Other");
+      }
+
+      function countByType(rows) {
+        var counts = {};
+        for (var i = 0; i < rows.length; i++) {
+          var t = rows[i].type || "other";
+          counts[t] = (counts[t] || 0) + 1;
+        }
+        var parts = [];
+        for (var j = 0; j < TYPE_ORDER.length; j++) {
+          var key = TYPE_ORDER[j];
+          if (counts[key]) parts.push(counts[key] + " " + key);
+        }
+        Object.keys(counts).sort().forEach(function (key) {
+          if (TYPE_ORDER.indexOf(key) === -1) parts.push(counts[key] + " " + key);
+        });
+        return parts;
+      }
+
+      function isValidNuVersion(version) {
+        return /^\d+\.\d+\.\d+([.-].*)?$/.test(String(version || "").trim());
+      }
+
+      function constraintMatches(constraint, version) {
+        if (!constraint || !version) return false;
+        var normalizedConstraint = String(constraint).trim();
+        if (normalizedConstraint === "*") return true;
+        var tokens = normalizedConstraint.split(/\s+/);
+        for (var i = 0; i < tokens.length; i++) {
+          var token = tokens[i];
+          // Minor wildcards: =0.113.x / 0.113.x / 0.113.* (Numan grammar).
+          var wild = token.match(/^=?(\d+)\.(\d+)\.(?:x|X|\*)$/);
+          if (wild) {
+            var parts = parseSemverParts(version);
+            if (parts[0] !== parseInt(wild[1], 10) || parts[1] !== parseInt(wild[2], 10)) {
+              return false;
+            }
+            continue;
+          }
+          var m = token.match(/^(>=|<=|>|<|=)?(.+)$/);
+          if (!m) return false;
+          var op = m[1] || "=";
+          var rhs = m[2];
+          var cmp = compareSemver(version, rhs);
+          if (op === ">=" && cmp < 0) return false;
+          if (op === "<=" && cmp > 0) return false;
+          if (op === ">" && cmp <= 0) return false;
+          if (op === "<" && cmp >= 0) return false;
+          if (op === "=" && cmp !== 0) return false;
+        }
+        return tokens.length > 0;
+      }
+
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toastEl.classList.remove("show");
+        }, 1400);
+      }
+
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        }
+        return new Promise(function (resolve, reject) {
+          var area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.left = "-9999px";
+          document.body.appendChild(area);
+          area.select();
+          try {
+            if (!document.execCommand("copy")) throw new Error("copy failed");
+            resolve();
+          } catch (err) {
+            reject(err);
+          } finally {
+            document.body.removeChild(area);
+          }
+        });
+      }
+
+      function buildTabs() {
+        var typesPresent = {};
+        catalogRows.forEach(function (row) {
+          typesPresent[row.type] = true;
+        });
+        var tabs = [{ id: "all", label: "All" }];
+        TYPE_ORDER.forEach(function (type) {
+          if (typesPresent[type]) {
+            tabs.push({ id: type, label: typeLabel(type) });
+          }
+        });
+        Object.keys(typesPresent).sort().forEach(function (type) {
+          if (TYPE_ORDER.indexOf(type) === -1) {
+            tabs.push({ id: type, label: typeLabel(type) });
+          }
+        });
+        tabsEl.innerHTML = tabs.map(function (tab) {
+          return (
+            "<button type=\"button\" data-type=\"" +
+            escapeHtml(tab.id) +
+            "\" aria-pressed=\"" +
+            (activeType === tab.id ? "true" : "false") +
+            "\">" +
+            escapeHtml(tab.label) +
+            "</button>"
+          );
+        }).join("");
+      }
+
+      function filteredRows() {
+        var q = (searchEl.value || "").trim().toLowerCase();
+        return catalogRows.filter(function (row) {
+          if (activeType !== "all" && row.type !== activeType) return false;
+          if (!q) return true;
+          return row.search.indexOf(q) !== -1;
+        });
+      }
+
+      function renderRows(rows) {
+        if (!rows.length) {
+          rowsEl.innerHTML = "";
+          tableEl.hidden = true;
+          return;
+        }
+
+        var nuQuery = (nuEl.value || "").trim();
+        var nuActive = isValidNuVersion(nuQuery);
+        var html = [];
+        var lastType = null;
+
+        for (var i = 0; i < rows.length; i++) {
+          var row = rows[i];
+          if (row.type !== lastType) {
+            var isCollapsed = !!collapsed[row.type];
+            html.push(
+              "<tr class=\"group\" data-type=\"" + escapeHtml(row.type) +
+              "\" data-collapsed=\"" + (isCollapsed ? "true" : "false") + "\">" +
+              "<td colspan=\"4\">" +
+              "<button type=\"button\" aria-expanded=\"" + (isCollapsed ? "false" : "true") + "\">" +
+              "<span class=\"chevron\" aria-hidden=\"true\">▾</span>" +
+              escapeHtml(typeLabel(row.type)) +
+              "</button></td></tr>"
+            );
+            lastType = row.type;
+          }
+          if (collapsed[row.type]) continue;
+
+          var match = nuActive && constraintMatches(row.nu, nuQuery);
+          var classes = ["pkg-row"];
+          if (nuActive) classes.push(match ? "is-match" : "is-dim");
+
+          html.push(
+            "<tr class=\"" + classes.join(" ") + "\">" +
+              "<td class=\"pkg\">" +
+                "<button type=\"button\" data-copy=\"" + escapeHtml(row.id) +
+                "\" title=\"Copy package id\">" +
+                escapeHtml(row.id) +
+                "</button>" +
+              "</td>" +
+              "<td class=\"type\">" + escapeHtml(row.type) + "</td>" +
+              "<td class=\"ver\">" + escapeHtml(row.version) + "</td>" +
+              "<td class=\"nu\">" + escapeHtml(row.nu) + "</td>" +
+            "</tr>"
+          );
+        }
+
+        rowsEl.innerHTML = html.join("");
+        tableEl.hidden = false;
+      }
+
+      function updateStatus(visible) {
+        var total = catalogRows.length;
+        var bits = [total + " package" + (total === 1 ? "" : "s")];
+        var typeParts = countByType(catalogRows);
+        if (typeParts.length) bits.push(typeParts.join(" · "));
+        if (updatedLabel) bits.push("updated " + updatedLabel);
+        if (visible.length !== total || activeType !== "all" || (searchEl.value || "").trim()) {
+          var renderedCount = visible.filter(function (row) {
+            return !collapsed[row.type];
+          }).length;
+          bits.push("showing " + renderedCount);
+        }
+        var nuQuery = (nuEl.value || "").trim();
+        if (isValidNuVersion(nuQuery)) {
+          var matches = visible.filter(function (row) {
+            return constraintMatches(row.nu, nuQuery);
+          }).length;
+          bits.push(matches + " match Nu " + nuQuery);
+        }
+        setStatus(bits.join(" · "), "ready");
+      }
+
+      function refresh() {
+        var visible = filteredRows();
+        renderRows(visible);
+        updateStatus(visible);
+        Array.prototype.forEach.call(tabsEl.querySelectorAll("button"), function (btn) {
+          btn.setAttribute("aria-pressed", btn.getAttribute("data-type") === activeType ? "true" : "false");
+        });
+      }
+
+      var controller = window.AbortController ? new AbortController() : null;
+      var timeoutId = null;
+      if (controller) {
+        timeoutId = setTimeout(function () {
+          controller.abort();
+        }, 15000);
+      }
+
+      fetch("./index.json", {
+        credentials: "same-origin",
+        signal: controller ? controller.signal : undefined
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (index) {
+          if (index.schema_version !== 1) {
+            throw new Error("Unsupported schema_version: " + index.schema_version);
+          }
+          if (!Array.isArray(index.packages)) {
+            throw new Error("Malformed catalog: packages is not an array");
+          }
+          var packages = index.packages;
+          catalogRows = packages.map(function (pkg) {
+            var owner = (pkg.id && pkg.id.owner) || "?";
+            var name = (pkg.id && pkg.id.name) || "?";
+            var latest = pickLatestVersion(pkg.versions);
+            var version = latest ? latest.version : "n/a";
+            var nu = latest && latest.nu_version ? latest.nu_version : "n/a";
+            var type = pkg.type || "other";
+            var id = owner + "/" + name;
+            var description = pkg.description || "";
+            var tags = Array.isArray(pkg.tags) ? pkg.tags.join(" ") : "";
+            return {
+              id: id,
+              type: type,
+              version: version,
+              nu: nu,
+              search: [id, type, version, nu, description, tags].join(" ").toLowerCase()
+            };
+          });
+
+          catalogRows.sort(function (a, b) {
+            var aTypeIndex = TYPE_ORDER.indexOf(a.type);
+            var bTypeIndex = TYPE_ORDER.indexOf(b.type);
+            var tr = (aTypeIndex === -1 ? TYPE_ORDER.length : aTypeIndex) -
+              (bTypeIndex === -1 ? TYPE_ORDER.length : bTypeIndex);
+            if (tr !== 0) return tr;
+            if (a.id === b.id) return 0;
+            return a.id < b.id ? -1 : 1;
+          });
+
+          updatedLabel = formatUpdatedAt(index.updated_at);
+          controlsEl.hidden = false;
+          buildTabs();
+          refresh();
+        })
+        .catch(function (err) {
+          if (window.console && console.error) {
+            console.error("Catalog load failed:", err);
+          }
+          setStatus("Could not load the catalog. Open raw index.json instead.", "error");
+          tableEl.hidden = true;
+          controlsEl.hidden = true;
+        })
+        .then(function () {
+          if (timeoutId !== null) clearTimeout(timeoutId);
+        });
+
+      searchEl.addEventListener("input", refresh);
+      nuEl.addEventListener("input", refresh);
+
+      tabsEl.addEventListener("click", function (event) {
+        var btn = event.target.closest("button[data-type]");
+        if (!btn) return;
+        activeType = btn.getAttribute("data-type") || "all";
+        refresh();
+      });
+
+      rowsEl.addEventListener("click", function (event) {
+        var groupBtn = event.target.closest("tr.group button");
+        if (groupBtn) {
+          var groupRow = groupBtn.closest("tr.group");
+          var type = groupRow && groupRow.getAttribute("data-type");
+          if (!type) return;
+          collapsed[type] = !collapsed[type];
+          refresh();
+          return;
+        }
+
+        var copyBtn = event.target.closest("button[data-copy]");
+        if (!copyBtn) return;
+        var text = copyBtn.getAttribute("data-copy") || "";
+        copyText(text)
+          .then(function () { showToast("Copied " + text); })
+          .catch(function () { showToast("Could not copy"); });
+      });
+    })();
+  </script>
 </body>
 </html>
