@@ -479,6 +479,97 @@
           "numan"
         ]
       }
+    },
+    {
+      "id": "nushell/cargo-completions",
+      "name": "cargo-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb445e4f5e02daf2c7e96d3dcd41e48453346",
+      "note": "install-only; Wave 3B",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/cargo",
+      "spec": "specs/nushell-cargo-completions-0.1.0-f04cb44.json",
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": [
+          "cargo-completions",
+          "release",
+          "numan"
+        ]
+      }
+    },
+    {
+      "id": "nushell/npm-completions",
+      "name": "npm-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb445e4f5e02daf2c7e96d3dcd41e48453346",
+      "note": "install-only; Wave 3B",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/npm",
+      "spec": "specs/nushell-npm-completions-0.1.0-f04cb44.json",
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": [
+          "npm-completions",
+          "release",
+          "numan"
+        ]
+      }
+    },
+    {
+      "id": "nushell/make-completions",
+      "name": "make-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb445e4f5e02daf2c7e96d3dcd41e48453346",
+      "note": "install-only; Wave 3B",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/make",
+      "spec": "specs/nushell-make-completions-0.1.0-f04cb44.json",
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": [
+          "make-completions",
+          "release",
+          "numan"
+        ]
+      }
+    },
+    {
+      "id": "nushell/winget-completions",
+      "name": "winget-completions",
+      "owner": "nushell",
+      "type": "completion",
+      "version": "0.1.0-f04cb44",
+      "source": "commit f04cb445e4f5e02daf2c7e96d3dcd41e48453346",
+      "note": "install-only; Wave 3B",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/winget",
+      "spec": "specs/nushell-winget-completions-0.1.0-f04cb44.json",
+      "outreach": {
+        "upstream_repo": "nushell/nu_scripts",
+        "issue_url": "https://github.com/nushell/nu_scripts/issues/1266",
+        "search_terms": [
+          "winget-completions",
+          "release",
+          "numan"
+        ]
+      }
+    },
+    {
+      "id": "KamilKleina/git-aliases",
+      "name": "git-aliases",
+      "owner": "KamilKleina",
+      "type": "script",
+      "version": "0.1.0-109cc61",
+      "source": "commit 109cc6159fb2ff040aadb256971170b164ed1fc2",
+      "note": "install-only; Wave 3A P1; overlay use after install",
+      "repo": "https://github.com/KamilKleina/git-aliases.nu",
+      "spec": "specs/KamilKleina-git-aliases-0.1.0-109cc61.json"
     }
   ],
   "blocked": [
@@ -504,6 +595,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-08-07",
+      "change": "Wave 3B completions: nushell/cargo-completions, npm-completions, make-completions, winget-completions @ 0.1.0-f04cb44. Wave 3A P1: KamilKleina/git-aliases@0.1.0-109cc61 (install-only mirrors)."
+    },
     {
       "date": "2026-08-06",
       "change": "Wave 3A scripts: SuaveIV/nu_script_gh_status@0.1.0-81756dc, SuaveIV/nu_script_hnews@0.1.0-6cd8aef, Sanceilaks/nufetch@0.1.0-15e0645 (install-only mirrors)."
