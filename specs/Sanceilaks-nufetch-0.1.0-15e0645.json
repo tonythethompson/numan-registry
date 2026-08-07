@@ -1,0 +1,17 @@
+{
+  "owner": "Sanceilaks",
+  "name": "nufetch",
+  "description": "neofetch-like system info script in Nushell. Registry-hosted mirror of upstream commit 15e0645. Install-only: script activation is deferred in Numan. Note: upstream repo has no LICENSE file at this pin.",
+  "repo": "https://github.com/Sanceilaks/nufetch",
+  "type": "script",
+  "tags": ["script", "system", "mirror", "install-only"],
+  "version": "0.1.0-15e0645",
+  "nu_version": "*",
+  "verified_with": ["0.113.1"],
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-Sanceilaks-nufetch-15e0645/nufetch-15e0645.zip",
+    "entry": "nufetch.nu",
+    "archive_root": "nufetch-15e0645"
+  }
+}
