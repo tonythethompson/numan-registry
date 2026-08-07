@@ -255,8 +255,8 @@ def _probe_cargo(path: Path) -> tuple[bool, dict]:
         return False, {}
     try:
         content = cargo_toml.read_text(encoding="utf-8")
-    except UnicodeDecodeError as exc:
-        print(f"warning: cannot decode Cargo.toml content: {exc}", file=sys.stderr)
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"warning: cannot read Cargo.toml: {exc}", file=sys.stderr)
         return False, {}
     return True, _classify_from_cargo(content)
 

@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parent / "sync-intake-candidates.py"
 
@@ -211,11 +213,16 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         )
 
     def test_candidate_status_spec_written_vs_plain(self):
-        self.assertEqual(
-            self.sync._candidate_status({"id": "acme/x", "spec": "specs/vyadh-nutest-1.2.0.json"}),
-            ["spec written, not in index"],
-        )
-        self.assertEqual(self.sync._candidate_status({"id": "acme/x"}), ["candidate"])
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_file = Path(tmp) / "specs" / "acme-x-1.0.0.json"
+            spec_file.parent.mkdir(parents=True)
+            spec_file.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "REPO_ROOT", Path(tmp)):
+                self.assertEqual(
+                    self.sync._candidate_status({"id": "acme/x", "spec": "specs/acme-x-1.0.0.json"}),
+                    ["spec written, not in index"],
+                )
+                self.assertEqual(self.sync._candidate_status({"id": "acme/x"}), ["candidate"])
 
     def test_package_status_appends_outreach_and_note_tail(self):
         entry = {"id": "acme/pr1", "pr": 1, "outreach": {"x": 1}, "note": "wave2"}

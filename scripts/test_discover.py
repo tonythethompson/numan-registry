@@ -120,6 +120,15 @@ class TestLocalProbeHelpers(unittest.TestCase):
             self.assertFalse(present)
             self.assertEqual(info, {})
 
+    def test_probe_cargo_unreadable_treated_as_absent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp)
+            (p / "Cargo.toml").write_text("name = \"x\"\n", encoding="utf-8")
+            with patch.object(discover.Path, "read_text", side_effect=PermissionError("denied")):
+                present, info = discover._probe_cargo(p)
+            self.assertFalse(present)
+            self.assertEqual(info, {})
+
     def test_probe_nupm(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp)

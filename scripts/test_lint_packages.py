@@ -202,7 +202,7 @@ class TestLintActivation(unittest.TestCase):
         cls.lint = load_lint()
 
     @staticmethod
-    def _pkg(pkg_type, *, tags=None, activation=None):
+    def _pkg(pkg_type, *, tags=None, activation=None) -> tuple[dict[str, object], dict[str, object]]:
         pkg = {"type": pkg_type, "tags": tags if tags is not None else [pkg_type]}
         version = {}
         if activation is not None:
