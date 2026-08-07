@@ -83,7 +83,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
-from url_safety import ensure_http_url
+from url_safety import ensure_http_url, http_opener
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
@@ -130,8 +130,13 @@ def download_and_hash(url):
         sys.exit(1)
     print(f"  downloading {url} ...", file=sys.stderr)
     req = urllib.request.Request(url, method="GET")
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        data = resp.read()
+    try:
+        with http_opener().open(req, timeout=60) as resp:
+            data = resp.read()
+    except ValueError as exc:
+        # A redirect to a non-http(s) target fails the guard mid-download.
+        print(f"FAIL: {exc}", file=sys.stderr)
+        sys.exit(1)
     digest = hashlib.sha256(data).hexdigest()
     print(f"  OK: sha256={digest} ({len(data)} bytes)", file=sys.stderr)
     return digest

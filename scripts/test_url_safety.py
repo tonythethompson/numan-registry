@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import sys
 import unittest
+import urllib.request
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "url_safety.py"
 if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
 
-from url_safety import ensure_http_url  # noqa: E402
+from url_safety import ensure_http_url, http_opener  # noqa: E402
 
 
 class EnsureHttpUrlTests(unittest.TestCase):
@@ -73,6 +74,41 @@ class EnsureHttpUrlTests(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(ValueError):
             ensure_http_url(None)  # type: ignore[arg-type]
+
+
+class HttpOnlyRedirectHandlerTests(unittest.TestCase):
+    """The shared opener must re-validate every redirect target."""
+
+    def _redirect_handler(self):
+        opener = http_opener()
+        return next(
+            h for h in opener.handlers
+            if isinstance(h, urllib.request.HTTPRedirectHandler)
+        )
+
+    def test_redirect_to_file_scheme_rejected(self):
+        handler = self._redirect_handler()
+        req = urllib.request.Request("https://example.com/a.zip")
+        with self.assertRaises(ValueError):
+            handler.redirect_request(
+                req, None, 302, "Found", {}, "file:///etc/passwd"
+            )
+
+    def test_redirect_to_http_scheme_allowed(self):
+        handler = self._redirect_handler()
+        req = urllib.request.Request("https://example.com/a.zip")
+        new_req = handler.redirect_request(
+            req, None, 302, "Found", {}, "https://cdn.example.com/b.zip"
+        )
+        self.assertEqual(new_req.full_url, "https://cdn.example.com/b.zip")
+
+    def test_redirect_to_hostless_https_rejected(self):
+        handler = self._redirect_handler()
+        req = urllib.request.Request("https://example.com/a.zip")
+        with self.assertRaises(ValueError):
+            handler.redirect_request(
+                req, None, 302, "Found", {}, "https://"
+            )
 
 
 if __name__ == "__main__":

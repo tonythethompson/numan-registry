@@ -3,10 +3,12 @@
 
 CodeFactor security finding "Audit url open for permitted schemes": all
 registry tooling that opens URLs must reject non-http(s) schemes (file:/,
-custom schemes) before calling urlopen. Keeping the guard in one module
+custom schemes) before calling urlopen, and must not follow a redirect
+that leaves the http(s) allowlist. Keeping the guard in one module
 mirrors the shared-constant pattern of archive_formats.py.
 """
 
+import urllib.request
 from urllib.parse import urlparse
 
 #: URL schemes permitted for artifact/manifest downloads.
@@ -33,3 +35,27 @@ def ensure_http_url(url: str) -> None:
         has_host = False
     if parsed.scheme.lower() not in HTTP_SCHEMES or not has_host:
         raise ValueError(f"URL must use http(s), got {url!r}")
+
+
+class _HttpOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Reject any redirect whose target fails the http(s) scheme guard.
+
+    urllib's default opener follows redirects with the full handler chain,
+    so a ``https:`` response that redirects to ``file:///etc/passwd`` would
+    otherwise be fetched locally. This handler runs every ``newurl`` through
+    :func:`ensure_http_url` before delegating to the standard handler.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        ensure_http_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def http_opener() -> urllib.request.OpenerDirector:
+    """Return an opener whose redirects are also constrained to http(s).
+
+    Callers should use ``http_opener().open(req, timeout=N)`` instead of
+    ``urllib.request.urlopen`` so the initial request AND every redirect
+    target pass :func:`ensure_http_url`.
+    """
+    return urllib.request.build_opener(_HttpOnlyRedirectHandler())

@@ -35,7 +35,7 @@ class LintManifestIndexTests(unittest.TestCase):
             self.lint.load_json_url("file:///etc/passwd")
 
     def test_load_json_url_accepts_https(self):
-        # No network in unit tests: mock urlopen to prove the guard passes
+        # No network in unit tests: mock http_opener to prove the guard passes
         # http(s) URLs through to the opener.
         class _Resp:
             def __enter__(self):
@@ -47,11 +47,10 @@ class LintManifestIndexTests(unittest.TestCase):
             def read(self):
                 return b'{"active": []}'
 
-        with mock.patch.object(
-            self.lint.urllib.request, "urlopen", return_value=_Resp()
-        ) as urlopen:
+        with mock.patch.object(self.lint, "http_opener") as http_opener:
+            http_opener.return_value.open.return_value = _Resp()
             self.assertEqual(self.lint.load_json_url("https://example.invalid/manifest.json"), {"active": []})
-        urlopen.assert_called_once()
+        http_opener.assert_called_once()
 
     def test_agreeing_constraints_pass(self):
         manifest = {
