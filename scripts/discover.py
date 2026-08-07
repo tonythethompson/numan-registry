@@ -92,7 +92,7 @@ def _nu_constraint_from_dep(dep_version: str | None) -> str | None:
 def _fetch_repo_info(owner: str, name: str) -> dict:
     """Fetch GitHub repo metadata, exiting if it cannot be retrieved."""
     repo_info = gh_json(["api", f"repos/{owner}/{name}"])
-    if repo_info is None:
+    if not isinstance(repo_info, dict):
         print(f"error: cannot fetch repo metadata for {owner}/{name}", file=sys.stderr)
         print("hint: ensure `gh auth status` succeeds", file=sys.stderr)
         sys.exit(1)
@@ -153,7 +153,7 @@ def _classify_github(name: str, cargo_info: dict, topics: list) -> tuple[str | N
     """Classify a GitHub repo into (package_type, confidence, reason)."""
     if cargo_info.get("is_plugin"):
         return "plugin", "high", "Cargo.toml depends on nu-plugin"
-    if name.startswith("nu_plugin_") or name.startswith("nu-plugin-"):
+    if name.startswith(("nu_plugin_", "nu-plugin-")):
         return "plugin", "medium", "repository name matches plugin convention"
     if "module" in topics or "nushell-module" in topics:
         return "module", "medium", "GitHub topics indicate module"
@@ -253,7 +253,12 @@ def _probe_cargo(path: Path) -> tuple[bool, dict]:
     cargo_toml = path / "Cargo.toml"
     if not cargo_toml.is_file():
         return False, {}
-    return True, _classify_from_cargo(cargo_toml.read_text(encoding="utf-8"))
+    try:
+        content = cargo_toml.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        print(f"warning: cannot decode Cargo.toml content: {exc}", file=sys.stderr)
+        return False, {}
+    return True, _classify_from_cargo(content)
 
 
 def _probe_nupm(path: Path) -> bool:

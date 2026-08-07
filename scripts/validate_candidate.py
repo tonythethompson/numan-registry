@@ -63,10 +63,18 @@ def _is_activatable(spec_data: dict) -> bool:
 
 
 def _load_spec(spec_path: Path) -> dict:
-    """Load a candidate spec, unwrapping the {spec, _meta} wrapper if present."""
+    """Load a candidate spec, unwrapping the {spec, _meta} wrapper if present.
+
+    Raises ValueError when the JSON root or the unwrapped spec is not a JSON
+    object, so the CLI can report a controlled error instead of a traceback.
+    """
     spec_data = json.loads(spec_path.read_text(encoding="utf-8"))
+    if not isinstance(spec_data, dict):
+        raise ValueError("spec must be a JSON object at the top level")
     if "spec" in spec_data and "_meta" in spec_data:
         spec_data = spec_data["spec"]
+        if not isinstance(spec_data, dict):
+            raise ValueError("spec must be a JSON object")
     return spec_data
 
 

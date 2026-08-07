@@ -99,7 +99,7 @@ def _release_version(best_release: dict | None,
         return ""
     tag = best_release.get("tag", "")
     field_provenance["version"] = f"release tag {tag}"
-    return tag.lstrip("v")
+    return tag[1:] if tag.startswith("v") else tag
 
 
 def _binary_artifact(name: str, best_release: dict | None,
@@ -176,7 +176,6 @@ def generate_spec(report: dict, *, owner_override: str | None = None,
     best_release = _pick_best_release(releases)
     version = _release_version(best_release, field_provenance, unresolved)
 
-    # Build artifact block
     repo_url = report.get("source", {}).get("url", "")
     if not repo_url and owner and name:
         repo_url = f"https://github.com/{owner}/{name}"

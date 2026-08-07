@@ -112,6 +112,14 @@ class TestLocalProbeHelpers(unittest.TestCase):
             self.assertFalse(present)
             self.assertEqual(info, {})
 
+    def test_probe_cargo_undecodable_treated_as_absent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp)
+            (p / "Cargo.toml").write_bytes(b"\xff\xfe invalid utf-8 \xff")
+            present, info = discover._probe_cargo(p)
+            self.assertFalse(present)
+            self.assertEqual(info, {})
+
     def test_probe_nupm(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp)
@@ -232,6 +240,14 @@ class TestFetchHelpers(unittest.TestCase):
             self.assertRaises(SystemExit),
         ):
             discover._fetch_repo_info("o", "n")
+
+    def test_fetch_repo_info_exits_on_non_dict_json(self):
+        for bad in ([], "not-an-object", 42):
+            with (
+                patch("discover.gh_json", return_value=bad),
+                self.assertRaises(SystemExit),
+            ):
+                discover._fetch_repo_info("o", "n")
 
     def test_release_assets_maps_supported_suffixes(self):
         rel = {"assets": [

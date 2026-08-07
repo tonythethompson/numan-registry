@@ -44,7 +44,6 @@ def parse_exact_nu_version(value: str) -> tuple[int, int, int]:
 
 
 def _matches_minor_wildcard(candidate: tuple[int, int, int], token: str) -> bool:
-    """Return whether candidate satisfies a MAJOR.MINOR.x wildcard token."""
     wildcard = MINOR_WILDCARD.fullmatch(token)
     if wildcard is None:
         raise ValueError(f"{token!r} is not a minor-wildcard constraint")
@@ -52,13 +51,11 @@ def _matches_minor_wildcard(candidate: tuple[int, int, int], token: str) -> bool
 
 
 def _matches_exact(candidate: tuple[int, int, int], token: str) -> bool:
-    """Return whether candidate equals an exact MAJOR.MINOR.PATCH token."""
     return candidate == parse_exact_nu_version(token)
 
 
 def _matches_comparator(candidate: tuple[int, int, int], op: str,
                         required_text: str) -> bool:
-    """Return whether candidate satisfies a comparator token (e.g. >=, <)."""
     required = parse_exact_nu_version(required_text)
     return _COMPARATOR_OPS[op](candidate, required)
 

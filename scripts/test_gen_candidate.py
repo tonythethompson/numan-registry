@@ -154,10 +154,23 @@ class TestPickBestRelease(unittest.TestCase):
 
 
 class TestReleaseVersion(unittest.TestCase):
-    def test_strips_v(self):
+    def test_strips_single_leading_v(self):
         prov, unresolved = {}, []
         self.assertEqual(gen_candidate._release_version({"tag": "v1.2.3"}, prov, unresolved), "1.2.3")
         self.assertEqual(prov["version"], "release tag v1.2.3")
+        self.assertEqual(unresolved, [])
+
+    def test_strips_only_one_leading_v(self):
+        # 'vv1.2.3' keeps one v: only a single leading 'v' prefix is removed.
+        prov, unresolved = {}, []
+        self.assertEqual(gen_candidate._release_version({"tag": "vv1.2.3"}, prov, unresolved), "v1.2.3")
+        self.assertEqual(prov["version"], "release tag vv1.2.3")
+        self.assertEqual(unresolved, [])
+
+    def test_no_v_prefix_unchanged(self):
+        prov, unresolved = {}, []
+        self.assertEqual(gen_candidate._release_version({"tag": "1.2.3"}, prov, unresolved), "1.2.3")
+        self.assertEqual(prov["version"], "release tag 1.2.3")
         self.assertEqual(unresolved, [])
 
     def test_no_release(self):

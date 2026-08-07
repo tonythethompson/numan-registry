@@ -18,7 +18,6 @@ class TestParseExactNuVersion(unittest.TestCase):
 
 
 class TestMatchesNuConstraint(unittest.TestCase):
-    """Behavior-parity tests for the constraint matcher."""
 
     def test_wildcard_star(self):
         self.assertTrue(nvc.matches_nu_constraint("0.114.0", "*"))
@@ -75,7 +74,6 @@ class TestMatchesNuConstraint(unittest.TestCase):
 
 
 class TestTokenHelpers(unittest.TestCase):
-    """Unit tests for the helpers extracted from matches_nu_constraint()."""
 
     def test_matches_minor_wildcard(self):
         self.assertTrue(nvc._matches_minor_wildcard((0, 114, 0), "0.114.x"))
