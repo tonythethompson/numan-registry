@@ -16,7 +16,8 @@ JSON edits.
   `Production registry` workflow.
 - Source-tree `registry/index.json.sig` remains a placeholder by design;
   production signing happens in the protected workflow.
-- Live catalog: **39** packages (26 plugins, 7 modules, 2 completions, 4 scripts).
+- Committed index: **44** packages (26 plugins, 7 modules, 6 completions, 5 scripts).
+  Public CDN updates after production signing/publish.
   Human overview: [`docs/catalog-compat.md`](catalog-compat.md) (regenerated from
   `registry/index.json`). About **18** latest versions target Nu **0.114.x**.
 - Intake tooling scaffolds entries from specs, computes artifact hashes,

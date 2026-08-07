@@ -192,6 +192,11 @@ When a maintainer says yes, PR should include:
 | Sanceilaks/nufetch |  |  |  |  | mirror only |
 | amtoine/nu-git-manager-sugar | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
 | nushell/nu_scripts (git-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| nushell/nu_scripts (cargo-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| nushell/nu_scripts (npm-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| nushell/nu_scripts (make-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| nushell/nu_scripts (winget-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
+| KamilKleina/git-aliases |  |  |  |  | mirror only |
 
 ---
 

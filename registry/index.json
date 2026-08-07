@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-07T00:50:11Z",
+  "updated_at": "2026-08-07T06:37:50Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -1904,6 +1904,157 @@
             "sha256": "cabc915defc2a554b0bd7d0f83ec2c3b0f6719cec77f8ff69bda8e4840f4487c",
             "entry": "nufetch.nu",
             "archive_root": "nufetch-15e0645"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "cargo-completions"
+      },
+      "description": "Cargo custom completions from nu_scripts. Registry-hosted mirror of nu_scripts/custom-completions/cargo @ f04cb44. Install-only: completion activation is deferred in Numan.",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/cargo",
+      "type": "completion",
+      "tags": [
+        "completion",
+        "cargo",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-f04cb44",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-cargo-completions-f04cb44/cargo-completions-f04cb44.zip",
+            "sha256": "c8c41b1e12667811de7f85e8d0250501f4b70253a3e68610f7a8caa15da9b4ad",
+            "archive_root": "cargo-completions-f04cb44"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "npm-completions"
+      },
+      "description": "npm custom completions from nu_scripts. Registry-hosted mirror of nu_scripts/custom-completions/npm @ f04cb44. Install-only: completion activation is deferred in Numan.",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/npm",
+      "type": "completion",
+      "tags": [
+        "completion",
+        "npm",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-f04cb44",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-npm-completions-f04cb44/npm-completions-f04cb44.zip",
+            "sha256": "14d2afe5bdbc5dce92014f1adc980ec881c3a9e9a54f7fe1a1fd0ee40280ccb0",
+            "archive_root": "npm-completions-f04cb44"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "make-completions"
+      },
+      "description": "make custom completions from nu_scripts. Registry-hosted mirror of nu_scripts/custom-completions/make @ f04cb44. Install-only: completion activation is deferred in Numan.",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/make",
+      "type": "completion",
+      "tags": [
+        "completion",
+        "make",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-f04cb44",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-make-completions-f04cb44/make-completions-f04cb44.zip",
+            "sha256": "0c3f8888484065c435035c19d9a83914da477df6500483c868d2530ceb40cd26",
+            "archive_root": "make-completions-f04cb44"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "nushell",
+        "name": "winget-completions"
+      },
+      "description": "winget custom completions from nu_scripts. Registry-hosted mirror of nu_scripts/custom-completions/winget @ f04cb44. Install-only: completion activation is deferred in Numan.",
+      "repo": "https://github.com/nushell/nu_scripts/tree/main/custom-completions/winget",
+      "type": "completion",
+      "tags": [
+        "completion",
+        "winget",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-f04cb44",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-winget-completions-f04cb44/winget-completions-f04cb44.zip",
+            "sha256": "dd1dad7152220e0acaed90c192cae3d403366833deaaac2683bf07425b96d8a8",
+            "archive_root": "winget-completions-f04cb44"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "KamilKleina",
+        "name": "git-aliases"
+      },
+      "description": "Git aliases for Nushell (overlay use). Registry-hosted mirror of upstream commit 109cc61. Install-only: script activation is deferred in Numan; after install, overlay use the installed git-aliases.nu path.",
+      "repo": "https://github.com/KamilKleina/git-aliases.nu",
+      "type": "script",
+      "tags": [
+        "script",
+        "git",
+        "mirror",
+        "install-only"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-109cc61",
+          "nu_version": "*",
+          "verified_with": [
+            "0.113.1"
+          ],
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-KamilKleina-git-aliases-109cc61/git-aliases-109cc61.zip",
+            "sha256": "c812277ecbee3a4ce2c1007e52a060b7b3017a93aa9c6f411b53a7212d5b83fe",
+            "entry": "git-aliases.nu",
+            "archive_root": "git-aliases-109cc61"
           }
         }
       ]
