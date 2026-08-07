@@ -221,48 +221,74 @@ def outreach_status(outreach: dict[str, Any]) -> dict[str, str]:
     return result
 
 
+def _live_status(
+    entry: dict[str, Any], live: dict[str, dict[str, Any]]
+) -> list[str] | None:
+    """Status parts for an entry already in the registry index, else None."""
+    pid = entry["id"]
+    if pid not in live:
+        return None
+    info = live[pid]
+    version = entry.get("version", "")
+    parts: list[str] = []
+    if info.get("mixed"):
+        parts.append("live (mixed provenance)")
+    elif info.get("mirror"):
+        parts.append("live (registry mirror)")
+    elif info.get("ci_built"):
+        parts.append("live (ci-built asset)")
+    elif info.get("upstream_asset"):
+        parts.append("live (upstream asset)")
+    else:
+        parts.append("live")
+    if version and info.get("version") != version:
+        parts.append(f"index@{info['version']}")
+    return parts
+
+
+def _pr_status(entry: dict[str, Any], pr_map: dict[int, str | None]) -> list[str] | None:
+    """Status parts for an entry with an intake PR, else None (no PR)."""
+    pr_num = entry.get("pr")
+    if not pr_num:
+        return None
+    pull = f"https://github.com/{REGISTRY_REPO}/pull/{pr_num}"
+    ps = pr_map.get(pr_num)
+    if ps == "merged":
+        return [f"merged in [#{pr_num}]({pull}) — publish pending?"]
+    if ps == "open":
+        return [f"PR [#{pr_num}]({pull}) open"]
+    if ps == "closed":
+        return [f"PR #{pr_num} closed (not merged)"]
+    return [f"pending [#{pr_num}]({pull})"]
+
+
+def _candidate_status(entry: dict[str, Any]) -> list[str]:
+    """Status parts for an entry not in the index and without an intake PR."""
+    spec = entry.get("spec")
+    if spec and (REPO_ROOT / spec).exists():
+        return ["spec written, not in index"]
+    return ["candidate"]
+
+
 def package_status(
     entry: dict[str, Any],
     live: dict[str, dict[str, Any]],
     pr_map: dict[int, str | None],
     outreach_cache: dict[str, dict[str, str]],
 ) -> str:
-    pid = entry["id"]
-    version = entry.get("version", "")
-    note = entry.get("note")
-    pr_num = entry.get("pr")
-    parts: list[str] = []
+    """Render the status cell for one intake entry.
 
-    if pid in live:
-        info = live[pid]
-        if info.get("mixed"):
-            parts.append("live (mixed provenance)")
-        elif info.get("mirror"):
-            parts.append("live (registry mirror)")
-        elif info.get("ci_built"):
-            parts.append("live (ci-built asset)")
-        elif info.get("upstream_asset"):
-            parts.append("live (upstream asset)")
-        else:
-            parts.append("live")
-        if version and info.get("version") != version:
-            parts.append(f"index@{info['version']}")
-    elif pr_num:
-        ps = pr_map.get(pr_num)
-        if ps == "merged":
-            parts.append(f"merged in [#{pr_num}](https://github.com/{REGISTRY_REPO}/pull/{pr_num}) — publish pending?")
-        elif ps == "open":
-            parts.append(f"PR [#{pr_num}](https://github.com/{REGISTRY_REPO}/pull/{pr_num}) open")
-        elif ps == "closed":
-            parts.append(f"PR #{pr_num} closed (not merged)")
-        else:
-            parts.append(f"pending [#{pr_num}](https://github.com/{REGISTRY_REPO}/pull/{pr_num})")
-    else:
-        spec = entry.get("spec")
-        if spec and (REPO_ROOT / spec).exists():
-            parts.append("spec written, not in index")
-        else:
-            parts.append("candidate")
+    The three branch helpers are mutually exclusive: an entry is either live in
+    the index, awaiting an intake PR, or a plain candidate.
+    """
+    pid = entry["id"]
+    note = entry.get("note")
+
+    parts = _live_status(entry, live)
+    if parts is None:
+        parts = _pr_status(entry, pr_map)
+    if parts is None:
+        parts = _candidate_status(entry)
 
     outreach = entry.get("outreach")
     if outreach:

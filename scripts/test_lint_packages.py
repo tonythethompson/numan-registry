@@ -61,7 +61,6 @@ def base_package(**overrides):
 
 
 class TestValidateArtifactUrl(unittest.TestCase):
-    """Unit tests for the URL/suffix helper extracted from _validate_url_and_sha256()."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -108,7 +107,6 @@ class TestValidateArtifactUrl(unittest.TestCase):
 
 
 class TestRecordSha256(unittest.TestCase):
-    """Unit tests for the sha256/dedupe helper extracted from _validate_url_and_sha256()."""
 
     @classmethod
     def setUpClass(cls) -> None:
