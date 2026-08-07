@@ -20,3 +20,4 @@ __pycache__/
 
 # Hook runtime artifacts and cache
 /.mrge/
+/.freebuff
