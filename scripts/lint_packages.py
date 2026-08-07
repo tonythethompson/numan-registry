@@ -280,43 +280,58 @@ def lint_artifact(
     )
 
 
-def lint_activation_and_provenance(
+def _tags_claim_activation(tags: object) -> bool:
+    """Return whether any tag string claims the package is activatable."""
+    if not isinstance(tags, list):
+        return False
+    return any(isinstance(tag, str) and "activat" in tag.lower() for tag in tags)
+
+
+def _lint_activation(
     pkg: dict,
     version: dict,
     errors: list[str],
     *,
-    entry_index: int | None = None,
-    version_index: int | None = None,
+    label: str,
 ) -> None:
-    label = version_label(
-        pkg, version, entry_index=entry_index, version_index=version_index
-    )
+    """Validate the activation block for module packages.
+
+    Plugins activate via plugin add (activation is optional); scripts and
+    completions are not activatable. Only modules get checked, and only when
+    they declare an activation block or are tagged as activatable.
+    """
     pkg_type = pkg.get("type")
     activation = version.get("activation")
-    if pkg_type == "plugin":
-        # Plugins activate via plugin add; explicit activation blocks are optional
-        # but modules that are activatable must declare one.
-        pass
-    elif pkg_type == "module":
-        if not isinstance(activation, dict):
-            # Install-only modules are allowed; only flag when tags claim activation
-            tags = pkg.get("tags") if isinstance(pkg.get("tags"), list) else []
-            if any(isinstance(tag, str) and "activat" in tag.lower() for tag in tags):
-                errors.append(
-                    f"{label}: module tagged for activation is missing "
-                    "activation declaration"
-                )
-        else:
-            kind = activation.get("kind")
-            if not isinstance(kind, str) or not kind.strip():
-                errors.append(f"{label}: activation.kind is missing")
-            import_mode = activation.get("import")
-            if import_mode is not None and import_mode not in ("module", "all"):
-                errors.append(
-                    f"{label}: activation.import must be 'module' or 'all', "
-                    f"got {import_mode!r}"
-                )
+    if pkg_type != "module":
+        return
 
+    if not isinstance(activation, dict):
+        # Install-only modules are allowed; only flag when tags claim activation
+        if _tags_claim_activation(pkg.get("tags")):
+            errors.append(
+                f"{label}: module tagged for activation is missing "
+                "activation declaration"
+            )
+        return
+
+    kind = activation.get("kind")
+    if not isinstance(kind, str) or not kind.strip():
+        errors.append(f"{label}: activation.kind is missing")
+    import_mode = activation.get("import")
+    if import_mode is not None and import_mode not in ("module", "all"):
+        errors.append(
+            f"{label}: activation.import must be 'module' or 'all', "
+            f"got {import_mode!r}"
+        )
+
+
+def _lint_source_provenance(
+    version: dict,
+    errors: list[str],
+    *,
+    label: str,
+) -> None:
+    """Validate the source provenance block (git/rev/cargo_name)."""
     source = version.get("source")
     if source is None:
         return
@@ -333,6 +348,21 @@ def lint_activation_and_provenance(
             f"{label}: source.rev {rev!r} is not immutable provenance "
             "(use a tag or full commit)"
         )
+
+
+def lint_activation_and_provenance(
+    pkg: dict,
+    version: dict,
+    errors: list[str],
+    *,
+    entry_index: int | None = None,
+    version_index: int | None = None,
+) -> None:
+    label = version_label(
+        pkg, version, entry_index=entry_index, version_index=version_index
+    )
+    _lint_activation(pkg, version, errors, label=label)
+    _lint_source_provenance(version, errors, label=label)
 
 
 def lint_version(
