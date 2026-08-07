@@ -848,12 +848,14 @@
             var nu = latest && latest.nu_version ? latest.nu_version : "n/a";
             var type = pkg.type || "other";
             var id = owner + "/" + name;
+            var description = pkg.description || "";
+            var tags = Array.isArray(pkg.tags) ? pkg.tags.join(" ") : "";
             return {
               id: id,
               type: type,
               version: version,
               nu: nu,
-              search: [id, type, version, nu].join(" ").toLowerCase()
+              search: [id, type, version, nu, description, tags].join(" ").toLowerCase()
             };
           });
 
