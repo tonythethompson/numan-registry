@@ -2,7 +2,7 @@
 
 _Auto-generated from `registry/index.json`. Do not hand-edit._
 
-Generated: `2026-08-07T06:37:50Z` · Index `updated_at`: `2026-08-07T06:37:50Z` · `registry_revision`: `seed-2026-07-02`
+Generated: `2026-08-07T07:35:48Z` · Index `updated_at`: `2026-08-07T07:35:48Z` · `registry_revision`: `seed-2026-07-02`
 
 This is the **master list** of packages in the committed `registry/index.json` (in-tree; the public CDN updates after production signing/publish) and the Nu constraint on each package's **latest** version. For demand-ranked *plugin candidates* not yet in the registry, see [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json). For intake workflow status, see [`intake-candidates.md`](intake-candidates.md).
 
@@ -10,7 +10,7 @@ This is the **master list** of packages in the committed `registry/index.json` (
 
 - **44** packages total
 - By type: `completion` 6, `module` 7, `plugin` 26, `script` 5
-- Latest version Nu band: `0.114` 18, `0.113` 4, `0.112` 1, `other` 7, `*` 14
+- Latest version Nu band: `0.114` 19, `0.113` 3, `0.112` 1, `other` 7, `*` 14
 
 Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.113` → `0.114` / `0.113`, etc.; else `*` or `other`). Exact constraints are in the table and in the signed index.
 
@@ -54,7 +54,7 @@ Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.1
 | `nushell/winget-completions` | completion | 0.1.0-f04cb44 | `*` | * | — | mirror | 1 |
 | `rhino-linux/nu_plugin_nutext` | plugin | 0.6.2 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
 | `Sanceilaks/nufetch` | script | 0.1.0-15e0645 | `*` | * | — | mirror | 1 |
-| `SuaveIV/nu_plugin_audio` | plugin | 0.2.8 | `>=0.113.1 <0.114.0` | 0.113 | linux,win | upstream | 1 |
+| `SuaveIV/nu_plugin_audio` | plugin | 0.2.10 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | upstream | 2 |
 | `SuaveIV/nu_script_gh_status` | script | 0.1.0-81756dc | `*` | * | — | mirror | 1 |
 | `SuaveIV/nu_script_hnews` | script | 0.1.0-6cd8aef | `>=0.97.0` | other | — | mirror | 1 |
 | `SuaveIV/nu_script_wttr` | script | 0.1.0-main | `*` | * | — | mirror | 1 |

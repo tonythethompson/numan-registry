@@ -17,11 +17,11 @@
       "name": "nu_plugin_audio",
       "owner": "SuaveIV",
       "type": "plugin",
-      "version": "0.2.8",
-      "platforms": "Windows zip + Linux aarch64 tar.gz (mac/x64-linux are tar.xz)",
-      "note": "partial platforms",
+      "version": "0.2.10",
+      "platforms": "Windows zip; Linux aarch64 tar.gz; Linux x86_64 + macOS tar.xz (nested cargo-dist paths)",
+      "note": "full-platform upstream ABI bump; 0.2.8 retained for Nu 0.113; Windows lifecycle-prove OK / Nu 0.114.1",
       "repo": "https://github.com/SuaveIV/nu_plugin_audio",
-      "spec": "specs/SuaveIV-nu_plugin_audio-0.2.8.json",
+      "spec": "specs/SuaveIV-nu_plugin_audio-0.2.10.json",
       "pr": 11
     },
     {
@@ -595,6 +595,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-08-07",
+      "change": "SuaveIV/nu_plugin_audio@0.2.10 (Nu >=0.114 <0.115): full-platform upstream assets including .tar.xz; Windows lifecycle-prove OK on Nu 0.114.1. Retain 0.2.8 for Nu 0.113."
+    },
     {
       "date": "2026-08-07",
       "change": "Wave 3B completions: nushell/cargo-completions, npm-completions, make-completions, winget-completions @ 0.1.0-f04cb44. Wave 3A P1: KamilKleina/git-aliases@0.1.0-109cc61 (install-only mirrors)."

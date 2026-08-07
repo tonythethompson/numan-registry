@@ -1,0 +1,36 @@
+{
+  "owner": "SuaveIV",
+  "name": "nu_plugin_audio",
+  "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Upstream v0.2.10 (Nu 0.114.1): Windows zip, Linux aarch64 tar.gz, and macOS/Linux x86_64 tar.xz (nested cargo-dist layout).",
+  "repo": "https://github.com/SuaveIV/nu_plugin_audio",
+  "type": "plugin",
+  "tags": ["plugin", "audio", "full-platform"],
+  "version": "0.2.10",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "verified_with": ["0.114.1"],
+  "artifact": {
+    "kind": "binary",
+    "targets": {
+      "x86_64-pc-windows-msvc": {
+        "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-pc-windows-msvc.zip",
+        "executable_path": "nu_plugin_audio.exe"
+      },
+      "aarch64-unknown-linux-gnu": {
+        "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-v0.2.10-aarch64-unknown-linux-gnu.tar.gz",
+        "executable_path": "nu_plugin_audio"
+      },
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-unknown-linux-gnu.tar.xz",
+        "executable_path": "nu_plugin_audio-x86_64-unknown-linux-gnu/nu_plugin_audio"
+      },
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-aarch64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_audio-aarch64-apple-darwin/nu_plugin_audio"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_audio-x86_64-apple-darwin/nu_plugin_audio"
+      }
+    }
+  }
+}
