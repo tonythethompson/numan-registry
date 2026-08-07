@@ -135,61 +135,57 @@ def lint_required_package_fields(
         errors.append(f"{label}: missing versions (non-empty list required)")
 
 
-def _validate_url_and_sha256(
+def _validate_artifact_url(
     url: object,
+    errors: list[str],
+    *,
+    what: str,
+    what_url: str,
+    label: str,
+) -> None:
+    """Validate an artifact URL is present and uses a supported archive suffix.
+
+    ``what`` supplies the subject for the missing-url message (e.g. ``"target
+    'x86_64-unknown-linux-gnu'"`` or ``"archive artifact"``); ``what_url``
+    supplies the subject for the unsupported-suffix message (e.g. ``"target
+    'x86_64-unknown-linux-gnu' url"`` or ``"archive url"``).
+    """
+    if not isinstance(url, str) or not url.strip():
+        errors.append(f"{label}: {what} missing url")
+    elif not archive_suffix_ok(url):
+        errors.append(
+            f"{label}: {what_url} has unsupported archive suffix "
+            f"(supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
+        )
+
+
+def _record_sha256(
     sha256: object,
     errors: list[str],
     *,
     seen_sha256: dict[str, str],
     dedupe_key: str,
+    what: str,
+    what_dup: str,
     label: str,
-    target_triple: str | None = None,
 ) -> None:
-    """Validate URL/archive suffix/SHA-256 and record SHA-256 dedupe bookkeeping.
+    """Validate a SHA-256 digest and record cross-entry dedupe bookkeeping.
 
-    ``target_triple`` selects binary-target wording; ``None`` selects archive wording.
+    ``what`` supplies the subject for the malformed-sha256 message; ``what_dup``
+    for the duplicate-sha256 message (archive wording differs between them).
     """
-    if target_triple is not None:
-        if not isinstance(url, str) or not url.strip():
-            errors.append(f"{label}: target {target_triple!r} missing url")
-        elif not archive_suffix_ok(url):
-            errors.append(
-                f"{label}: target {target_triple!r} url has unsupported archive "
-                f"suffix (supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
-            )
-        if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
-            errors.append(
-                f"{label}: target {target_triple!r} missing or malformed sha256 "
-                "(expected 64 hex chars)"
-            )
-        elif isinstance(sha256, str):
-            prior = seen_sha256.get(sha256.lower())
-            if prior is not None and prior != dedupe_key:
-                errors.append(
-                    f"{label}: duplicate sha256 for target {target_triple!r} "
-                    f"(also used by {prior})"
-                )
-            else:
-                seen_sha256[sha256.lower()] = dedupe_key
-        return
-
-    if not isinstance(url, str) or not url.strip():
-        errors.append(f"{label}: archive artifact missing url")
-    elif not archive_suffix_ok(url):
-        errors.append(
-            f"{label}: archive url has unsupported archive suffix "
-            f"(supported: {', '.join(SUPPORTED_ARCHIVE_SUFFIXES)})"
-        )
     if not isinstance(sha256, str) or SHA256_RE.fullmatch(sha256) is None:
         errors.append(
-            f"{label}: archive artifact missing or malformed sha256 "
+            f"{label}: {what} missing or malformed sha256 "
             "(expected 64 hex chars)"
         )
-    elif isinstance(sha256, str):
+    else:
+        # Reaching here means sha256 is a str (the not-isinstance disjunct
+        # short-circuits the guard above), so it is safe to record dedupe.
         prior = seen_sha256.get(sha256.lower())
         if prior is not None and prior != dedupe_key:
             errors.append(
-                f"{label}: duplicate sha256 for archive (also used by {prior})"
+                f"{label}: duplicate sha256 for {what_dup} (also used by {prior})"
             )
         else:
             seen_sha256[sha256.lower()] = dedupe_key
@@ -242,14 +238,22 @@ def lint_artifact(
                 errors.append(f"{label}: target {triple!r} must be an object")
                 continue
             executable_path = target.get("executable_path")
-            _validate_url_and_sha256(
+            what = f"target {triple!r}"
+            _validate_artifact_url(
                 target.get("url"),
+                errors,
+                what=what,
+                what_url=f"{what} url",
+                label=label,
+            )
+            _record_sha256(
                 target.get("sha256"),
                 errors,
                 seen_sha256=seen_sha256,
                 dedupe_key=f"{label}/{triple}",
+                what=what,
+                what_dup=what,
                 label=label,
-                target_triple=triple,
             )
             if not isinstance(executable_path, str) or not executable_path.strip():
                 errors.append(
@@ -258,14 +262,21 @@ def lint_artifact(
         return
 
     # archive
-    _validate_url_and_sha256(
+    _validate_artifact_url(
         artifact.get("url"),
+        errors,
+        what="archive artifact",
+        what_url="archive url",
+        label=label,
+    )
+    _record_sha256(
         artifact.get("sha256"),
         errors,
         seen_sha256=seen_sha256,
         dedupe_key=label,
+        what="archive artifact",
+        what_dup="archive",
         label=label,
-        target_triple=None,
     )
 
 

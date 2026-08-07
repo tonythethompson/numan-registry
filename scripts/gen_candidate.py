@@ -20,7 +20,6 @@ import json
 import sys
 from pathlib import Path
 
-from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from lint_packages import KNOWN_TRIPLES
 
 # ---------------------------------------------------------------------------
@@ -61,6 +60,99 @@ def _executable_path(name: str, target: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _pick_best_release(releases: list[dict]) -> dict | None:
+    """Pick the first release with assets, else the first release overall."""
+    for rel in releases:
+        if rel.get("assets"):
+            return rel
+    return releases[0] if releases else None
+
+
+def _owner_provenance(facts: dict, owner_override: str | None,
+                      field_provenance: dict, unresolved: list[str]) -> None:
+    """Record how the owner field was determined (or that it is unresolved)."""
+    if owner_override:
+        field_provenance["owner"] = f"CLI override: {owner_override}"
+    elif facts.get("owner"):
+        field_provenance["owner"] = "github repo owner"
+    else:
+        unresolved.append("owner not determined; use --owner")
+
+
+def _nu_version_provenance(facts: dict, nu_version_override: str | None,
+                           field_provenance: dict, warnings: list[str]) -> None:
+    """Record how nu_version was determined, warning when defaulted."""
+    if nu_version_override:
+        field_provenance["nu_version"] = f"CLI override: {nu_version_override}"
+    elif facts.get("nu_constraint_hint"):
+        field_provenance["nu_version"] = "Cargo.toml nu-plugin dependency version"
+    else:
+        field_provenance["nu_version"] = "defaulted to * (not declared)"
+        warnings.append("nu_version constraint not declared; defaulted to *")
+
+
+def _release_version(best_release: dict | None,
+                     field_provenance: dict, unresolved: list[str]) -> str:
+    """Derive the version from the best release's tag (or leave unresolved)."""
+    if not best_release:
+        unresolved.append("version not determined; no releases found")
+        return ""
+    tag = best_release.get("tag", "")
+    field_provenance["version"] = f"release tag {tag}"
+    return tag.lstrip("v")
+
+
+def _binary_artifact(name: str, best_release: dict | None,
+                     warnings: list[str], unresolved: list[str]) -> dict:
+    """Build a binary artifact block, mapping assets to known target triples."""
+    targets: dict[str, dict] = {}
+    skipped: list[str] = []
+    if best_release:
+        for asset in best_release.get("assets", []):
+            target = _match_target(asset["name"])
+            if target and target in KNOWN_TRIPLES:
+                targets[target] = {
+                    "url": asset["url"],
+                    "executable_path": _executable_path(name, target),
+                }
+            else:
+                skipped.append(asset["name"])
+    if skipped:
+        warnings.append(f"unmapped assets skipped: {', '.join(skipped)}")
+    if not targets:
+        unresolved.append("no release assets matched known target triples")
+    return {"kind": "binary", "targets": targets}
+
+
+def _archive_artifact(best_release: dict | None,
+                      field_provenance: dict, unresolved: list[str]) -> dict:
+    """Build an archive artifact block for module/script/completion packages."""
+    url = ""
+    if best_release and best_release.get("assets"):
+        url = best_release["assets"][0].get("url", "")
+        field_provenance["artifact_url"] = f"first asset from release {best_release.get('tag', '')}"
+    if not url:
+        unresolved.append("no archive URL found; may need registry-hosted mirror")
+    artifact: dict = {"kind": "archive", "url": url, "entry": "mod.nu"}
+    return artifact
+
+
+def _default_spec_base(owner: str | None, name: str, description: str,
+                       repo_url: str, package_type: str, version: str,
+                       nu_version: str) -> dict:
+    """Build the add-package.py-compatible spec fields shared by all types."""
+    return {
+        "owner": owner or "TODO",
+        "name": name,
+        "description": description,
+        "repo": repo_url,
+        "type": package_type,
+        "tags": [package_type, "ci-built"],
+        "version": version or "0.0.0",
+        "nu_version": nu_version,
+    }
+
+
 def generate_spec(report: dict, *, owner_override: str | None = None,
                   nu_version_override: str | None = None) -> dict:
     """Generate a candidate spec + provenance metadata from a discovery report."""
@@ -78,37 +170,11 @@ def generate_spec(report: dict, *, owner_override: str | None = None,
     unresolved: list[str] = []
     warnings: list[str] = []
 
-    if owner_override:
-        field_provenance["owner"] = f"CLI override: {owner_override}"
-    elif facts.get("owner"):
-        field_provenance["owner"] = "github repo owner"
-    else:
-        unresolved.append("owner not determined; use --owner")
+    _owner_provenance(facts, owner_override, field_provenance, unresolved)
+    _nu_version_provenance(facts, nu_version_override, field_provenance, warnings)
 
-    if nu_version_override:
-        field_provenance["nu_version"] = f"CLI override: {nu_version_override}"
-    elif facts.get("nu_constraint_hint"):
-        field_provenance["nu_version"] = "Cargo.toml nu-plugin dependency version"
-    else:
-        field_provenance["nu_version"] = "defaulted to * (not declared)"
-        warnings.append("nu_version constraint not declared; defaulted to *")
-
-    # Pick the best release (first with assets, or first overall)
-    best_release = None
-    for rel in releases:
-        if rel.get("assets"):
-            best_release = rel
-            break
-    if not best_release and releases:
-        best_release = releases[0]
-
-    version = ""
-    if best_release:
-        tag = best_release.get("tag", "")
-        version = tag.lstrip("v")
-        field_provenance["version"] = f"release tag {tag}"
-    else:
-        unresolved.append("version not determined; no releases found")
+    best_release = _pick_best_release(releases)
+    version = _release_version(best_release, field_provenance, unresolved)
 
     # Build artifact block
     repo_url = report.get("source", {}).get("url", "")
@@ -119,52 +185,16 @@ def generate_spec(report: dict, *, owner_override: str | None = None,
         unresolved.append("package_type not determined; defaulting to plugin — verify manually")
         package_type = "plugin"
 
-    spec: dict = {
-        "owner": owner or "TODO",
-        "name": name,
-        "description": description,
-        "repo": repo_url,
-        "type": package_type,
-        "tags": [package_type, "ci-built"],
-        "version": version or "0.0.0",
-        "nu_version": nu_version,
-    }
+    spec = _default_spec_base(
+        owner, name, description, repo_url, package_type, version, nu_version
+    )
 
     if package_type == "plugin":
-        # Binary artifact with targets
-        targets: dict[str, dict] = {}
-        skipped: list[str] = []
-        if best_release:
-            for asset in best_release.get("assets", []):
-                target = _match_target(asset["name"])
-                if target and target in KNOWN_TRIPLES:
-                    targets[target] = {
-                        "url": asset["url"],
-                        "executable_path": _executable_path(name, target),
-                    }
-                else:
-                    skipped.append(asset["name"])
-        if skipped:
-            warnings.append(f"unmapped assets skipped: {', '.join(skipped)}")
-        if not targets:
-            unresolved.append("no release assets matched known target triples")
-        spec["artifact"] = {"kind": "binary", "targets": targets}
-
+        spec["artifact"] = _binary_artifact(name, best_release, warnings, unresolved)
     elif package_type in ("module", "script", "completion"):
-        # Archive artifact
-        url = ""
-        if best_release and best_release.get("assets"):
-            url = best_release["assets"][0].get("url", "")
-            field_provenance["artifact_url"] = f"first asset from release {best_release.get('tag', '')}"
-        if not url:
-            unresolved.append("no archive URL found; may need registry-hosted mirror")
-
-        entry = "mod.nu"
-        import_mode = "all"  # mod.nu → "all" per add-package.py convention
-        spec["artifact"] = {"kind": "archive", "url": url, "entry": entry}
+        spec["artifact"] = _archive_artifact(best_release, field_provenance, unresolved)
         if package_type == "module":
-            spec["activation"] = {"kind": "nu-module", "import": import_mode}
-
+            spec["activation"] = {"kind": "nu-module", "import": "all"}  # mod.nu → "all" per add-package.py convention
     else:
         unresolved.append(f"unsupported package_type '{package_type}'; cannot generate artifact block")
 

@@ -60,6 +60,122 @@ def base_package(**overrides):
     return pkg
 
 
+class TestValidateArtifactUrl(unittest.TestCase):
+    """Unit tests for the URL/suffix helper extracted from _validate_url_and_sha256()."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_missing_url_binary_wording(self):
+        errors: list[str] = []
+        what = "target 'x86_64-unknown-linux-gnu'"
+        self.lint._validate_artifact_url(
+            "", errors, what=what, what_url=f"{what} url", label="p@1"
+        )
+        self.assertEqual(errors, ["p@1: target 'x86_64-unknown-linux-gnu' missing url"])
+
+    def test_missing_url_archive_wording(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(errors, ["p@1: archive artifact missing url"])
+
+    def test_unsupported_suffix_binary_wording(self):
+        errors: list[str] = []
+        what = "target 'x86_64-unknown-linux-gnu'"
+        self.lint._validate_artifact_url(
+            "https://x/a.rar", errors, what=what, what_url=f"{what} url", label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("target 'x86_64-unknown-linux-gnu' url has unsupported archive suffix", errors[0])
+
+    def test_unsupported_suffix_archive_wording(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "https://x/a.rar", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("archive url has unsupported archive suffix", errors[0])
+
+    def test_valid_url_no_error(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "https://x/a.tar.gz", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(errors, [])
+
+
+class TestRecordSha256(unittest.TestCase):
+    """Unit tests for the sha256/dedupe helper extracted from _validate_url_and_sha256()."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_malformed_binary_wording(self):
+        errors: list[str] = []
+        self.lint._record_sha256(
+            "zz", errors, seen_sha256={}, dedupe_key="p@1/x",
+            what="target 'x'", what_dup="target 'x'", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: target 'x' missing or malformed sha256 (expected 64 hex chars)"]
+        )
+
+    def test_malformed_archive_wording(self):
+        errors: list[str] = []
+        self.lint._record_sha256(
+            "zz", errors, seen_sha256={}, dedupe_key="p@1",
+            what="archive artifact", what_dup="archive", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: archive artifact missing or malformed sha256 (expected 64 hex chars)"]
+        )
+
+    def test_valid_records_dedupe(self):
+        errors: list[str] = []
+        seen: dict[str, str] = {}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/a",
+            what="target 'a'", what_dup="target 'a'", label="p@1",
+        )
+        self.assertEqual(errors, [])
+        self.assertEqual(seen, {"ab" * 32: "p@1/a"})
+
+    def test_duplicate_binary_wording(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@1/a"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/b",
+            what="target 'b'", what_dup="target 'b'", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: duplicate sha256 for target 'b' (also used by p@1/a)"]
+        )
+
+    def test_duplicate_archive_wording(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@0/other"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1",
+            what="archive artifact", what_dup="archive", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: duplicate sha256 for archive (also used by p@0/other)"]
+        )
+
+    def test_same_dedupe_key_is_not_duplicate(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@1/a"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/a",
+            what="target 'a'", what_dup="target 'a'", label="p@1",
+        )
+        self.assertEqual(errors, [])
+
+
 class LintPackagesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

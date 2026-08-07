@@ -140,6 +140,116 @@ class TestGenerateSpecModule(unittest.TestCase):
         self.assertTrue(any("defaulted to *" in w for w in result["_meta"]["warnings"]))
 
 
+class TestPickBestRelease(unittest.TestCase):
+    def test_prefers_release_with_assets(self):
+        releases = [{"tag": "v1", "assets": []}, {"tag": "v2", "assets": [{"name": "a"}]}]
+        self.assertEqual(gen_candidate._pick_best_release(releases)["tag"], "v2")
+
+    def test_falls_back_to_first_release(self):
+        releases = [{"tag": "v1", "assets": []}]
+        self.assertEqual(gen_candidate._pick_best_release(releases)["tag"], "v1")
+
+    def test_empty(self):
+        self.assertIsNone(gen_candidate._pick_best_release([]))
+
+
+class TestReleaseVersion(unittest.TestCase):
+    def test_strips_v(self):
+        prov, unresolved = {}, []
+        self.assertEqual(gen_candidate._release_version({"tag": "v1.2.3"}, prov, unresolved), "1.2.3")
+        self.assertEqual(prov["version"], "release tag v1.2.3")
+        self.assertEqual(unresolved, [])
+
+    def test_no_release(self):
+        prov, unresolved = {}, []
+        self.assertEqual(gen_candidate._release_version(None, prov, unresolved), "")
+        self.assertTrue(any("no releases" in u for u in unresolved))
+
+
+class TestProvenanceHelpers(unittest.TestCase):
+    def test_owner_override(self):
+        prov, unresolved = {}, []
+        gen_candidate._owner_provenance({"owner": "real"}, "cli-owner", prov, unresolved)
+        self.assertIn("CLI override", prov["owner"])
+        self.assertEqual(unresolved, [])
+
+    def test_owner_from_facts(self):
+        prov, unresolved = {}, []
+        gen_candidate._owner_provenance({"owner": "real"}, None, prov, unresolved)
+        self.assertEqual(prov["owner"], "github repo owner")
+        self.assertEqual(unresolved, [])
+
+    def test_owner_unresolved(self):
+        prov, unresolved = {}, []
+        gen_candidate._owner_provenance({}, None, prov, unresolved)
+        self.assertTrue(any("owner" in u for u in unresolved))
+
+    def test_nu_version_override(self):
+        prov, warnings = {}, []
+        gen_candidate._nu_version_provenance({"nu_constraint_hint": ">=0.1"}, ">=0.2", prov, warnings)
+        self.assertIn("CLI override", prov["nu_version"])
+        self.assertEqual(warnings, [])
+
+    def test_nu_version_from_facts(self):
+        prov, warnings = {}, []
+        gen_candidate._nu_version_provenance({"nu_constraint_hint": ">=0.1"}, None, prov, warnings)
+        self.assertEqual(prov["nu_version"], "Cargo.toml nu-plugin dependency version")
+        self.assertEqual(warnings, [])
+
+    def test_nu_version_defaulted(self):
+        prov, warnings = {}, []
+        gen_candidate._nu_version_provenance({}, None, prov, warnings)
+        self.assertIn("defaulted", prov["nu_version"])
+        self.assertTrue(any("defaulted" in w for w in warnings))
+
+
+class TestArtifactHelpers(unittest.TestCase):
+    def test_binary_maps_targets(self):
+        release = {"tag": "v1", "assets": [{"name": "nu_plugin_emoji-x86_64-unknown-linux-gnu.tar.gz", "url": "u"}]}
+        art = gen_candidate._binary_artifact("nu_plugin_emoji", release, [], [])
+        self.assertEqual(art["kind"], "binary")
+        self.assertIn("x86_64-unknown-linux-gnu", art["targets"])
+        self.assertEqual(art["targets"]["x86_64-unknown-linux-gnu"]["executable_path"], "nu_plugin_emoji")
+
+    def test_binary_skips_unmapped(self):
+        release = {"tag": "v1", "assets": [{"name": "foo-source.tar.gz", "url": "u"}]}
+        warnings, unresolved = [], []
+        art = gen_candidate._binary_artifact("p", release, warnings, unresolved)
+        self.assertEqual(art["targets"], {})
+        self.assertTrue(any("unmapped assets" in w for w in warnings))
+        self.assertTrue(any("no release assets matched" in u for u in unresolved))
+
+    def test_archive_takes_first_asset(self):
+        release = {"tag": "v1", "assets": [{"name": "a.zip", "url": "https://x/a.zip"}]}
+        prov, unresolved = {}, []
+        art = gen_candidate._archive_artifact(release, prov, unresolved)
+        self.assertEqual(art["kind"], "archive")
+        self.assertEqual(art["url"], "https://x/a.zip")
+        self.assertEqual(art["entry"], "mod.nu")
+        self.assertIn("artifact_url", prov)
+        self.assertEqual(unresolved, [])
+
+    def test_archive_no_asset(self):
+        prov, unresolved = {}, []
+        art = gen_candidate._archive_artifact(None, prov, unresolved)
+        self.assertEqual(art["url"], "")
+        self.assertTrue(any("no archive URL" in u for u in unresolved))
+
+
+class TestDefaultSpecBase(unittest.TestCase):
+    def test_fields(self):
+        base = gen_candidate._default_spec_base("o", "n", "d", "https://r", "plugin", "1.0.0", ">=0.114")
+        self.assertEqual(base["owner"], "o")
+        self.assertEqual(base["name"], "n")
+        self.assertEqual(base["version"], "1.0.0")
+        self.assertEqual(base["tags"], ["plugin", "ci-built"])
+
+    def test_owner_todo_and_version_default(self):
+        base = gen_candidate._default_spec_base(None, "n", "d", "", "plugin", "", "*")
+        self.assertEqual(base["owner"], "TODO")
+        self.assertEqual(base["version"], "0.0.0")
+
+
 class TestGenerateSpecIncomplete(unittest.TestCase):
     def test_no_releases(self):
         report = _plugin_report()
@@ -154,6 +264,19 @@ class TestGenerateSpecIncomplete(unittest.TestCase):
         result = gen_candidate.generate_spec(report)
         self.assertEqual(result["spec"]["owner"], "TODO")
         self.assertTrue(any("owner" in u for u in result["_meta"]["unresolved"]))
+
+    def test_unsupported_package_type(self):
+        report = _plugin_report()
+        report["facts"]["package_type"] = "binary"
+        report["guesses"]["registry_type"] = None
+        result = gen_candidate.generate_spec(report)
+        self.assertTrue(any("unsupported package_type" in u for u in result["_meta"]["unresolved"]))
+
+    def test_repo_url_fallback(self):
+        report = _plugin_report()
+        report["source"]["url"] = ""
+        result = gen_candidate.generate_spec(report)
+        self.assertEqual(result["spec"]["repo"], "https://github.com/fdncred/nu_plugin_emoji")
 
 
 if __name__ == "__main__":
