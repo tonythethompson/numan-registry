@@ -11,9 +11,9 @@ Copy-paste ready: each draft is written for its repo, not from a shared template
 | [nushell-prophet/numd](https://github.com/nushell-prophet/numd) | Release zip assets for dotnu + numd | Filed [#115](https://github.com/nushell-prophet/numd/issues/115): await / use [12](12-nushell-prophet-numd-nudge.md) |
 | [nushell/nu_scripts](https://github.com/nushell/nu_scripts) | Release artifacts for nu-hooks / custom-completions | Filed [#1266](https://github.com/nushell/nu_scripts/issues/1266): zips declined; use [11](11-nushell-nu-scripts-followup-org.md) |
 
-## Wave 3 + plugin backlog (drafts, not filed)
+## Wave 3 + plugin backlog
 
-Stagger **one contact per week**. Prefer filing after the matching package is mirrored (or clearly scheduled) so the issue can cite a live/planned registry id.
+Drafts 05–10 are pending; **11–12 are already posted** (see table). Stagger **one contact per week**. Prefer filing after the matching package is mirrored (or clearly scheduled) so the issue can cite a live/planned registry id.
 
 | # | Repo | Ask | Draft | When to file |
 | --- | ------ | ----- | ------- | -------------- |

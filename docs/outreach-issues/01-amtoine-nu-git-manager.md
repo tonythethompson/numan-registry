@@ -2,7 +2,7 @@ Hi. I'm adding NGM to the [Numan](https://github.com/tonythethompson/numan) regi
 
 You're already listed in the [nupm registry](https://github.com/nushell/nupm) with git pins on `pkgs/nu-git-manager`. For Numan I need something with stable bytes per tag, so right now I'm hosting a mirror of **0.8.0** myself (`pkgs/nu-git-manager/` zipped as `nu-git-manager-0.8.0.zip`).
 
-The awkward part is GitHub's tag archive URLs (`/archive/refs/tags/0.8.0.zip` and friends) aren't something I'd trust to stay byte-identical forever. GitHub has changed how those archives are built before, and hash-pinned installs break silently when the bytes drift.
+The awkward part is GitHub's tag archive URLs (`/archive/refs/tags/0.8.0.zip` and friends) aren't something I'd trust to stay byte-identical forever. GitHub has changed how those archives are built before, and hash-pinned installs fail integrity checks when the bytes drift.
 
 Would you be open to attaching a small release zip on future tags? Something like:
 
