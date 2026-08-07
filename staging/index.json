@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-07T06:37:50Z",
+  "updated_at": "2026-08-07T07:35:48Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -146,14 +146,13 @@
         "owner": "SuaveIV",
         "name": "nu_plugin_audio"
       },
-      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Partial catalog support: Windows and Linux aarch64 only; supported upstream macOS and x86_64-linux .tar.xz targets are pending intake and lifecycle evidence.",
+      "description": "Nushell plugin for generating tones, reading/writing audio metadata, and playing audio files. Upstream v0.2.10 (Nu 0.114.1): Windows zip, Linux aarch64 tar.gz, and macOS/Linux x86_64 tar.xz (nested cargo-dist layout).",
       "repo": "https://github.com/SuaveIV/nu_plugin_audio",
       "type": "plugin",
       "tags": [
         "plugin",
         "audio",
-        "linux-aarch64-only",
-        "partial-platform"
+        "full-platform"
       ],
       "versions": [
         {
@@ -174,6 +173,43 @@
                 "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.8/nu_plugin_audio-v0.2.8-aarch64-unknown-linux-gnu.tar.gz",
                 "sha256": "61b70acd249d71f8e87163f1be830628ad1342ae2ec180c36006f819207504f0",
                 "executable_path": "nu_plugin_audio"
+              }
+            }
+          }
+        },
+        {
+          "version": "0.2.10",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "verified_with": [
+            "0.114.1"
+          ],
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-pc-windows-msvc.zip",
+                "sha256": "ed09e8e815ca6ec16acce0ae82c5fb96d4c71272a9d7771102e2fade07abb1a1",
+                "executable_path": "nu_plugin_audio.exe"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-v0.2.10-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "b9e8f35d03f2a1456bf0efcca70a46ea352ef24c96a57c112316f095cc798028",
+                "executable_path": "nu_plugin_audio"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-unknown-linux-gnu.tar.xz",
+                "sha256": "82bc7b7aef441b1dc90c5e000f4cee61129da1ef962a5e3e04174d1873549336",
+                "executable_path": "nu_plugin_audio-x86_64-unknown-linux-gnu/nu_plugin_audio"
+              },
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-aarch64-apple-darwin.tar.xz",
+                "sha256": "a33556368843c794575965077924b2b43b2c4e6689ac32a8a34646eb65a62616",
+                "executable_path": "nu_plugin_audio-aarch64-apple-darwin/nu_plugin_audio"
+              },
+              "x86_64-apple-darwin": {
+                "url": "https://github.com/SuaveIV/nu_plugin_audio/releases/download/v0.2.10/nu_plugin_audio-x86_64-apple-darwin.tar.xz",
+                "sha256": "b8ab95e1929096f2954322cfc069b2606236f83e63d00132d21a955a39f60d89",
+                "executable_path": "nu_plugin_audio-x86_64-apple-darwin/nu_plugin_audio"
               }
             }
           }
