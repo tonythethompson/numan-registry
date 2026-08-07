@@ -187,6 +187,9 @@ When a maintainer says yes, PR should include:
 | nushell/nu_scripts (nu-hooks) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
 | nushell/nu_scripts (custom-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
 | SuaveIV/nu_script_wttr |  |  |  |  | mirror only |
+| SuaveIV/nu_script_gh_status |  |  |  |  | mirror only |
+| SuaveIV/nu_script_hnews |  |  |  |  | mirror only |
+| Sanceilaks/nufetch |  |  |  |  | mirror only |
 | amtoine/nu-git-manager-sugar | blocked (repo archived (read-only); cannot open issues or comments) |  |  |  | mirror only |
 | nushell/nu_scripts (git-completions) | [#1266](https://github.com/nushell/nu_scripts/issues/1266) | 2026-07-06 | yes (2026-07-08) |  | mirror only |
 

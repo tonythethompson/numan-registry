@@ -1,0 +1,17 @@
+{
+  "owner": "SuaveIV",
+  "name": "nu_script_hnews",
+  "description": "Browse Hacker News from Nushell. Registry-hosted mirror of upstream commit 6cd8aef. Install-only: script activation is deferred in Numan.",
+  "repo": "https://github.com/SuaveIV/nu_script_hnews",
+  "type": "script",
+  "tags": ["script", "news", "mirror", "install-only"],
+  "version": "0.1.0-6cd8aef",
+  "nu_version": "*",
+  "verified_with": ["0.113.1"],
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-SuaveIV-nu_script_hnews-6cd8aef/nu_script_hnews-6cd8aef.zip",
+    "entry": "hnews.nu",
+    "archive_root": "nu_script_hnews-6cd8aef"
+  }
+}

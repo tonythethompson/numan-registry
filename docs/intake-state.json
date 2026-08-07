@@ -408,6 +408,39 @@
       "spec": "specs/SuaveIV-nu_script_wttr-0.1.0-main.json"
     },
     {
+      "id": "SuaveIV/nu_script_gh_status",
+      "name": "nu_script_gh_status",
+      "owner": "SuaveIV",
+      "type": "script",
+      "version": "0.1.0-81756dc",
+      "source": "commit 81756dcd71a75e27b80def9730cb57d52a2383fe",
+      "note": "install-only; Wave 3A",
+      "repo": "https://github.com/SuaveIV/nu_script_gh_status",
+      "spec": "specs/SuaveIV-nu_script_gh_status-0.1.0-81756dc.json"
+    },
+    {
+      "id": "SuaveIV/nu_script_hnews",
+      "name": "nu_script_hnews",
+      "owner": "SuaveIV",
+      "type": "script",
+      "version": "0.1.0-6cd8aef",
+      "source": "commit 6cd8aef809789da9c4f6033195181fd86d690835",
+      "note": "install-only; Wave 3A",
+      "repo": "https://github.com/SuaveIV/nu_script_hnews",
+      "spec": "specs/SuaveIV-nu_script_hnews-0.1.0-6cd8aef.json"
+    },
+    {
+      "id": "Sanceilaks/nufetch",
+      "name": "nufetch",
+      "owner": "Sanceilaks",
+      "type": "script",
+      "version": "0.1.0-15e0645",
+      "source": "commit 15e0645a489f538e582fa09d6deda047e710185e",
+      "note": "install-only; Wave 3A; upstream has no LICENSE at pin",
+      "repo": "https://github.com/Sanceilaks/nufetch",
+      "spec": "specs/Sanceilaks-nufetch-0.1.0-15e0645.json"
+    },
+    {
       "id": "amtoine/nu-git-manager-sugar",
       "name": "nu-git-manager-sugar",
       "owner": "amtoine",
@@ -471,6 +504,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-08-06",
+      "change": "Wave 3A scripts: SuaveIV/nu_script_gh_status@0.1.0-81756dc, SuaveIV/nu_script_hnews@0.1.0-6cd8aef, Sanceilaks/nufetch@0.1.0-15e0645 (install-only mirrors)."
+    },
     {
       "date": "2026-08-05",
       "change": "Wave 2 intake: jwalk 0.26.0, strutils 0.22.0, query_git 0.24.0, ulid 0.23.0, nutext 0.6.2 (numan-plugins run 30985049217)."
