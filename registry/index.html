@@ -435,12 +435,7 @@
       }
 
       table.packages thead {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
+        display: none;
       }
 
       table.packages tr.group td {
@@ -633,11 +628,6 @@
         return d.toISOString().slice(0, 10);
       }
 
-      function typeRank(type) {
-        var idx = TYPE_ORDER.indexOf(type);
-        return idx === -1 ? TYPE_ORDER.length : idx;
-      }
-
       function typeLabel(type) {
         return TYPE_LABELS[type] || (type ? type.charAt(0).toUpperCase() + type.slice(1) + "s" : "Other");
       }
@@ -665,8 +655,9 @@
 
       function constraintMatches(constraint, version) {
         if (!constraint || !version) return false;
-        if (String(constraint).trim() === "*") return true;
-        var tokens = String(constraint).trim().split(/\s+/);
+        var normalizedConstraint = String(constraint).trim();
+        if (normalizedConstraint === "*") return true;
+        var tokens = normalizedConstraint.split(/\s+/);
         for (var i = 0; i < tokens.length; i++) {
           var token = tokens[i];
           var m = token.match(/^(>=|<=|>|<|=)?(.+)$/);
@@ -812,12 +803,15 @@
         if (typeParts.length) bits.push(typeParts.join(" · "));
         if (updatedLabel) bits.push("updated " + updatedLabel);
         if (visible.length !== total || activeType !== "all" || (searchEl.value || "").trim()) {
-          bits.push("showing " + visible.length);
+          var renderedCount = visible.filter(function (row) {
+            return !collapsed[row.type];
+          }).length;
+          bits.push("showing " + renderedCount);
         }
         var nuQuery = (nuEl.value || "").trim();
         if (isValidNuVersion(nuQuery)) {
           var matches = visible.filter(function (row) {
-            return constraintMatches(row.nu, nuQuery);
+            return !collapsed[row.type] && constraintMatches(row.nu, nuQuery);
           }).length;
           bits.push(matches + " match Nu " + nuQuery);
         }
@@ -833,13 +827,7 @@
         });
       }
 
-      var controller = window.AbortController ? new AbortController() : null;
-      if (controller) setTimeout(function () { controller.abort(); }, 15000);
-
-      fetch("./index.json", {
-        credentials: "same-origin",
-        signal: controller ? controller.signal : undefined
-      })
+      fetch("./index.json", { credentials: "same-origin" })
         .then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
@@ -854,19 +842,20 @@
             var nu = latest && latest.nu_version ? latest.nu_version : "n/a";
             var type = pkg.type || "other";
             var id = owner + "/" + name;
-            var description = pkg.description || "";
-            var tags = Array.isArray(pkg.tags) ? pkg.tags.join(" ") : "";
             return {
               id: id,
               type: type,
               version: version,
               nu: nu,
-              search: [id, type, version, nu, description, tags].join(" ").toLowerCase()
+              search: [id, type, version, nu].join(" ").toLowerCase()
             };
           });
 
           catalogRows.sort(function (a, b) {
-            var tr = typeRank(a.type) - typeRank(b.type);
+            var aTypeIndex = TYPE_ORDER.indexOf(a.type);
+            var bTypeIndex = TYPE_ORDER.indexOf(b.type);
+            var tr = (aTypeIndex === -1 ? TYPE_ORDER.length : aTypeIndex) -
+              (bTypeIndex === -1 ? TYPE_ORDER.length : bTypeIndex);
             if (tr !== 0) return tr;
             if (a.id === b.id) return 0;
             return a.id < b.id ? -1 : 1;
