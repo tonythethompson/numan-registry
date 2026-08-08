@@ -4,11 +4,17 @@ Use this file when reviewing pull requests (human or automated). [`AGENTS.md`](A
 
 ## CI gates (must pass)
 
-- `python3 scripts/scan_for_secrets.py`
-- `python3 scripts/preflight.py`
-- `python3 scripts/validate.py --index registry/index.json --sig registry/index.json.sig --pub keys/official.pub` (add `--skip-artifacts` when offline)
+Use `python` (matches CI / Windows). From a clean checkout the index signature is an
+intentional `PLACEHOLDER`, so unsigned validation is the local gate; full
+signature verify requires a staging ephemeral sign or production deploy (do not
+overwrite the committed placeholder).
+
+- `python scripts/scan_for_secrets.py`
+- `python scripts/preflight.py`
+- `python scripts/validate.py --index registry/index.json --schema schemas/index-v1.json --skip-signature` (add `--skip-artifacts` when offline)
+- Signature path: ephemeral sign via `scripts/ci-sign.py` (as in staging), then `python scripts/validate.py --index registry/index.json --sig PATH/TO/temp.sig --pub PATH/TO/temp.pub --schema schemas/index-v1.json`
 - `cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json`
-- For CI-built plugins: `python3 scripts/lint-manifest-index.py --index registry/index.json --manifest <numan-plugins/manifest.json>`
+- For CI-built plugins (sibling checkout): `python scripts/lint-manifest-index.py --index registry/index.json --manifest numan-plugins/manifest.json`
 - Script unit tests: `python -m unittest discover -s scripts -p "test_*.py" -v` (see `.github/workflows/repo-safety.yml`)
 
 ## Severity labels
