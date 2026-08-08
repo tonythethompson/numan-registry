@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import operator
 import re
 
 EXACT_NU_VERSION = re.compile(
@@ -12,6 +13,14 @@ COMPARATOR = re.compile(r"^(>=|<=|>|<|=)(.+)$")
 MINOR_WILDCARD = re.compile(
     r"^=?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(?:x|X|\*)$"
 )
+
+_COMPARATOR_OPS = {
+    ">=": operator.ge,
+    ">": operator.gt,
+    "<=": operator.le,
+    "<": operator.lt,
+    "=": operator.eq,
+}
 
 
 def parse_exact_nu_version(value: str) -> tuple[int, int, int]:
@@ -32,6 +41,39 @@ def parse_exact_nu_version(value: str) -> tuple[int, int, int]:
             f"{value!r} is not an exact Nu version (expected MAJOR.MINOR.PATCH)"
         )
     return tuple(int(part) for part in value.split("."))
+
+
+def _matches_minor_wildcard(candidate: tuple[int, int, int], token: str) -> bool:
+    wildcard = MINOR_WILDCARD.fullmatch(token)
+    if wildcard is None:
+        raise ValueError(f"{token!r} is not a minor-wildcard constraint")
+    return candidate[:2] == tuple(int(part) for part in wildcard.groups())
+
+
+def _matches_exact(candidate: tuple[int, int, int], token: str) -> bool:
+    return candidate == parse_exact_nu_version(token)
+
+
+def _matches_comparator(candidate: tuple[int, int, int], op: str,
+                        required_text: str) -> bool:
+    required = parse_exact_nu_version(required_text)
+    return _COMPARATOR_OPS[op](candidate, required)
+
+
+def _token_matches(candidate: tuple[int, int, int], token: str) -> bool:
+    """Return whether candidate satisfies a single constraint token.
+
+    Dispatch order matters: the minor wildcard is checked before the
+    comparator so a token like ``=0.114.x`` routes to the wildcard path
+    (with its optional ``=`` prefix) rather than COMPARATOR's ``=``.
+    """
+    if MINOR_WILDCARD.fullmatch(token) is not None:
+        return _matches_minor_wildcard(candidate, token)
+    comparator = COMPARATOR.fullmatch(token)
+    if comparator is not None:
+        op, required_text = comparator.groups()
+        return _matches_comparator(candidate, op, required_text)
+    return _matches_exact(candidate, token)
 
 
 def matches_nu_constraint(version: str, constraint: str) -> bool:
@@ -55,30 +97,7 @@ def matches_nu_constraint(version: str, constraint: str) -> bool:
         raise ValueError("nu_version constraint must be a non-empty string")
 
     for token in constraint.split():
-        wildcard = MINOR_WILDCARD.fullmatch(token)
-        if wildcard is not None:
-            if candidate[:2] != tuple(int(part) for part in wildcard.groups()):
-                return False
-            continue
-
-        comparator = COMPARATOR.fullmatch(token)
-        if comparator is None:
-            required = parse_exact_nu_version(token)
-            if candidate != required:
-                return False
-            continue
-
-        operator, required_text = comparator.groups()
-        required = parse_exact_nu_version(required_text)
-        if operator == ">=" and not candidate >= required:
-            return False
-        if operator == ">" and not candidate > required:
-            return False
-        if operator == "<=" and not candidate <= required:
-            return False
-        if operator == "<" and not candidate < required:
-            return False
-        if operator == "=" and not candidate == required:
+        if not _token_matches(candidate, token):
             return False
     return True
 

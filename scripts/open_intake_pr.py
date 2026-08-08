@@ -26,6 +26,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from gh_helpers import gh_json, gh_run
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO_ROOT / "scripts"
 SPECS_DIR = REPO_ROOT / "specs"
@@ -168,7 +170,7 @@ def _cleanup_intake_branch(branch: str, original_branch: str,
 
 
 def _update_intake_state(owner: str, name: str, version: str, pkg_type: str,
-                         spec_path: str, repo: str, dry_run: bool) -> None:
+                         spec_path: str, repo: str, *, dry_run: bool) -> None:
     """Append or refresh an entry in docs/intake-state.json ready[]."""
     if dry_run:
         print(f"  [dry-run] would update {INTAKE_STATE_PATH}", file=sys.stderr)
@@ -260,24 +262,211 @@ def _generate_pr_body(spec: dict, evidence: dict) -> str:
     return "\n".join(lines)
 
 
-def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) -> None:
-    """Main orchestration: assemble and optionally open the PR."""
-    dry_run = not push
-
-    # Load inputs
+def _load_inputs(spec_path: Path, evidence_path: Path) -> tuple[dict, dict, dict]:
+    """Load and unwrap the spec (dropping the {spec, _meta} wrapper) and evidence."""
     spec_data = json.loads(spec_path.read_text(encoding="utf-8"))
     if "spec" in spec_data and "_meta" in spec_data:
         spec = spec_data["spec"]
     else:
         spec = spec_data
-
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    return spec_data, spec, evidence
 
-    # Gate: refuse to open a PR if validation did not pass
+
+def _guard_evidence(evidence: dict) -> None:
+    """Refuse to proceed when validation evidence did not pass."""
     if evidence.get("overall") not in ("pass", "partial"):
         print(f"error: evidence overall is '{evidence.get('overall')}'; "
               "refusing to open PR for a failing candidate", file=sys.stderr)
         sys.exit(1)
+
+
+def _print_intake_header(owner: str, name: str, version: str, branch: str,
+                         spec_filename: str, *, dry_run: bool) -> None:
+    """Print the intake summary banner."""
+    print(f"Intake: {owner}/{name} v{version}", file=sys.stderr)
+    print(f"  Branch: {branch}", file=sys.stderr)
+    print(f"  Spec:   specs/{spec_filename}", file=sys.stderr)
+    if dry_run:
+        print("  Mode:   DRY RUN (no mutations)", file=sys.stderr)
+    print("", file=sys.stderr)
+
+
+def _prepare_push_branch() -> str:
+    """Return the current branch for cleanup, refusing dirty/detached worktrees."""
+    if _is_worktree_dirty():
+        print(
+            "error: refusing to create intake branch with a dirty worktree; "
+            "commit or stash changes first",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    branch = _current_branch()
+    if not branch:
+        print(
+            "error: refusing to create intake branch from a detached HEAD; "
+            "check out a branch first",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return branch
+
+
+def _stage_create_branch(branch: str, *, dry_run: bool) -> None:
+    """Create the intake branch before any tracked files are mutated."""
+    if dry_run:
+        print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
+    else:
+        _run(["git", "checkout", "-b", branch])
+
+
+def _stage_copy_spec(dest_spec: Path, spec_data: dict, spec_filename: str, *, dry_run: bool) -> None:
+    """Copy the spec (with _meta provenance) to specs/."""
+    if dry_run:
+        print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
+    else:
+        dest_spec.write_text(
+            json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+
+
+def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str, *, dry_run: bool) -> None:
+    """Run add-package.py --write with an unwrapped spec copy.
+
+    add-package.py expects bare spec fields (owner, name, …) at the top level,
+    not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
+    and remove it even if add-package.py fails.
+    """
+    if dry_run:
+        effective_spec_for_add = spec_path
+        bare_tmp_dir: Path | None = None
+    else:
+        bare_tmp_dir = Path(tempfile.mkdtemp(prefix="intake-bare-"))
+        effective_spec_for_add = bare_tmp_dir / spec_filename
+        effective_spec_for_add.write_text(
+            json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    try:
+        _run(
+            [sys.executable, str(SCRIPTS / "add-package.py"),
+             "--spec", str(effective_spec_for_add),
+             "--write", "--index", str(INDEX_PATH), "--provisional"],
+            dry_run=dry_run,
+        )
+    finally:
+        if bare_tmp_dir is not None:
+            shutil.rmtree(bare_tmp_dir, ignore_errors=True)
+
+
+def _stage_lint_and_validate(*, dry_run: bool) -> None:
+    """Run the Stage 2 lint + schema validation gates."""
+    _run(
+        [sys.executable, str(SCRIPTS / "lint_packages.py"), "--index", str(INDEX_PATH)],
+        dry_run=dry_run,
+    )
+    _run(
+        [sys.executable, str(SCRIPTS / "validate.py"),
+         "--index", str(INDEX_PATH),
+         "--skip-signature", "--skip-artifacts", "--allow-provisional-lifecycle"],
+        dry_run=dry_run,
+    )
+
+
+def _stage_refresh_docs(*, dry_run: bool) -> None:
+    """Refresh docs/intake-candidates.md (best-effort)."""
+    _run(
+        [sys.executable, str(SCRIPTS / "sync-intake-candidates.py")],
+        dry_run=dry_run,
+        check=False,
+    )
+
+
+def _stage_commit_and_push(owner: str, name: str, version: str, branch: str,
+                           dest_spec: Path, *, dry_run: bool) -> None:
+    """Commit the intake and push the branch (or print what would happen)."""
+    add_paths = [
+        str(dest_spec),
+        str(INDEX_PATH),
+        str(INTAKE_STATE_PATH),
+        str(REPO_ROOT / "docs" / "intake-candidates.md"),
+    ]
+    if dry_run:
+        print(f"  [dry-run] would: git add {' '.join(add_paths)}", file=sys.stderr)
+        print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
+        print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
+    else:
+        _run(["git", "add", *add_paths])
+        _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
+        _run(["git", "push", "origin", branch])
+
+
+def _reconcile_failed_pr_create(owner: str, name: str, version: str) -> None:
+    """Reconcile the pushed intake branch after a failed ``gh pr create``.
+
+    _stage_commit_and_push pushed ``intake/...`` before this runs, so a failed
+    gh pr create would otherwise leave an orphaned remote branch. Look the
+    branch up in the PR list: if a PR exists (created before a timeout, or a
+    re-run of the same intake), keep the branch and report the URL; if we can
+    prove no PR exists, delete the remote ref. When the existence check itself
+    fails, keep the branch and tell the operator — never delete on an unknown
+    state, because a just-created PR would lose its head branch.
+    """
+    branch = _branch_name(owner, name, version)
+    existing = gh_json([
+        "pr", "list", "--head", branch, "--state", "all", "--json", "number,url",
+    ])
+    if isinstance(existing, list) and existing:
+        entry = existing[0]
+        url = entry.get("url") if isinstance(entry, dict) else None
+        if url:
+            print(f"warning: PR for '{branch}' may already exist: {url}; "
+                  f"remote branch kept", file=sys.stderr)
+        else:
+            print(f"warning: PR for '{branch}' may already exist (URL unavailable); "
+                  f"remote branch kept — check the PR list manually", file=sys.stderr)
+        return
+    if not isinstance(existing, list):
+        print(f"warning: could not confirm whether a PR exists for '{branch}'; "
+              f"remote branch kept — check manually", file=sys.stderr)
+        return
+    print(f"warning: no PR exists for pushed branch '{branch}'; deleting remote ref", file=sys.stderr)
+    delete_result = _run(["git", "push", "origin", "--delete", branch], check=False)
+    if delete_result is not None and delete_result.returncode != 0:
+        print(f"warning: could not delete remote branch '{branch}': "
+              f"{delete_result.stderr.strip()}", file=sys.stderr)
+
+
+def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
+                   evidence: dict, *, dry_run: bool) -> None:
+    """Open the intake PR with a generated body (or print a preview)."""
+    pr_body = _generate_pr_body(spec, evidence)
+    if dry_run:
+        print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
+        print("\n--- PR body preview ---", file=sys.stderr)
+        print(pr_body, file=sys.stderr)
+    else:
+        # gh pr create is mutating, so unlike the fail-soft gh_json/gh_text
+        # paths it must fail closed: any non-zero exit aborts the intake.
+        result = gh_run([
+            "pr", "create",
+            "--title", f"Intake: {owner}/{name} v{version}",
+            "--body", pr_body,
+            "--base", "main",
+        ])
+        if result is None or result.returncode != 0:
+            _reconcile_failed_pr_create(owner, name, version)
+            print("error: gh pr create failed", file=sys.stderr)
+            if result is not None and result.stderr:
+                print(result.stderr, file=sys.stderr)
+            sys.exit(1)
+
+
+def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) -> None:
+    """Main orchestration: assemble and optionally open the PR."""
+    dry_run = not push
+
+    spec_data, spec, evidence = _load_inputs(spec_path, evidence_path)
+    _guard_evidence(evidence)
 
     owner = spec.get("owner", "unknown")
     name = spec.get("name", "unknown")
@@ -296,107 +485,24 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         INTAKE_STATE_PATH.with_suffix(INTAKE_STATE_PATH.suffix + ".bak"),
     ]
 
-    print(f"Intake: {owner}/{name} v{version}", file=sys.stderr)
-    print(f"  Branch: {branch}", file=sys.stderr)
-    print(f"  Spec:   specs/{spec_filename}", file=sys.stderr)
-    if dry_run:
-        print("  Mode:   DRY RUN (no mutations)", file=sys.stderr)
-    print("", file=sys.stderr)
+    _print_intake_header(owner, name, version, branch, spec_filename, dry_run=dry_run)
 
     original_branch: str | None = None
     if push:
-        if _is_worktree_dirty():
-            print(
-                "error: refusing to create intake branch with a dirty worktree; "
-                "commit or stash changes first",
-                file=sys.stderr,
-            )
-            sys.exit(1)
-        original_branch = _current_branch()
+        original_branch = _prepare_push_branch()
 
     try:
-        # Create the branch before any tracked files are mutated.
-        if dry_run:
-            print(f"  [dry-run] would: git checkout -b {branch}", file=sys.stderr)
-        else:
-            _run(["git", "checkout", "-b", branch])
-
-        # Step 1: Copy spec to specs/ (preserve _meta provenance for reviewers)
-        if dry_run:
-            print(f"  [dry-run] would copy spec → specs/{spec_filename}", file=sys.stderr)
-        else:
-            dest_spec.write_text(json.dumps(spec_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-        # Step 2: Run add-package.py --write to merge into index.
-        # add-package.py expects bare spec fields (owner, name, …) at the top level,
-        # not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
-        # and remove it even if add-package.py fails.
-        if dry_run:
-            effective_spec_for_add = spec_path
-            bare_tmp_dir: Path | None = None
-        else:
-            bare_tmp_dir = Path(tempfile.mkdtemp(prefix="intake-bare-"))
-            effective_spec_for_add = bare_tmp_dir / spec_filename
-            effective_spec_for_add.write_text(
-                json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-            )
-        try:
-            _run(
-                [sys.executable, str(SCRIPTS / "add-package.py"),
-                 "--spec", str(effective_spec_for_add),
-                 "--write", "--index", str(INDEX_PATH), "--provisional"],
-                dry_run=dry_run,
-            )
-        finally:
-            if bare_tmp_dir is not None:
-                shutil.rmtree(bare_tmp_dir, ignore_errors=True)
-
-        # Step 3: Lint + validate gates
-        _run(
-            [sys.executable, str(SCRIPTS / "lint_packages.py"), "--index", str(INDEX_PATH)],
+        _stage_create_branch(branch, dry_run=dry_run)
+        _stage_copy_spec(dest_spec, spec_data, spec_filename, dry_run=dry_run)
+        _stage_merge_into_index(spec_path, spec, spec_filename, dry_run=dry_run)
+        _stage_lint_and_validate(dry_run=dry_run)
+        _update_intake_state(
+            owner, name, version, pkg_type, f"specs/{spec_filename}", repo,
             dry_run=dry_run,
         )
-        _run(
-            [sys.executable, str(SCRIPTS / "validate.py"),
-             "--index", str(INDEX_PATH),
-             "--skip-signature", "--skip-artifacts", "--allow-provisional-lifecycle"],
-            dry_run=dry_run,
-        )
-
-        # Step 4: Update intake-state.json
-        _update_intake_state(owner, name, version, pkg_type, f"specs/{spec_filename}", repo, dry_run)
-
-        # Step 5: Refresh intake-candidates doc
-        _run(
-            [sys.executable, str(SCRIPTS / "sync-intake-candidates.py")],
-            dry_run=dry_run,
-            check=False,
-        )
-
-        # Step 6: Commit and push
-        if dry_run:
-            print(f"  [dry-run] would: git add specs/{spec_filename} registry/index.json docs/", file=sys.stderr)
-            print(f"  [dry-run] would: git commit -m 'Intake {owner}/{name} v{version}'", file=sys.stderr)
-            print(f"  [dry-run] would: git push origin {branch}", file=sys.stderr)
-        else:
-            _run(["git", "add", str(dest_spec), str(INDEX_PATH), str(INTAKE_STATE_PATH),
-                  str(REPO_ROOT / "docs" / "intake-candidates.md")])
-            _run(["git", "commit", "-m", f"Intake {owner}/{name} v{version}"])
-            _run(["git", "push", "origin", branch])
-
-        # Step 7: Open PR
-        pr_body = _generate_pr_body(spec, evidence)
-        if dry_run:
-            print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
-            print("\n--- PR body preview ---", file=sys.stderr)
-            print(pr_body, file=sys.stderr)
-        else:
-            _run([
-                "gh", "pr", "create",
-                "--title", f"Intake: {owner}/{name} v{version}",
-                "--body", pr_body,
-                "--base", "main",
-            ])
+        _stage_refresh_docs(dry_run=dry_run)
+        _stage_commit_and_push(owner, name, version, branch, dest_spec, dry_run=dry_run)
+        _stage_open_pr(owner, name, version, spec, evidence, dry_run=dry_run)
     except BaseException:
         if push and original_branch is not None:
             _cleanup_intake_branch(branch, original_branch, mutated_paths)

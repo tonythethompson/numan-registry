@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import subprocess
 import tempfile
@@ -170,6 +172,225 @@ class TestUpdateIntakeState(unittest.TestCase):
             backup = json.loads(backup_path.read_text())
             self.assertEqual(backup["schema_version"], 1)
             self.assertEqual(backup["ready"], [])
+
+
+class TestStageHelpers(unittest.TestCase):
+    """Lock in behavior parity of the stage helpers extracted from open_intake_pr()."""
+
+    def _stderr_of(self, fn):
+        buf = io.StringIO()
+        with contextlib.redirect_stderr(buf):
+            fn()
+        return buf.getvalue()
+
+    def test_guard_evidence_passes_on_pass(self):
+        # Should not raise or exit for pass/partial.
+        open_intake_pr._guard_evidence({"overall": "pass"})
+        open_intake_pr._guard_evidence({"overall": "partial"})
+
+    def test_guard_evidence_exits_on_fail(self):
+        with self.assertRaises(SystemExit) as raised:
+            open_intake_pr._guard_evidence({"overall": "fail"})
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_stage_create_branch_dry_run_prints_and_skips_run(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            out = self._stderr_of(
+                lambda: open_intake_pr._stage_create_branch("intake/x", dry_run=True)
+            )
+        self.assertIn("[dry-run] would: git checkout -b intake/x", out)
+        run.assert_not_called()
+
+    def test_stage_create_branch_real_runs_git(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            open_intake_pr._stage_create_branch("intake/x", dry_run=False)
+        run.assert_called_once_with(["git", "checkout", "-b", "intake/x"])
+
+    def test_stage_merge_into_index_real_runs_add_package(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        with (
+            patch.object(open_intake_pr, "_run") as run,
+            tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp,
+            patch.object(open_intake_pr.tempfile, "mkdtemp", return_value=tmp),
+        ):
+            open_intake_pr._stage_merge_into_index(
+                Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json", dry_run=False
+            )
+        args, kwargs = run.call_args
+        self.assertIn("add-package.py", " ".join(args[0]))
+        self.assertIn("--spec", args[0])
+        self.assertIn("--write", args[0])
+        self.assertIn("--provisional", args[0])
+        self.assertFalse(kwargs["dry_run"])
+
+    def test_stage_commit_and_push_dry_run_prints_exact_lines(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            out = self._stderr_of(
+                lambda: open_intake_pr._stage_commit_and_push(
+                    "acme", "pkg", "1.0.0", "intake/acme-pkg-1.0.0",
+                    Path("specs/acme-pkg-1.0.0.json"), dry_run=True,
+                )
+            )
+        expected_add = " ".join(
+            [
+                str(Path("specs/acme-pkg-1.0.0.json")),
+                str(open_intake_pr.INDEX_PATH),
+                str(open_intake_pr.INTAKE_STATE_PATH),
+                str(open_intake_pr.REPO_ROOT / "docs" / "intake-candidates.md"),
+            ]
+        )
+        self.assertIn(f"[dry-run] would: git add {expected_add}", out)
+        self.assertIn("[dry-run] would: git commit -m 'Intake acme/pkg v1.0.0'", out)
+        self.assertIn("[dry-run] would: git push origin intake/acme-pkg-1.0.0", out)
+        run.assert_not_called()
+
+    def test_stage_commit_and_push_real_runs_git(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            open_intake_pr._stage_commit_and_push(
+                "acme", "pkg", "1.0.0", "intake/acme-pkg-1.0.0",
+                Path("specs/acme-pkg-1.0.0.json"), dry_run=False,
+            )
+        self.assertEqual(run.call_count, 3)
+        self.assertEqual(run.call_args_list[0].args[0][:2], ["git", "add"])
+        self.assertTrue(any("specs" in arg for arg in run.call_args_list[0].args[0]))
+        self.assertEqual(run.call_args_list[1].args[0][:2], ["git", "commit"])
+        self.assertEqual(run.call_args_list[2].args[0][:3], ["git", "push", "origin"])
+
+    def test_stage_open_pr_dry_run_prints_preview(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        with patch.object(open_intake_pr, "_run") as run:
+            out = self._stderr_of(
+                lambda: open_intake_pr._stage_open_pr(
+                    "acme", "pkg", "1.0.0", spec, evidence, dry_run=True
+                )
+            )
+        self.assertIn("[dry-run] would: gh pr create --title 'Intake: acme/pkg v1.0.0'", out)
+        self.assertIn("--- PR body preview ---", out)
+        self.assertIn("## Intake: acme/pkg v1.0.0", out)
+        run.assert_not_called()
+
+    def test_stage_open_pr_real_runs_gh(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        success = subprocess.CompletedProcess(
+            args=["gh", "pr", "create"], returncode=0, stdout="", stderr=""
+        )
+        with patch.object(open_intake_pr, "gh_run", return_value=success) as run:
+            open_intake_pr._stage_open_pr(
+                "acme", "pkg", "1.0.0", spec, evidence, dry_run=False
+            )
+        args, _kwargs = run.call_args
+        self.assertEqual(args[0][:2], ["pr", "create"])
+        self.assertIn("--body", args[0])
+        self.assertIn("--base", args[0])
+
+    def test_stage_open_pr_real_exits_when_gh_fails(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        failed = subprocess.CompletedProcess(
+            args=["gh", "pr", "create"], returncode=1, stdout="", stderr="boom"
+        )
+        with (
+            patch.object(open_intake_pr, "gh_run", return_value=failed),
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=None) as run,
+        ):
+            with self.assertRaises(SystemExit) as raised:
+                self._stderr_of(
+                    lambda: open_intake_pr._stage_open_pr(
+                        "acme", "pkg", "1.0.0", spec, evidence, dry_run=False
+                    )
+                )
+        self.assertEqual(raised.exception.code, 1)
+        # No PR existed for the pushed branch, so the orphaned remote ref is deleted.
+        delete_calls = [c.args[0] for c in run.call_args_list]
+        self.assertTrue(
+            any(c[:4] == ["git", "push", "origin", "--delete"] for c in delete_calls)
+        )
+
+    def test_print_intake_header_includes_dry_run_mode(self):
+        out = self._stderr_of(
+            lambda: open_intake_pr._print_intake_header(
+                "acme", "pkg", "1.0.0", "intake/acme-pkg-1.0.0",
+                "acme-pkg-1.0.0.json", dry_run=True,
+            )
+        )
+        self.assertIn("Intake: acme/pkg v1.0.0", out)
+        self.assertIn("  Branch: intake/acme-pkg-1.0.0", out)
+        self.assertIn("  Spec:   specs/acme-pkg-1.0.0.json", out)
+        self.assertIn("  Mode:   DRY RUN (no mutations)", out)
+
+
+class TestReconcileFailedPrCreate(TestStageHelpers):
+    """Lock in the remote-branch reconcile behavior after gh pr create fails."""
+
+    def test_pr_exists_keeps_remote_branch_and_reports_url(self):
+        with (
+            patch.object(
+                open_intake_pr, "gh_json",
+                return_value=[{"number": 99, "url": "https://github.com/o/r/pull/99"}],
+            ),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("https://github.com/o/r/pull/99", out)
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_no_pr_deletes_remote_branch(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=None) as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("deleting remote ref", out)
+        run.assert_called_once()
+        cmd = run.call_args.args[0]
+        self.assertEqual(cmd[:4], ["git", "push", "origin", "--delete"])
+        self.assertEqual(cmd[4], "intake/acme-pkg-1.0.0")
+
+    def test_unknown_pr_status_keeps_branch(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=None),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_pr_entry_without_url_keeps_branch_and_warns(self):
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[{"number": 99}]),
+            patch.object(open_intake_pr, "_run") as run,
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("URL unavailable", out)
+        self.assertIn("remote branch kept", out)
+        run.assert_not_called()
+
+    def test_delete_failure_reported_but_keeps_going(self):
+        failed_delete = subprocess.CompletedProcess(
+            args=["git", "push", "origin", "--delete", "intake/acme-pkg-1.0.0"],
+            returncode=1, stdout="", stderr="remote ref does not exist",
+        )
+        with (
+            patch.object(open_intake_pr, "gh_json", return_value=[]),
+            patch.object(open_intake_pr, "_run", return_value=failed_delete),
+        ):
+            out = self._stderr_of(
+                lambda: open_intake_pr._reconcile_failed_pr_create("acme", "pkg", "1.0.0")
+            )
+        self.assertIn("could not delete remote branch", out)
+        self.assertIn("remote ref does not exist", out)
 
 
 class TestGitSafetyHelpers(unittest.TestCase):

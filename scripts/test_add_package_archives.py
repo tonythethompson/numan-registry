@@ -63,15 +63,12 @@ class AddPackageArchiveTests(unittest.TestCase):
         """
         payload = b"deterministic archive bytes"
         url = f"https://example.invalid/package{suffix}"
-        with mock.patch.object(
-            self.mod.urllib.request,
-            "urlopen",
-            return_value=FakeResponse(payload),
-        ) as urlopen:
+        with mock.patch.object(self.mod, "http_opener") as http_opener:
+            http_opener.return_value.open.return_value = FakeResponse(payload)
             artifact = self.mod.build_artifact({"kind": "archive", "url": url})
         self.assertEqual(artifact["url"], url)
         self.assertEqual(artifact["sha256"], hashlib.sha256(payload).hexdigest())
-        urlopen.assert_called_once()
+        http_opener.assert_called_once()
 
     def test_accepts_tar_xz_and_hashes_download(self):
         self.assert_downloaded_archive(".tar.xz")
@@ -81,14 +78,25 @@ class AddPackageArchiveTests(unittest.TestCase):
 
     def test_rejects_unknown_suffix_before_download(self):
         with (
-            mock.patch.object(self.mod.urllib.request, "urlopen") as urlopen,
+            mock.patch.object(self.mod, "http_opener") as http_opener,
             self.assertRaises(SystemExit) as raised,
         ):
             self.mod.build_artifact(
                 {"kind": "archive", "url": "https://example.invalid/package.rar"}
             )
         self.assertEqual(raised.exception.code, 1)
-        urlopen.assert_not_called()
+        http_opener.assert_not_called()
+
+    def test_rejects_non_http_scheme_before_download(self):
+        with (
+            mock.patch.object(self.mod, "http_opener") as http_opener,
+            self.assertRaises(SystemExit) as raised,
+        ):
+            self.mod.build_artifact(
+                {"kind": "archive", "url": "file:///etc/passwd.tar.gz"}
+            )
+        self.assertEqual(raised.exception.code, 1)
+        http_opener.assert_not_called()
 
     def test_generated_intake_doc_uses_shared_archive_suffixes(self):
         self.assertEqual(

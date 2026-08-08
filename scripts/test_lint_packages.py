@@ -60,6 +60,285 @@ def base_package(**overrides):
     return pkg
 
 
+class TestValidateArtifactUrl(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_missing_url_binary_wording(self):
+        errors: list[str] = []
+        what = "target 'x86_64-unknown-linux-gnu'"
+        self.lint._validate_artifact_url(
+            "", errors, what=what, what_url=f"{what} url", label="p@1"
+        )
+        self.assertEqual(errors, ["p@1: target 'x86_64-unknown-linux-gnu' missing url"])
+
+    def test_missing_url_archive_wording(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(errors, ["p@1: archive artifact missing url"])
+
+    def test_unsupported_suffix_binary_wording(self):
+        errors: list[str] = []
+        what = "target 'x86_64-unknown-linux-gnu'"
+        self.lint._validate_artifact_url(
+            "https://x/a.rar", errors, what=what, what_url=f"{what} url", label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("target 'x86_64-unknown-linux-gnu' url has unsupported archive suffix", errors[0])
+
+    def test_unsupported_suffix_archive_wording(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "https://x/a.rar", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("archive url has unsupported archive suffix", errors[0])
+
+    def test_valid_url_no_error(self):
+        errors: list[str] = []
+        self.lint._validate_artifact_url(
+            "https://x/a.tar.gz", errors, what="archive artifact", what_url="archive url", label="p@1"
+        )
+        self.assertEqual(errors, [])
+
+
+class TestRecordSha256(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_malformed_binary_wording(self):
+        errors: list[str] = []
+        self.lint._record_sha256(
+            "zz", errors, seen_sha256={}, dedupe_key="p@1/x",
+            what="target 'x'", what_dup="target 'x'", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: target 'x' missing or malformed sha256 (expected 64 hex chars)"]
+        )
+
+    def test_malformed_archive_wording(self):
+        errors: list[str] = []
+        self.lint._record_sha256(
+            "zz", errors, seen_sha256={}, dedupe_key="p@1",
+            what="archive artifact", what_dup="archive", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: archive artifact missing or malformed sha256 (expected 64 hex chars)"]
+        )
+
+    def test_valid_records_dedupe(self):
+        errors: list[str] = []
+        seen: dict[str, str] = {}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/a",
+            what="target 'a'", what_dup="target 'a'", label="p@1",
+        )
+        self.assertEqual(errors, [])
+        self.assertEqual(seen, {"ab" * 32: "p@1/a"})
+
+    def test_duplicate_binary_wording(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@1/a"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/b",
+            what="target 'b'", what_dup="target 'b'", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: duplicate sha256 for target 'b' (also used by p@1/a)"]
+        )
+
+    def test_duplicate_archive_wording(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@0/other"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1",
+            what="archive artifact", what_dup="archive", label="p@1",
+        )
+        self.assertEqual(
+            errors, ["p@1: duplicate sha256 for archive (also used by p@0/other)"]
+        )
+
+    def test_same_dedupe_key_is_not_duplicate(self):
+        errors: list[str] = []
+        seen = {"ab" * 32: "p@1/a"}
+        self.lint._record_sha256(
+            "ab" * 32, errors, seen_sha256=seen, dedupe_key="p@1/a",
+            what="target 'a'", what_dup="target 'a'", label="p@1",
+        )
+        self.assertEqual(errors, [])
+
+
+class TestTagsClaimActivation(unittest.TestCase):
+    """Unit tests for the _tags_claim_activation helper."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_activatable_tag(self):
+        self.assertTrue(self.lint._tags_claim_activation(["module", "activatable"]))
+        self.assertTrue(self.lint._tags_claim_activation(["Activatable"]))
+
+    def test_no_activatable_tag(self):
+        self.assertFalse(self.lint._tags_claim_activation(["module"]))
+        self.assertFalse(self.lint._tags_claim_activation([]))
+
+    def test_non_list(self):
+        self.assertFalse(self.lint._tags_claim_activation(None))
+        self.assertFalse(self.lint._tags_claim_activation("activatable"))
+
+
+class TestLintActivation(unittest.TestCase):
+    """Unit tests for _lint_activation extracted from lint_activation_and_provenance()."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    @staticmethod
+    def _pkg(pkg_type, *, tags=None, activation=None) -> tuple[dict[str, object], dict[str, object]]:
+        pkg = {"type": pkg_type, "tags": tags if tags is not None else [pkg_type]}
+        version = {}
+        if activation is not None:
+            version["activation"] = activation
+        return pkg, version
+
+    def test_plugin_activation_ignored(self):
+        pkg, version = self._pkg("plugin", activation={"kind": "bogus"})
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+    def test_script_activation_ignored(self):
+        pkg, version = self._pkg("script", activation={"kind": "bogus"})
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+    def test_module_missing_activation_tagged_activatable(self):
+        pkg, version = self._pkg("module", tags=["module", "activatable"])
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertEqual(
+            errors, ["p@1: module tagged for activation is missing activation declaration"]
+        )
+
+    def test_module_missing_activation_not_tagged_ok(self):
+        pkg, version = self._pkg("module", tags=["module"])
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+    def test_module_missing_kind(self):
+        pkg, version = self._pkg("module", activation={"import": "all"})
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertIn("p@1: activation.kind is missing", errors)
+
+    def test_module_bad_import_mode(self):
+        pkg, version = self._pkg("module", activation={"kind": "nu-module", "import": "bogus"})
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertIn(
+            "p@1: activation.import must be 'module' or 'all', got 'bogus'", errors
+        )
+
+    def test_module_valid_activation_ok(self):
+        pkg, version = self._pkg("module", activation={"kind": "nu-module", "import": "all"})
+        errors: list[str] = []
+        self.lint._lint_activation(pkg, version, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+
+class TestLintSourceProvenance(unittest.TestCase):
+    """Unit tests for _lint_source_provenance extracted from lint_activation_and_provenance()."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_no_source_ok(self):
+        errors: list[str] = []
+        self.lint._lint_source_provenance({}, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+    def test_source_not_dict(self):
+        errors: list[str] = []
+        self.lint._lint_source_provenance({"source": "nope"}, errors, label="p@1")
+        self.assertEqual(errors, ["p@1: source must be an object when present"])
+
+    def test_missing_source_fields(self):
+        source = {"git": "", "rev": "  ", "cargo_name": None}
+        errors: list[str] = []
+        self.lint._lint_source_provenance({"source": source}, errors, label="p@1")
+        self.assertEqual(
+            errors,
+            [
+                "p@1: source.git is missing or empty",
+                "p@1: source.rev is missing or empty",
+                "p@1: source.cargo_name is missing or empty",
+            ],
+        )
+
+    def test_non_immutable_rev(self):
+        for rev in ("main", "MASTER", "Head"):
+            errors: list[str] = []
+            self.lint._lint_source_provenance(
+                {"source": {"git": "g", "rev": rev, "cargo_name": "c"}}, errors, label="p@1"
+            )
+            self.assertEqual(
+                errors,
+                [f"p@1: source.rev {rev!r} is not immutable provenance (use a tag or full commit)"],
+            )
+
+    def test_immutable_rev_ok(self):
+        for rev in ("v1.0.0", "abc123def456"):
+            errors: list[str] = []
+            self.lint._lint_source_provenance(
+                {"source": {"git": "g", "rev": rev, "cargo_name": "c"}}, errors, label="p@1"
+            )
+            self.assertEqual(errors, [])
+
+
+class TestLintActivationAndProvenance(unittest.TestCase):
+    """Locks that the orchestrator reports activation AND source errors together."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_both_error_sets_reported_for_one_version(self):
+        pkg = {
+            "id": {"owner": "acme", "name": "module"},
+            "type": "module",
+            "tags": ["module", "activatable"],
+        }
+        version = {
+            "version": "1.0.0",
+            "activation": {"import": "bogus"},
+            "source": {"git": "g", "rev": "main", "cargo_name": "c"},
+        }
+        errors: list[str] = []
+        self.lint.lint_activation_and_provenance(pkg, version, errors)
+        self.assertIn(
+            "acme/module@1.0.0: activation.import must be 'module' or 'all', got 'bogus'",
+            errors,
+        )
+        self.assertIn(
+            "acme/module@1.0.0: source.rev 'main' is not immutable provenance "
+            "(use a tag or full commit)",
+            errors,
+        )
+        self.assertIn("acme/module@1.0.0: activation.kind is missing", errors)
+        self.assertEqual(len(errors), 3)
+
+
 class LintPackagesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

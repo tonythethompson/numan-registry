@@ -200,15 +200,20 @@ When a maintainer says yes, PR should include:
 
 ---
 
-## Suggested schedule
+## Suggested schedule (next)
+
+Prior schedule (amtoine / bash-env / prophet / nu_scripts) is largely done or blocked. Wave 3A/3B install-only mirrors are live in the registry (2026-08-06/07); remaining Wave 3 outreach is optional courtesy zip asks, not a wait-for-mirror gate. For Wave 3 + deferred plugins, see also [`catalog-next-wave.md`](catalog-next-wave.md).
 
 | Week | Action |
 |------|--------|
-| 1 | `amtoine/nu-git-manager` issue (highest nupm visibility) |
-| 2 | `tesujimath/bash-env-nushell` issue |
-| 3 | `nushell-prophet` combined issue (dotnu + numd) |
-| 4 | `nushell/nu_scripts` policy issue (nu-hooks + completions) |
-| Ongoing | PR workflows only when invited; update `docs/intake-state.json` + run sync script |
+| 1 (done 2026-08-06) | Commented on [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266#issuecomment-5210338399) (org follow-up) and [numd#115](https://github.com/nushell-prophet/numd/issues/115#issuecomment-5210338541) (nudge) |
+| 2 | File SuaveIV suite courtesy issue ([05](outreach-issues/05-suaveiv-script-suite.md)); mirrors already live (`wttr`, `gh_status`, `hnews`) |
+| 3 | File nufetch ([06](outreach-issues/06-sanceilaks-nufetch.md)); mirror already live |
+| 4 | File git-aliases ([07](outreach-issues/07-kamilkleina-git-aliases.md)); mirror already live |
+| 5 | File clipboard Nu-bump ask ([08](outreach-issues/08-fmotalleb-clipboard-nu114.md)) |
+| 6 | File plot tag ask ([09](outreach-issues/09-euphrasiologist-plot-tag.md)) |
+| 7 | File compress Nu-bump ask ([10](outreach-issues/10-yybit-compress-nu-bump.md)) |
+| Ongoing | PR workflows only when invited; update `docs/intake-state.json` + run sync script; **one new contact per week** |
 
 ---
 

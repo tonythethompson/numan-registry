@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parent / "sync-intake-candidates.py"
 
@@ -152,6 +154,93 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         status = self.sync.package_status(entry, live, {}, {})
         self.assertTrue(status.startswith("live (mixed provenance)"))
         self.assertNotIn("registry mirror", status)
+
+    def test_live_status_none_when_not_in_index(self):
+        entry = {"id": "acme/nu_plugin_x", "version": "1.0.0"}
+        self.assertIsNone(self.sync._live_status(entry, {}))
+
+    def test_live_status_all_provenance_flavors(self):
+        live = {
+            "acme/a": {"version": "1.0.0", "mirror": False, "ci_built": False, "upstream_asset": True, "mixed": False},
+            "acme/b": {"version": "2.0.0", "mirror": True, "ci_built": False, "upstream_asset": False, "mixed": False},
+            "acme/c": {"version": "3.0.0", "mirror": False, "ci_built": True, "upstream_asset": False, "mixed": False},
+            "acme/d": {"version": "4.0.0", "mirror": True, "ci_built": False, "upstream_asset": False, "mixed": True},
+            "acme/e": {"version": "5.0.0", "mirror": False, "ci_built": False, "upstream_asset": False, "mixed": False},
+        }
+        expected = {
+            "acme/a": "live (upstream asset)",
+            "acme/b": "live (registry mirror)",
+            "acme/c": "live (ci-built asset)",
+            "acme/d": "live (mixed provenance)",
+            "acme/e": "live",
+        }
+        for pid, want in expected.items():
+            self.assertEqual(
+                self.sync._live_status({"id": pid, "version": "0.0.0"}, live),
+                [want, "index@" + live[pid]["version"]],
+            )
+
+    def test_live_status_skips_index_note_when_versions_match(self):
+        live = {
+            "acme/x": {"version": "1.0.0", "mirror": False, "ci_built": False, "upstream_asset": True, "mixed": False}
+        }
+        self.assertEqual(
+            self.sync._live_status({"id": "acme/x", "version": "1.0.0"}, live),
+            ["live (upstream asset)"],
+        )
+
+    def test_pr_status_none_without_pr_number(self):
+        self.assertIsNone(self.sync._pr_status({"id": "acme/x"}, {}))
+
+    def test_pr_status_all_states(self):
+        pr_map = {1: "merged", 2: "open", 3: "closed", 4: None}
+        base = "https://github.com/tonythethompson/numan-registry/pull"
+        self.assertEqual(
+            self.sync._pr_status({"id": "acme/x", "pr": 1}, pr_map),
+            [f"merged in [#1]({base}/1) — publish pending?"],
+        )
+        self.assertEqual(
+            self.sync._pr_status({"id": "acme/x", "pr": 2}, pr_map),
+            [f"PR [#2]({base}/2) open"],
+        )
+        self.assertEqual(
+            self.sync._pr_status({"id": "acme/x", "pr": 3}, pr_map),
+            ["PR #3 closed (not merged)"],
+        )
+        self.assertEqual(
+            self.sync._pr_status({"id": "acme/x", "pr": 4}, pr_map),
+            [f"pending [#4]({base}/4)"],
+        )
+
+    def test_candidate_status_spec_written_vs_plain(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_file = Path(tmp) / "specs" / "acme-x-1.0.0.json"
+            spec_file.parent.mkdir(parents=True)
+            spec_file.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "REPO_ROOT", Path(tmp)):
+                self.assertEqual(
+                    self.sync._candidate_status({"id": "acme/x", "spec": "specs/acme-x-1.0.0.json"}),
+                    ["spec written, not in index"],
+                )
+                self.assertEqual(self.sync._candidate_status({"id": "acme/x"}), ["candidate"])
+
+    def test_package_status_appends_outreach_and_note_tail(self):
+        entry = {"id": "acme/pr1", "pr": 1, "outreach": {"x": 1}, "note": "wave2"}
+        status = self.sync.package_status(
+            entry, {}, {1: "open"}, {"acme/pr1": {"summary": "responded — see acme/foo#3"}}
+        )
+        self.assertIn("PR [#1]", status)
+        self.assertIn("outreach: responded — see acme/foo#3", status)
+        self.assertTrue(status.endswith("— wave2"))
+
+    def test_pr_status_not_used_when_entry_is_live(self):
+        entry = {"id": "acme/x", "version": "1.0.0", "pr": 99}
+        live = {
+            "acme/x": {"version": "1.0.0", "mirror": False, "ci_built": False, "upstream_asset": True, "mixed": False}
+        }
+        status = self.sync.package_status(entry, live, {99: "open"}, {})
+        self.assertTrue(status.startswith("live (upstream asset)"))
+        self.assertNotIn("PR [#99]", status)
 
     def test_registry_summary_sorts_and_marks_mixed_versions(self):
         index = {
