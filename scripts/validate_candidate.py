@@ -23,13 +23,50 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+from gh_helpers import gh_json
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO_ROOT / "scripts"
+
+
+def _intake_branch_name(owner: str, name: str, version: str) -> str:
+    """Match open_intake_pr branch naming for open-PR lookup."""
+    parts = []
+    for value in (owner, name, version):
+        cleaned = re.sub(r"[^a-zA-Z0-9._-]", "-", value).strip("-") or "unknown"
+        parts.append(cleaned)
+    return f"intake/{parts[0]}-{parts[1]}-{parts[2]}"
+
+
+def _warn_open_intake_prs(owner: str, name: str, version: str) -> None:
+    """Fail-soft: warn when an open intake PR already exists for this package.
+
+    Uses the shared gh wrappers so Stage 5 can surface duplicate intake work
+    without aborting validation when ``gh`` is missing or the query fails.
+    """
+    branch = _intake_branch_name(owner, name, version)
+    existing = gh_json([
+        "pr", "list", "--head", branch, "--state", "open", "--json", "number,url",
+    ])
+    if not isinstance(existing, list) or not existing:
+        return
+    for pr in existing:
+        if not isinstance(pr, dict):
+            continue
+        number = pr.get("number", "?")
+        url = pr.get("url", "")
+        suffix = f": {url}" if url else ""
+        print(
+            f"warning: open intake PR #{number} already exists for "
+            f"{owner}/{name}@{version}{suffix}",
+            file=sys.stderr,
+        )
 
 
 def _run_script(args: list[str], *, label: str) -> tuple[bool, str]:
@@ -291,10 +328,13 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
 
     owner = spec_data.get("owner", "unknown")
     name = spec_data.get("name", "unknown")
+    version = str(spec_data.get("version", "0.0.0"))
     package_id = f"{owner}/{name}"
     deferral = (lifecycle_deferral or "").strip()
     if prove and deferral:
         raise ValueError("--prove and --lifecycle-deferral are mutually exclusive")
+
+    _warn_open_intake_prs(owner, name, version)
 
     with tempfile.TemporaryDirectory(prefix="numan-validate-") as tmp:
         effective_spec, tmp_index = _seed_workdir(Path(tmp), spec_data)

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.12
 """Shared `gh` CLI wrappers for registry tooling.
 
-sync-intake-candidates.py, discover.py, and open_intake_pr.py shell out to
-the GitHub CLI; the wrappers live here so the scripts do not duplicate the
-same invocation plumbing (binary name, repo cwd, timeout) or output parsing
-(CodeFactor issue #40).
+sync-intake-candidates.py, discover.py, open_intake_pr.py, and
+validate_candidate.py shell out to the GitHub CLI; the wrappers live here so
+the scripts do not duplicate the same invocation plumbing (binary name, repo
+cwd, timeout) or output parsing (CodeFactor issue #40).
 """
 
 from __future__ import annotations

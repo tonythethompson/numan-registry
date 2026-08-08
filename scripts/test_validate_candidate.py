@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import unittest
@@ -241,9 +242,57 @@ class TestRunScript(unittest.TestCase):
         self.assertIn("no python", output)
 
 
+class TestIntakeBranchName(unittest.TestCase):
+    def test_matches_open_intake_pr_shape(self):
+        self.assertEqual(
+            validate_candidate._intake_branch_name("fdncred", "nu_plugin_emoji", "0.23.0"),
+            "intake/fdncred-nu_plugin_emoji-0.23.0",
+        )
+
+    def test_sanitizes_unsafe_chars(self):
+        self.assertEqual(
+            validate_candidate._intake_branch_name("a/b", "c d", "1.0.0"),
+            "intake/a-b-c-d-1.0.0",
+        )
+
+
+class TestWarnOpenIntakePrs(unittest.TestCase):
+    @patch("validate_candidate.gh_json", return_value=None)
+    def test_silent_when_gh_unavailable(self, mock_gh):
+        buf = io.StringIO()
+        with patch("sys.stderr", buf):
+            validate_candidate._warn_open_intake_prs("acme", "pkg", "1.0.0")
+        self.assertEqual(buf.getvalue(), "")
+        mock_gh.assert_called_once()
+
+    @patch("validate_candidate.gh_json", return_value=[])
+    def test_silent_when_no_open_prs(self, mock_gh):
+        buf = io.StringIO()
+        with patch("sys.stderr", buf):
+            validate_candidate._warn_open_intake_prs("acme", "pkg", "1.0.0")
+        self.assertEqual(buf.getvalue(), "")
+
+    @patch(
+        "validate_candidate.gh_json",
+        return_value=[{"number": 42, "url": "https://example.com/pull/42"}],
+    )
+    def test_warns_for_each_open_pr(self, mock_gh):
+        buf = io.StringIO()
+        with patch("sys.stderr", buf):
+            validate_candidate._warn_open_intake_prs("acme", "pkg", "1.0.0")
+        out = buf.getvalue()
+        self.assertIn("open intake PR #42", out)
+        self.assertIn("acme/pkg@1.0.0", out)
+        self.assertIn("https://example.com/pull/42", out)
+        args = mock_gh.call_args.args[0]
+        self.assertEqual(args[0], "pr")
+        self.assertIn("intake/acme-pkg-1.0.0", args)
+
+
+@patch("validate_candidate.gh_json", return_value=None)
 class TestValidateCandidate(unittest.TestCase):
     @patch("validate_candidate._run_script")
-    def test_all_pass(self, mock_run):
+    def test_all_pass(self, mock_run, _mock_gh):
         # Simulate all steps passing
         def side_effect(args, *, label):
             if label == "add-package":
@@ -272,7 +321,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertEqual(lifecycle["status"], "skip")
 
     @patch("validate_candidate._run_script")
-    def test_download_fail(self, mock_run):
+    def test_download_fail(self, mock_run, _mock_gh):
         def side_effect(args, *, label):
             if label == "add-package":
                 return False, "download failed: 404"
@@ -289,7 +338,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertEqual(dl["status"], "fail")
 
     @patch("validate_candidate._run_script")
-    def test_wrapped_spec_format(self, mock_run):
+    def test_wrapped_spec_format(self, mock_run, _mock_gh):
         """Handles {spec, _meta} wrapped format from gen_candidate."""
         mock_run.return_value = (True, "")
 
@@ -315,7 +364,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertEqual(evidence["package_id"], "test/pkg")
 
     @patch("validate_candidate._run_script")
-    def test_activatable_plugin_requires_lifecycle_evidence(self, mock_run):
+    def test_activatable_plugin_requires_lifecycle_evidence(self, mock_run, _mock_gh):
         """A plugin without --prove or deferral cannot report overall pass."""
         mock_run.return_value = (True, "")
 
@@ -341,7 +390,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertIn("Lifecycle evidence required", evidence["human_summary"])
 
     @patch("validate_candidate._run_script")
-    def test_activatable_plugin_with_deferral_passes(self, mock_run):
+    def test_activatable_plugin_with_deferral_passes(self, mock_run, _mock_gh):
         """A plugin can pass when lifecycle is explicitly deferred with a reason."""
         mock_run.return_value = (True, "")
 
@@ -370,7 +419,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertIn("Lifecycle deferred", evidence["human_summary"])
 
     @patch("validate_candidate._run_script")
-    def test_non_activatable_module_passes_without_lifecycle(self, mock_run):
+    def test_non_activatable_module_passes_without_lifecycle(self, mock_run, _mock_gh):
         """A module without activation does not require lifecycle evidence."""
         mock_run.return_value = (True, "")
 
@@ -393,7 +442,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertEqual(evidence["overall"], "pass")
 
     @patch("validate_candidate._run_script")
-    def test_activatable_module_requires_lifecycle_evidence(self, mock_run):
+    def test_activatable_module_requires_lifecycle_evidence(self, mock_run, _mock_gh):
         """A module with activation requires lifecycle evidence or deferral."""
         mock_run.return_value = (True, "")
 
@@ -418,7 +467,7 @@ class TestValidateCandidate(unittest.TestCase):
 
 
     @patch("validate_candidate._run_script")
-    def test_failed_lifecycle_proof_fails_activatable(self, mock_run):
+    def test_failed_lifecycle_proof_fails_activatable(self, mock_run, _mock_gh):
         """A failed lifecycle proof must not satisfy lifecycle evidence."""
         def side_effect(args, *, label):
             if label == "add-package":
@@ -461,7 +510,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertIn("Lifecycle FAILED", evidence["human_summary"])
 
     @patch("validate_candidate._run_script")
-    def test_whitespace_deferral_treated_as_missing(self, mock_run):
+    def test_whitespace_deferral_treated_as_missing(self, mock_run, _mock_gh):
         """A whitespace-only deferral is not a valid reason."""
         mock_run.return_value = (True, "")
 
@@ -486,7 +535,7 @@ class TestValidateCandidate(unittest.TestCase):
         self.assertIn("Lifecycle evidence required", evidence["human_summary"])
 
     @patch("validate_candidate._run_script")
-    def test_prove_and_deferral_mutually_exclusive(self, mock_run):
+    def test_prove_and_deferral_mutually_exclusive(self, mock_run, _mock_gh):
         """--prove cannot be combined with --lifecycle-deferral."""
         mock_run.return_value = (True, "")
 
