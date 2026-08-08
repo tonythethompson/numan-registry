@@ -1,12 +1,12 @@
 Hi. Small packaging heads-up / ask.
 
-I've been building out the [Numan](https://github.com/tonythethompson/numan) official registry (hash-verified installs for Nu plugins, modules, scripts, and completions). Your **`nu_script_wttr`** is already listed as an install-only package via a registry-hosted mirror of `main`. Next catalog wave looks at more of the same shape from your repos:
+I've been building out the [Numan](https://github.com/tonythethompson/numan) official registry (hash-verified installs for Nu plugins, modules, scripts, and completions). Your scripts are already listed as install-only packages via registry-hosted mirrors:
 
-| Planned registry id | Repo |
-|---------------------|------|
-| `SuaveIV/nu_script_wttr` (live) | this repo / related |
-| `SuaveIV/nu_script_gh_status` | [nu_script_gh_status](https://github.com/SuaveIV/nu_script_gh_status) |
-| `SuaveIV/nu_script_hnews` | [nu_script_hnews](https://github.com/SuaveIV/nu_script_hnews) |
+| Live registry id | Repo |
+|------------------|------|
+| `SuaveIV/nu_script_wttr@0.1.0-main` | this repo |
+| `SuaveIV/nu_script_gh_status@0.1.0-81756dc` | [nu_script_gh_status](https://github.com/SuaveIV/nu_script_gh_status) |
+| `SuaveIV/nu_script_hnews@0.1.0-6cd8aef` | [nu_script_hnews](https://github.com/SuaveIV/nu_script_hnews) |
 
 Scripts stay **install-only** in Numan for now (no Nu config mutation until I design activation). The ask is only about **byte-stable release artifacts**.
 
