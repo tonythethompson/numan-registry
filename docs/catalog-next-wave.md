@@ -118,7 +118,7 @@ Intake steps per package: `scripts/discover.py` → `build-mirror-zip.py` → re
 ### Wave 3C: Client honesty (same timeframe, separate PRs)
 
 - [ ] Document in README / search UX that scripts & completions are install-only (path printed; no silent activate)
-- [ ] Consider adding one **install-only** starter path to `numan try` docs (or a follow-up `try` fallback) once Wave 3A is live: e.g. wttr or nufetch on any Nu
+- [ ] Consider adding one **install-only** starter path to `numan try` docs (or a follow-up `try` fallback) now that Wave 3A is live: e.g. wttr or nufetch on any Nu
 - [ ] Do **not** invent script/completion activation in the catalog wave (roadmap: still deferred)
 
 ### Explicit non-goals for Wave 3
@@ -130,25 +130,25 @@ Intake steps per package: `scripts/discover.py` → `build-mirror-zip.py` → re
 
 ## Wave 4 (parallel track, plugins)
 
-Only if upstream moves, or maintainer time remains after Wave 3:
+Only if upstream moves, or maintainer time remains after Wave 3A/3B (mirrors shipped; Wave 3C client honesty still open):
 
 1. Outreach: clipboard, compress, plot (tag + nu-plugin 0.114)
 2. Multi-OS `semver` registry completion
-3. Research tag policy for high-star NO_RELEASE only after Wave 3 ships
+3. Research tag policy for high-star NO_RELEASE once Wave 3C client honesty lands
 
 ## Outreach (what to file vs mirror)
 
 Full tracker + weekly schedule: [`upstream-release-outreach.md`](upstream-release-outreach.md). Ready bodies: [`outreach-issues/`](outreach-issues/README.md).
 
-| Do now (low risk) | Do with Wave 3 mirrors | Parallel plugin track | Do not |
-|-------------------|------------------------|------------------------|--------|
-| Follow-up comment on [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266): folder org only, not zips ([draft 11](outreach-issues/11-nushell-nu-scripts-followup-org.md)) | Courtesy optional-zip issues for SuaveIV suite, nufetch, git-aliases ([05](outreach-issues/05-suaveiv-script-suite.md)–[07](outreach-issues/07-kamilkleina-git-aliases.md)) | Clipboard / plot / compress Nu-tag asks ([08](outreach-issues/08-fmotalleb-clipboard-nu114.md)–[10](outreach-issues/10-yybit-compress-nu-bump.md)) | Re-ask nu_scripts for release zips (already declined) |
-| Optional nudge [numd#115](https://github.com/nushell-prophet/numd/issues/115) ([draft 12](outreach-issues/12-nushell-prophet-numd-nudge.md)) | Mirror first; upstream assets optional | One upstream per week | Spam amtoine (archived) |
+| Do now (low risk) | Courtesy zips (mirrors live) | Parallel plugin track | Do not |
+|-------------------|------------------------------|------------------------|--------|
+| Follow-up comment on [nu_scripts#1266](https://github.com/nushell/nu_scripts/issues/1266): folder org only, not zips ([draft 11](outreach-issues/11-nushell-nu-scripts-followup-org.md)) | Optional-zip issues for SuaveIV suite, nufetch, git-aliases ([05](outreach-issues/05-suaveiv-script-suite.md)–[07](outreach-issues/07-kamilkleina-git-aliases.md)); cite live registry ids | Clipboard / plot / compress Nu-tag asks ([08](outreach-issues/08-fmotalleb-clipboard-nu114.md)–[10](outreach-issues/10-yybit-compress-nu-bump.md)) | Re-ask nu_scripts for release zips (already declined) |
+| Optional nudge [numd#115](https://github.com/nushell-prophet/numd/issues/115) ([draft 12](outreach-issues/12-nushell-prophet-numd-nudge.md)) | Mirrors live; upstream assets optional | One upstream per week | Spam amtoine (archived) |
 
 ## Tracking debt to open
 
 1. **`numan-registry/docs/non-plugin-backlog.json`** (or extend intake-state): plugin backlog does not cover scripts/modules/completions.
-2. **`numan try` starter diversity**: add at least one Nu-agnostic script after Wave 3A.
+2. **`numan try` starter diversity**: add at least one Nu-agnostic script now that Wave 3A mirrors are live.
 3. **Activation contracts** for scripts/completions remain on the consolidated roadmap; catalog growth must stay install-only until those land.
 
 ## Success criteria

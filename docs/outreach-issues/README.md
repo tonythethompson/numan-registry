@@ -13,13 +13,13 @@ Copy-paste ready: each draft is written for its repo, not from a shared template
 
 ## Wave 3 + plugin backlog
 
-Drafts 05–10 are pending; **11–12 are already posted** (see table). Stagger **one contact per week**. Prefer filing after the matching package is mirrored (or clearly scheduled) so the issue can cite a live/planned registry id.
+Drafts 05–10 are pending; **11–12 are already posted** (see table). Stagger **one contact per week**. Wave 3A/3B registry mirrors are already live (`gh_status`, `hnews`, `nufetch`, `git-aliases`, plus cargo/npm/make/winget completions); cite those registry ids when filing courtesy zip asks.
 
 | # | Repo | Ask | Draft | When to file |
 | --- | ------ | ----- | ------- | -------------- |
-| 05 | [SuaveIV/nu_script_wttr](https://github.com/SuaveIV/nu_script_wttr) (covers suite) | Optional release zips for wttr / gh_status / hnews | [05](05-suaveiv-script-suite.md) | After Wave 3A mirrors land, or courtesy FYI same week as first new mirror |
-| 06 | [Sanceilaks/nufetch](https://github.com/Sanceilaks/nufetch) | Optional release zip | [06](06-sanceilaks-nufetch.md) | After or with nufetch mirror PR |
-| 07 | [KamilKleina/git-aliases.nu](https://github.com/KamilKleina/git-aliases.nu) | Optional release zip | [07](07-kamilkleina-git-aliases.md) | Only if we promote aliases in Wave 3A/3B |
+| 05 | [SuaveIV/nu_script_wttr](https://github.com/SuaveIV/nu_script_wttr) (covers suite) | Optional release zips for wttr / gh_status / hnews | [05](05-suaveiv-script-suite.md) | **Ready now** — Wave 3A mirrors live; optional courtesy zip ask |
+| 06 | [Sanceilaks/nufetch](https://github.com/Sanceilaks/nufetch) | Optional release zip | [06](06-sanceilaks-nufetch.md) | **Ready now** — `Sanceilaks/nufetch@0.1.0-15e0645` mirror live |
+| 07 | [KamilKleina/git-aliases.nu](https://github.com/KamilKleina/git-aliases.nu) | Optional release zip | [07](07-kamilkleina-git-aliases.md) | **Ready now** — `KamilKleina/git-aliases@0.1.0-109cc61` mirror live |
 | 08 | [FMotalleb/nu_plugin_clipboard](https://github.com/FMotalleb/nu_plugin_clipboard) | Nu 0.114 bump + tag | [08](08-fmotalleb-clipboard-nu114.md) | Parallel track; highest plugin demand |
 | 09 | [Euphrasiologist/nu_plugin_plot](https://github.com/Euphrasiologist/nu_plugin_plot) | Please cut a version tag | [09](09-euphrasiologist-plot-tag.md) | After clipboard or if plot is next priority |
 | 10 | [yybit/nu_plugin_compress](https://github.com/yybit/nu_plugin_compress) | Nu bump + tag | [10](10-yybit-compress-nu-bump.md) | After plot / when compress is next |
