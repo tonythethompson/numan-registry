@@ -1,6 +1,6 @@
 # Numan Registry Roadmap
 
-**Status date:** 2026-08-05
+**Status date:** 2026-08-07
 
 **Consolidated plan:** Cross-repo priorities and the 1.0 gate live in
 [`numan/docs/plans/consolidated-multi-repo-roadmap.md`](https://github.com/tonythethompson/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md).
@@ -19,7 +19,8 @@ JSON edits.
 - Committed index: **44** packages (26 plugins, 7 modules, 6 completions, 5 scripts).
   Public CDN updates after production signing/publish.
   Human overview: [`docs/catalog-compat.md`](catalog-compat.md) (regenerated from
-  `registry/index.json`). About **18** latest versions target Nu **0.114.x**.
+  `registry/index.json`). Latest-version Nu bands: **19** on **0.114.x**, plus
+  older minors and `*` / install-only entries (see catalog-compat summary).
 - Intake tooling scaffolds entries from specs, computes artifact hashes,
   validates schemas, scans secrets, runs preflight checks, parses the catalog
   with the production Numan parser, and lints Nu constraints against
@@ -29,8 +30,12 @@ JSON edits.
   [PR #31](https://github.com/tonythethompson/numan-registry/pull/31).
 - Intake Stages 3–6 landed in
   [PR #37](https://github.com/tonythethompson/numan-registry/pull/37).
-- Wave 1 and Wave 2 CI-built Nu 0.114 plugins are in production (see intake
-  changelog in [`intake-state.json`](intake-state.json)).
+- Wave 1 and Wave 2 CI-built Nu 0.114 plugins are in production.
+- Wave 3A install-only script mirrors and Wave 3B completion mirrors are in
+  the committed index (2026-08-06/07): `SuaveIV/nu_script_gh_status`,
+  `SuaveIV/nu_script_hnews`, `Sanceilaks/nufetch`, `KamilKleina/git-aliases`,
+  plus cargo / npm / make / winget completion splits. See the intake changelog
+  in [`intake-state.json`](intake-state.json).
 - The live candidate list is
   [`docs/intake-candidates.md`](intake-candidates.md).
 
@@ -40,8 +45,12 @@ Continue promoting demand-ranked plugins from
 [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json)
 through build → spec → intake → lifecycle-prove → production.
 
+Keep growing non-plugin install-only mirrors (scripts / completions / modules)
+where they improve first-use demos. Track outreach for mirrored packages in
+[`upstream-release-outreach.md`](upstream-release-outreach.md).
+
 Keep multi-OS coverage honest: prefer packages with Linux + Windows + macOS
-targets when choosing the next wave.
+targets when choosing the next plugin wave.
 
 ## Catalog Lists (Do Not Duplicate By Hand)
 
