@@ -1,6 +1,27 @@
-# numan-registry PR review
+---
+name: code-review
+description: >-
+  Review numan-registry pull requests against REVIEW.md severity labels, trust
+  invariants, intake rules, and CI gates. Use for Copilot code review, PR review
+  requests, and any pull-request or diff review in this repository.
+---
 
-Use this file when reviewing pull requests (human or automated). [`AGENTS.md`](AGENTS.md) remains the source for toolchain and CI commands; this file focuses on **what to flag in review**.
+# numan-registry code review
+
+When reviewing a pull request or diff in this repository, follow the canonical
+guide at [`REVIEW.md`](../../../REVIEW.md). Prefer that file over paraphrased
+memory. [`AGENTS.md`](../../../AGENTS.md) remains the source for toolchain and
+CI commands.
+
+## How to review
+
+1. Read the PR description and changed files; stay within the stated scope.
+2. Apply severity labels from `REVIEW.md` (P0–P3). Lead with P0/P1 findings.
+3. Flag any violation of the trust and intake invariants listed below.
+4. For catalog or index changes, verify digests came from download, parser
+   parity, and Stage 1 evidence expectations for activatable packages.
+5. Leave actionable comments with concrete fixes. Do not approve or request
+   changes as a human gate; report findings only.
 
 ## CI gates (must pass)
 
@@ -29,11 +50,11 @@ overwrite the committed placeholder).
 ## Architecture invariants (flag violations)
 
 1. **No private keys in tree** — never commit `*.key`, `*.pem`, or private-key material; secret scan must stay green.
-2. **Placeholder signature is intentional** — committed `registry/index.json.sig` may be `PLACEHOLDER`; production signing happens only in the protected deployment workflow. Do not treat the placeholder as an unsigned-production fallback or replace it with a local “real” signature in source.
+2. **Placeholder signature is intentional** — committed `registry/index.json.sig` may be `PLACEHOLDER`; production signing happens only in the protected deployment workflow. Do not treat the placeholder as an unsigned-production fallback or replace it with a local "real" signature in source.
 3. **Hashes from download only** — artifact digests come from `scripts/add-package.py` (download + compute). Never hand-type SHA256 values into the index or specs.
 4. **Source builds stay out** — reject `kind: source` and unsupported archive suffixes at intake; binary artifacts only for official catalog promotion.
 5. **Provenance preserved** — CI-built plugin intake must keep `source.rev` (immutable upstream commit) and human-facing tag provenance from the plugins handoff.
-6. **Stage 1 evidence before promote** — activatable packages need lifecycle-prove evidence (or an explicit deferral with reason). See [`docs/lifecycle-prove.md`](docs/lifecycle-prove.md).
+6. **Stage 1 evidence before promote** — activatable packages need lifecycle-prove evidence (or an explicit deferral with reason). See [`docs/lifecycle-prove.md`](../../../docs/lifecycle-prove.md).
 7. **Human review before production sign** — protected `production.yml` + reviewer approval; scripts must not auto-publish to the trust root.
 8. **Parser parity** — index changes must parse with Numan's production Rust registry parser (`tools/numan-parser-check`).
 
