@@ -133,20 +133,30 @@ def sorted_files(root: Path) -> list[Path]:
 def build_archive(src_dir: Path, out: Path) -> None:
     """Build a deterministic .tar.gz of `src_dir`: sorted entries, fixed mtime, gzip mtime=0."""
     raw = io.BytesIO()
-    with tarfile.open(fileobj=raw, mode="w") as tar:
-        for rel in sorted_files(src_dir):
-            full = src_dir / rel
-            data = full.read_bytes()
-            info = tarfile.TarInfo(name=rel.as_posix())
-            info.size = len(data)
-            info.mtime = FIXED_MTIME
-            info.mode = 0o755 if full.stat().st_mode & 0o111 else 0o644
-            info.uid = info.gid = 0
-            info.uname = info.gname = ""
-            tar.addfile(info, io.BytesIO(data))
+MAX_ARCHIVE_FILES = 10_000
+MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
+
+    rels = sorted_files(src_dir)
+    if len(rels) > MAX_ARCHIVE_FILES:
+        raise ValueError(f"{len(rels)} files exceeds client limit of {MAX_ARCHIVE_FILES}")
+    total = sum((src_dir / r).stat().st_size for r in rels)
+    if total > MAX_ARCHIVE_BYTES:
+        raise ValueError(f"{total} bytes exceeds client limit of {MAX_ARCHIVE_BYTES}")
+
     with out.open("wb") as fh:
         gz = gzip.GzipFile(filename="", mode="wb", fileobj=fh, mtime=0)
-        gz.write(raw.getvalue())
+        with tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
+            for rel in rels:
+                full = src_dir / rel
+                info = tarfile.TarInfo(name=rel.as_posix())
+                info.size = full.stat().st_size
+                info.mtime = FIXED_MTIME
+                info.mode = 0o755 if full.stat().st_mode & 0o111 else 0o644
+                info.uid = info.gid = 0
+                info.uname = info.gname = ""
+                with full.open("rb") as src:
+                    tar.addfile(info, src)
+        gz.close()
         gz.close()
 
 
