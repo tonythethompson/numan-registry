@@ -183,9 +183,18 @@ class UploadToReleaseTests(unittest.TestCase):
 
         def fake_gh_run(args):
             calls.append(args)
-            return view_result if args[1] == "view" else create_result
+            return view_result
 
-        with mock.patch.object(self.gh_helpers, "gh_run", side_effect=fake_gh_run):
+        def fake_gh_run_with_timeout(args, timeout):
+            calls.append(args)
+            return create_result
+
+        with (
+            mock.patch.object(self.gh_helpers, "gh_run", side_effect=fake_gh_run),
+            mock.patch.object(
+                self.gh_helpers, "gh_run_with_timeout", side_effect=fake_gh_run_with_timeout
+            ),
+        ):
             url = self.mod.upload_to_release(
                 "owner/repo", "archive-owner-pkg-1.0.0", "title", Path("asset.tar.gz")
             )
@@ -197,8 +206,27 @@ class UploadToReleaseTests(unittest.TestCase):
         self.assertEqual(calls[1][:2], ["release", "create"])
 
     def test_raises_when_gh_unavailable(self):
-        with mock.patch.object(self.gh_helpers, "gh_run", return_value=None):
+        with (
+            mock.patch.object(self.gh_helpers, "gh_run", return_value=None),
+            mock.patch.object(self.gh_helpers, "gh_run_with_timeout", return_value=None),
+        ):
             with self.assertRaisesRegex(ValueError, "gh CLI unavailable"):
+                self.mod.upload_to_release("owner/repo", "tag", "title", Path("asset.tar.gz"))
+
+    def test_raises_indeterminate_on_timeout(self):
+        with (
+            mock.patch.object(
+                self.gh_helpers,
+                "gh_run",
+                return_value=subprocess.CompletedProcess([], 1, stdout="", stderr="not found"),
+            ),
+            mock.patch.object(
+                self.gh_helpers,
+                "gh_run_with_timeout",
+                side_effect=subprocess.TimeoutExpired(cmd="gh", timeout=300),
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "timed out.*manual cleanup"):
                 self.mod.upload_to_release("owner/repo", "tag", "title", Path("asset.tar.gz"))
 
 
@@ -219,6 +247,7 @@ class BuildSpecTests(unittest.TestCase):
             nu_version=">=0.114.0",
             entry="mod.nu",
             url="https://github.com/owner/repo/releases/download/tag/asset.tar.gz",
+            sha256="d" * 64,
             activation_kind="nu-module",
             activation_import="all",
         )
@@ -229,6 +258,7 @@ class BuildSpecTests(unittest.TestCase):
                 "kind": "archive",
                 "url": "https://github.com/owner/repo/releases/download/tag/asset.tar.gz",
                 "entry": "mod.nu",
+                "sha256": "d" * 64,
             },
         )
         self.assertNotIn("source", spec)
@@ -245,6 +275,7 @@ class BuildSpecTests(unittest.TestCase):
             nu_version="*",
             entry="run.nu",
             url="https://example.invalid/asset.tar.gz",
+            sha256="e" * 64,
         )
         self.assertNotIn("activation", spec)
 

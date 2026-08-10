@@ -57,6 +57,11 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 COMMAND_TIMEOUT_SECONDS = 120
 FIXED_MTIME = 315532800  # 1980-01-01 UTC; matches package_plugin.py
 VALID_TYPES = ("module", "script", "completion")
+VALID_GIT_URL_RE = re.compile(
+    r"^(https?://|git://|ssh://|git@[\w.-]+:)"
+)
+MAX_ARCHIVE_FILES = 10_000
+MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
 
 def _load_add_package() -> ModuleType:
@@ -69,6 +74,19 @@ def _load_add_package() -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def validate_git_url(git_url: str) -> None:
+    """Validate that git_url is a safe URL scheme and doesn't start with option syntax.
+
+    Raises ValueError if the URL is invalid.
+    """
+    if git_url.startswith("-"):
+        raise ValueError(f"git URL may not start with '-': {git_url!r}")
+    if not VALID_GIT_URL_RE.match(git_url):
+        raise ValueError(
+            f"git URL must use https://, http://, git://, ssh://, or git@: {git_url!r}"
+        )
 
 
 def resolve_ref(git_url: str, ref: str) -> str:
@@ -137,8 +155,6 @@ def sorted_files(root: Path) -> list[Path]:
 def build_archive(src_dir: Path, out: Path) -> None:
     """Build a deterministic .tar.gz of `src_dir`: sorted entries, fixed mtime, gzip mtime=0."""
     raw = io.BytesIO()
-MAX_ARCHIVE_FILES = 10_000
-MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 
     rels = sorted_files(src_dir)
     if len(rels) > MAX_ARCHIVE_FILES:
@@ -176,23 +192,31 @@ def upload_to_release(release_repo: str, tag: str, title: str, asset: Path) -> s
     if existing is not None and existing.returncode == 0:
         raise ValueError(f"release tag {tag!r} already exists on {release_repo}; refusing to overwrite")
 
-    result = gh_helpers.gh_run(
-        [
-            "release",
-            "create",
-            tag,
-            str(asset),
-            "--repo",
-            release_repo,
-            "--title",
-            title,
-            "--notes",
-            f"Non-binary archive intake: {asset.name}",
-        ]
-    )
-    if result is None or result.returncode != 0:
-        stderr = result.stderr.strip() if result is not None else "gh CLI unavailable"
-        raise ValueError(f"gh release create failed: {stderr}")
+    try:
+        result = gh_helpers.gh_run_with_timeout(
+            [
+                "release",
+                "create",
+                tag,
+                str(asset),
+                "--repo",
+                release_repo,
+                "--title",
+                title,
+                "--notes",
+                f"Non-binary archive intake: {asset.name}",
+            ],
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        raise ValueError(
+            f"gh release create timed out after 300s; release tag {tag!r} may already exist and require manual cleanup"
+        )
+
+    if result is None:
+        raise ValueError("gh CLI unavailable")
+    if result.returncode != 0:
+        raise ValueError(f"gh release create failed: {result.stderr.strip()}")
     return f"https://github.com/{release_repo}/releases/download/{tag}/{asset.name}"
 
 
@@ -221,6 +245,7 @@ def build_spec(
     nu_version: str,
     entry: str,
     url: str,
+    sha256: str,
     activation_kind: str | None = None,
     activation_import: str | None = None,
 ) -> dict:
@@ -238,6 +263,7 @@ def build_spec(
             "kind": "archive",
             "url": url,
             "entry": entry,
+            "sha256": sha256,
         },
     }
     if activation_kind:
@@ -298,7 +324,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--version",
         default=None,
-        help="Version string for this intake; derived from --ref if omitted",
+        help=(
+            "Version string for this intake; derived from --ref if omitted. "
+            "A semver-shaped --ref (e.g. '1.2.3' or 'v1.2.3') will be treated "
+            "as a version regardless of whether it's a tag or branch name; "
+            "other refs fall back to 0.1.0-<short-sha>."
+        ),
     )
     ap.add_argument(
         "--release-repo",
@@ -340,6 +371,12 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     try:
+        validate_git_url(args.git_url)
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
+
+    try:
         resolved_sha = resolve_ref(args.git_url, args.ref)
     except (ValueError, subprocess.TimeoutExpired) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
@@ -347,6 +384,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Resolved {args.git_url}@{args.ref} -> {resolved_sha}", file=sys.stderr)
 
     version = args.version or derive_version(args.ref, resolved_sha)
+    tag = f"archive-{args.owner}-{args.name}-{version}"
 
     with tempfile.TemporaryDirectory() as tmp:
         src_dir = Path(tmp) / "src"
@@ -377,65 +415,75 @@ def main(argv: list[str] | None = None) -> int:
         digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
         print(f"Built {archive_path.name} sha256={digest}", file=sys.stderr)
 
-        tag = f"archive-{args.owner}-{args.name}-{version}"
+        url = f"https://github.com/{args.release_repo}/releases/download/{tag}/{archive_path.name}"
+
+        spec = build_spec(
+            owner=args.owner,
+            name=args.name,
+            description=args.description,
+            git_url=args.git_url,
+            pkg_type=args.pkg_type,
+            tags=tags,
+            version=version,
+            nu_version=args.nu_version,
+            entry=args.entry,
+            url=url,
+            sha256=digest,
+            activation_kind=args.activation_kind,
+            activation_import=args.activation_import,
+        )
+
+        out_path = args.out or (REPO_ROOT / f"spec-{args.owner}-{args.name}.json")
+        out_path.write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {out_path}", file=sys.stderr)
+
+        if args.write:
+            add_package_script = REPO_ROOT / "scripts" / "add-package.py"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(add_package_script),
+                    "--spec",
+                    str(out_path),
+                    "--write",
+                    *( ["--provisional"] if args.provisional else [] ),
+                ],
+                cwd=REPO_ROOT,
+                check=False,
+            )
+            if result.returncode != 0:
+                print(f"FAIL: registry update failed; not publishing release", file=sys.stderr)
+                return result.returncode
+            print(f"registry update succeeded", file=sys.stderr)
+
+        record_archive_manifest(
+            args.manifest_archives,
+            git_url=args.git_url,
+            ref=args.ref,
+            resolved_sha=resolved_sha,
+            entry=args.entry,
+            name=args.name,
+            owner=args.owner,
+            pkg_type=args.pkg_type,
+        )
+        print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
+
         try:
-            url = upload_to_release(
+            actual_url = upload_to_release(
                 args.release_repo, tag, f"{args.owner}/{args.name} {version}", archive_path
             )
         except ValueError as exc:
             print(f"FAIL: {exc}", file=sys.stderr)
             return 1
 
-    spec = build_spec(
-        owner=args.owner,
-        name=args.name,
-        description=args.description,
-        git_url=args.git_url,
-        pkg_type=args.pkg_type,
-        tags=tags,
-        version=version,
-        nu_version=args.nu_version,
-        entry=args.entry,
-        url=url,
-        activation_kind=args.activation_kind,
-        activation_import=args.activation_import,
-    )
+        if actual_url != url:
+            print(f"WARNING: published URL {actual_url} differs from expected {url}", file=sys.stderr)
 
-    out_path = args.out or (REPO_ROOT / f"spec-{args.owner}-{args.name}.json")
-    out_path.write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
-    print(f"wrote {out_path}", file=sys.stderr)
-
-    record_archive_manifest(
-        args.manifest_archives,
-        git_url=args.git_url,
-        ref=args.ref,
-        resolved_sha=resolved_sha,
-        entry=args.entry,
-        name=args.name,
-        owner=args.owner,
-        pkg_type=args.pkg_type,
-    )
-    print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
-
-    if args.write:
-        add_package_script = REPO_ROOT / "scripts" / "add-package.py"
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(add_package_script),
-                "--spec",
-                str(out_path),
-                "--write",
-                *( ["--provisional"] if args.provisional else [] ),
-            ],
-            cwd=REPO_ROOT,
-        )
-        return result.returncode
-
-    rerun_cmd = f"python scripts/add-package.py --spec {out_path} --write"
-    if args.provisional:
-        rerun_cmd += " --provisional"
-    print(f"\nRe-run with the emitted spec: {rerun_cmd}", file=sys.stderr)
+    if not args.write:
+        rerun_cmd = f"python scripts/add-package.py --spec {out_path} --write"
+        if args.provisional:
+            rerun_cmd += " --provisional"
+        print(f"\nRe-run with the emitted spec: {rerun_cmd}", file=sys.stderr)
     return 0
 
 
