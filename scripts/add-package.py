@@ -334,6 +334,53 @@ def build_package_entry(spec, version_entry):
     }
 
 
+def _fail_maintained_fork_source(source) -> None:
+    """Require a valid distinct ``source.upstream`` for a numan-maintained fork."""
+    if not isinstance(source, dict):
+        print(
+            "FAIL: owner 'numan-maintained' requires source to be an object "
+            "containing source.upstream -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    upstream = source.get("upstream")
+    if not isinstance(upstream, str) or not upstream.strip():
+        print(
+            "FAIL: owner 'numan-maintained' requires source.upstream (the original "
+            "repo URL) so installing the original owner/name is never silently "
+            "substituted with this fork -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    try:
+        ensure_http_url(upstream.strip())
+    except ValueError as exc:
+        print(f"FAIL: source.upstream {exc}")
+        sys.exit(1)
+    git = source.get("git")
+    if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+        print(
+            "FAIL: source.upstream must identify the original repository, "
+            "not the fork's source.git"
+        )
+        sys.exit(1)
+
+
+def validate_fork_identity(spec):
+    """Enforce ADR 0001 fork-identity rules on a package spec.
+
+    ``numan-maintained`` owners require a distinct ``source.upstream`` URL;
+    other owners must not set ``source.upstream``.
+    """
+    if spec.get("owner") == "numan-maintained":
+        _fail_maintained_fork_source(spec.get("source"))
+        return
+    if isinstance(spec.get("source"), dict) and "upstream" in spec["source"]:
+        print(
+            "FAIL: source.upstream is only valid for owner 'numan-maintained' "
+            "-- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+
+
 def validate_spec(spec, *, allow_provisional=False):
     """
     Validate required fields, package type, and lifecycle evidence in a package specification.
@@ -352,40 +399,7 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
-    if spec.get("owner") == "numan-maintained":
-        source = spec.get("source")
-        if not isinstance(source, dict):
-            print(
-                "FAIL: owner 'numan-maintained' requires source to be an object "
-                "containing source.upstream -- see ADR 0001 fork identity requirements"
-            )
-            sys.exit(1)
-        upstream = source.get("upstream")
-        if not isinstance(upstream, str) or not upstream.strip():
-            print(
-                "FAIL: owner 'numan-maintained' requires source.upstream (the original "
-                "repo URL) so installing the original owner/name is never silently "
-                "substituted with this fork -- see ADR 0001 fork identity requirements"
-            )
-            sys.exit(1)
-        try:
-            ensure_http_url(upstream.strip())
-        except ValueError as exc:
-            print(f"FAIL: source.upstream {exc}")
-            sys.exit(1)
-        git = source.get("git")
-        if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
-            print(
-                "FAIL: source.upstream must identify the original repository, "
-                "not the fork's source.git"
-            )
-            sys.exit(1)
-    elif isinstance(spec.get("source"), dict) and "upstream" in spec["source"]:
-        print(
-            "FAIL: source.upstream is only valid for owner 'numan-maintained' "
-            "-- see ADR 0001 fork identity requirements"
-        )
-        sys.exit(1)
+    validate_fork_identity(spec)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
