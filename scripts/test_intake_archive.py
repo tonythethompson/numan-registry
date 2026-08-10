@@ -175,6 +175,18 @@ class UploadToReleaseTests(unittest.TestCase):
                     "owner/repo", "archive-owner-pkg-1.0.0", "title", Path("asset.tar.gz")
                 )
 
+    def test_refuses_existing_tag_without_release(self):
+        def fake_gh_run(args):
+            if args[:2] == ["release", "view"]:
+                return subprocess.CompletedProcess(args, 1, stdout="", stderr="release not found")
+            return subprocess.CompletedProcess(args, 0, stdout="{}", stderr="")
+
+        with mock.patch.object(self.gh_helpers, "gh_run", side_effect=fake_gh_run):
+            with self.assertRaisesRegex(ValueError, "tag .* already exists"):
+                self.mod.upload_to_release(
+                    "owner/repo", "archive-owner-pkg-1.0.0", "title", Path("asset.tar.gz")
+                )
+
     def test_creates_release_and_returns_download_url(self):
         view_result = subprocess.CompletedProcess([], 1, stdout="", stderr="release not found")
         create_result = subprocess.CompletedProcess([], 0, stdout="", stderr="")
@@ -203,7 +215,8 @@ class UploadToReleaseTests(unittest.TestCase):
             "https://github.com/owner/repo/releases/download/archive-owner-pkg-1.0.0/asset.tar.gz",
         )
         self.assertEqual(calls[0][:2], ["release", "view"])
-        self.assertEqual(calls[1][:2], ["release", "create"])
+        self.assertEqual(calls[1], ["api", "repos/owner/repo/git/refs/tags/archive-owner-pkg-1.0.0"])
+        self.assertEqual(calls[2][:2], ["release", "create"])
 
     def test_raises_when_gh_unavailable(self):
         with (
@@ -364,6 +377,38 @@ class RecordArchiveManifestTests(unittest.TestCase):
             self.assertEqual(len(entries), 2)
             names = {e["name"] for e in entries}
             self.assertEqual(names, {"pkg-a", "pkg-b"})
+
+    def test_raises_clear_error_on_malformed_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest-archives.json"
+            path.write_text("not json", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "not valid JSON"):
+                self.mod.record_archive_manifest(
+                    path,
+                    git_url="https://github.com/someone/cool-module",
+                    ref="v1.0.0",
+                    resolved_sha="a" * 40,
+                    entry="mod.nu",
+                    name="cool-module",
+                    owner="someone",
+                    pkg_type="module",
+                )
+
+    def test_raises_clear_error_on_non_list_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "manifest-archives.json"
+            path.write_text('{"not": "a list"}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "must contain a JSON array"):
+                self.mod.record_archive_manifest(
+                    path,
+                    git_url="https://github.com/someone/cool-module",
+                    ref="v1.0.0",
+                    resolved_sha="a" * 40,
+                    entry="mod.nu",
+                    name="cool-module",
+                    owner="someone",
+                    pkg_type="module",
+                )
 
 
 class MainEndToEndTests(unittest.TestCase):

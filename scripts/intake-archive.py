@@ -40,7 +40,6 @@ import gzip
 import hashlib
 import importlib
 import importlib.util
-import io
 import json
 import re
 import subprocess
@@ -154,8 +153,6 @@ def sorted_files(root: Path) -> list[Path]:
 
 def build_archive(src_dir: Path, out: Path) -> None:
     """Build a deterministic .tar.gz of `src_dir`: sorted entries, fixed mtime, gzip mtime=0."""
-    raw = io.BytesIO()
-
     rels = sorted_files(src_dir)
     if len(rels) > MAX_ARCHIVE_FILES:
         raise ValueError(f"{len(rels)} files exceeds client limit of {MAX_ARCHIVE_FILES}")
@@ -177,7 +174,6 @@ def build_archive(src_dir: Path, out: Path) -> None:
                 with full.open("rb") as src:
                     tar.addfile(info, src)
         gz.close()
-        gz.close()
 
 
 def upload_to_release(release_repo: str, tag: str, title: str, asset: Path) -> str:
@@ -188,9 +184,13 @@ def upload_to_release(release_repo: str, tag: str, title: str, asset: Path) -> s
     """
     gh_helpers = importlib.import_module("gh_helpers")
 
-    existing = gh_helpers.gh_run(["release", "view", tag, "--repo", release_repo])
-    if existing is not None and existing.returncode == 0:
+    existing_release = gh_helpers.gh_run(["release", "view", tag, "--repo", release_repo])
+    if existing_release is not None and existing_release.returncode == 0:
         raise ValueError(f"release tag {tag!r} already exists on {release_repo}; refusing to overwrite")
+
+    existing_tag = gh_helpers.gh_run(["api", f"repos/{release_repo}/git/refs/tags/{tag}"])
+    if existing_tag is not None and existing_tag.returncode == 0:
+        raise ValueError(f"tag {tag!r} already exists on {release_repo}; refusing to overwrite")
 
     try:
         result = gh_helpers.gh_run_with_timeout(
@@ -285,8 +285,19 @@ def record_archive_manifest(
     owner: str,
     pkg_type: str,
 ) -> None:
-    """Upsert this intake's re-intake tracking record into manifest-archives.json."""
-    entries = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    """Upsert this intake's re-intake tracking record into manifest-archives.json.
+
+    Raises ValueError if the existing file is present but not a JSON array of objects.
+    """
+    if path.exists():
+        try:
+            entries = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"{path} is not valid JSON: {exc}") from exc
+        if not isinstance(entries, list) or not all(isinstance(e, dict) for e in entries):
+            raise ValueError(f"{path} must contain a JSON array of objects")
+    else:
+        entries = []
     record = {
         "git": git_url,
         "ref": ref,
@@ -405,16 +416,20 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
             return result.returncode
         print("registry update succeeded", file=sys.stderr)
 
-    record_archive_manifest(
-        args.manifest_archives,
-        git_url=args.git_url,
-        ref=args.ref,
-        resolved_sha=resolved_sha,
-        entry=args.entry,
-        name=args.name,
-        owner=args.owner,
-        pkg_type=args.pkg_type,
-    )
+    try:
+        record_archive_manifest(
+            args.manifest_archives,
+            git_url=args.git_url,
+            ref=args.ref,
+            resolved_sha=resolved_sha,
+            entry=args.entry,
+            name=args.name,
+            owner=args.owner,
+            pkg_type=args.pkg_type,
+        )
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
     print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
     return None
 
