@@ -352,13 +352,22 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
-    if spec.get("owner") == "numan-maintained" and not spec.get("source", {}).get("upstream"):
-        print(
-            "FAIL: owner 'numan-maintained' requires source.upstream (the original "
-            "repo URL) so installing the original owner/name is never silently "
-            "substituted with this fork -- see ADR 0001 fork identity requirements"
-        )
-        sys.exit(1)
+    if spec.get("owner") == "numan-maintained":
+        source = spec.get("source")
+        if not isinstance(source, dict):
+            print(
+                "FAIL: owner 'numan-maintained' requires source to be an object "
+                "containing source.upstream -- see ADR 0001 fork identity requirements"
+            )
+            sys.exit(1)
+        upstream = source.get("upstream")
+        if not isinstance(upstream, str) or not upstream.strip():
+            print(
+                "FAIL: owner 'numan-maintained' requires source.upstream (the original "
+                "repo URL) so installing the original owner/name is never silently "
+                "substituted with this fork -- see ADR 0001 fork identity requirements"
+            )
+            sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)

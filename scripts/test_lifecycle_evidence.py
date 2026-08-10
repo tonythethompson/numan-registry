@@ -242,6 +242,11 @@ class LifecycleEvidenceTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.add_package.validate_spec(spec)
 
+        with_non_dict_source = copy.deepcopy(spec)
+        with_non_dict_source["source"] = "oops"
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(with_non_dict_source)
+
         with_source_no_upstream = copy.deepcopy(spec)
         with_source_no_upstream["source"] = {
             "git": "https://example.com/numan-maintained/pkg",
@@ -250,6 +255,13 @@ class LifecycleEvidenceTests(unittest.TestCase):
         }
         with self.assertRaises(SystemExit):
             self.add_package.validate_spec(with_source_no_upstream)
+
+        with_whitespace_upstream = copy.deepcopy(spec)
+        with_whitespace_upstream["source"] = {
+            "upstream": "   ",
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(with_whitespace_upstream)
 
         with_upstream = copy.deepcopy(spec)
         with_upstream["source"] = {
