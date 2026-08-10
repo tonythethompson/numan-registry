@@ -354,7 +354,11 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         archive_path = Path(tmp) / f"{args.owner}-{args.name}-{version}.tar.gz"
-        build_archive(src_dir, archive_path)
+        try:
+            build_archive(src_dir, archive_path)
+        except ValueError as exc:
+            print(f"FAIL: {exc}", file=sys.stderr)
+            return 1
         digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
         print(f"Built {archive_path.name} sha256={digest}", file=sys.stderr)
 
@@ -413,10 +417,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         return result.returncode
 
-    print(
-        f"\nRe-run with the emitted spec: python scripts/add-package.py --spec {out_path} --write",
-        file=sys.stderr,
-    )
+    rerun_cmd = f"python scripts/add-package.py --spec {out_path} --write"
+    if args.provisional:
+        rerun_cmd += " --provisional"
+    print(f"\nRe-run with the emitted spec: {rerun_cmd}", file=sys.stderr)
     return 0
 
 
