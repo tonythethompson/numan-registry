@@ -322,23 +322,6 @@ def _verify_one_artifact(
         errors.append(f"artifact:{label}")
 
 
-def _validate_artifacts_step(
-    index: dict,
-    *,
-    strict_artifacts: bool,
-    errors: list[str],
-) -> None:
-    """Verify artifact digests for every non-empty URL in the index."""
-    for label, url, expected_sha256 in collect_artifact_urls(index):
-        _verify_one_artifact(
-            label,
-            url,
-            expected_sha256,
-            strict_artifacts=strict_artifacts,
-            errors=errors,
-        )
-
-
 def main(argv: list[str] | None = None) -> int:
     """
     Validate the registry index and its associated signatures and artifacts.
@@ -364,11 +347,14 @@ def main(argv: list[str] | None = None) -> int:
     canonical = _print_canonical_digest(args.index)
     _validate_signature_step(args, canonical, errors)
     if not args.skip_artifacts:
-        _validate_artifacts_step(
-            index,
-            strict_artifacts=args.strict_artifacts,
-            errors=errors,
-        )
+        for label, url, expected_sha256 in collect_artifact_urls(index):
+            _verify_one_artifact(
+                label,
+                url,
+                expected_sha256,
+                strict_artifacts=args.strict_artifacts,
+                errors=errors,
+            )
 
     if errors:
         print(f"\nValidation failed with {len(errors)} error(s)")
