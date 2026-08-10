@@ -44,9 +44,15 @@ class FakeResponse:
     def __exit__(self, *_args):
         return False
 
-    def read(self):
-        """Return the response payload as bytes."""
-        return self.data
+    def read(self, nbytes=-1):
+        """Return the response payload as bytes, optionally capped to *nbytes*."""
+        if nbytes < 0:
+            return self.data
+        if nbytes == 0:
+            return b""
+        chunk = self.data[:nbytes]
+        self.data = self.data[nbytes:]
+        return chunk
 
 
 class AddPackageArchiveTests(unittest.TestCase):
