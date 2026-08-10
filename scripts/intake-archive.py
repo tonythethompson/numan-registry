@@ -302,6 +302,123 @@ def record_archive_manifest(
     path.write_text(json.dumps(entries, indent=2) + "\n", encoding="utf-8")
 
 
+def _parse_tags(raw: str) -> list[str]:
+    """Parse and validate the --tags JSON array. Raises ValueError/JSONDecodeError."""
+    tags = json.loads(raw)
+    if not isinstance(tags, list) or not all(isinstance(t, str) for t in tags):
+        raise ValueError("--tags must be a JSON array of strings")
+    return tags
+
+
+def _validate_activation(args: argparse.Namespace) -> int | None:
+    """Check activation prerequisites: --provisional and import-mode coherence."""
+    if args.activation_kind and not args.provisional:
+        print(
+            "FAIL: --activation-kind requires --provisional (no lifecycle evidence was provided)",
+            file=sys.stderr,
+        )
+        return 1
+    if args.activation_kind:
+        add_package = _load_add_package()
+        try:
+            add_package.check_module_import_mode(
+                {"entry": args.entry},
+                {"kind": args.activation_kind, "import": args.activation_import or "module"},
+            )
+        except SystemExit:
+            return 1
+    return None
+
+
+def _checkout_and_validate_entry(args: argparse.Namespace, resolved_sha: str, tmp: str) -> Path | int:
+    """Clone at resolved_sha and verify --entry exists inside the checkout.
+
+    Returns the checkout directory, or an exit code on failure.
+    """
+    src_dir = Path(tmp) / "src"
+    try:
+        shallow_clone_at(args.git_url, resolved_sha, src_dir)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        print(f"FAIL: could not clone/checkout {resolved_sha}: {exc}", file=sys.stderr)
+        return 1
+
+    entry_path = src_dir / args.entry
+    try:
+        if Path(args.entry).is_absolute():
+            raise ValueError
+        entry_path.resolve().relative_to(src_dir.resolve())
+    except ValueError:
+        print(f"FAIL: entry path escapes checkout: {args.entry}", file=sys.stderr)
+        return 1
+    if not entry_path.is_file():
+        print(f"FAIL: entry file not found in checkout: {args.entry}", file=sys.stderr)
+        return 1
+    return src_dir
+
+
+def _build_and_publish(args: argparse.Namespace, src_dir: Path, tag: str, version: str) -> tuple[str, str] | int:
+    """Build the deterministic archive and upload it to the release.
+
+    Returns (url, sha256), or an exit code on failure.
+    """
+    archive_path = src_dir.parent / f"{args.owner}-{args.name}-{version}.tar.gz"
+    try:
+        build_archive(src_dir, archive_path)
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
+    digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+    print(f"Built {archive_path.name} sha256={digest}", file=sys.stderr)
+
+    try:
+        url = upload_to_release(args.release_repo, tag, f"{args.owner}/{args.name} {version}", archive_path)
+    except ValueError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 1
+    return url, digest
+
+
+def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resolved_sha: str, tag: str) -> int | None:
+    """Chain into add-package.py --write (if requested) and record re-intake tracking.
+
+    Returns an exit code on failure, None on success.
+    """
+    if args.write:
+        add_package_script = REPO_ROOT / "scripts" / "add-package.py"
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(add_package_script),
+                "--spec",
+                str(out_path),
+                "--write",
+                *(["--provisional"] if args.provisional else []),
+            ],
+            cwd=REPO_ROOT,
+            check=False,
+        )
+        if result.returncode != 0:
+            print(
+                f"FAIL: registry update failed; release {tag} was already published on {args.release_repo}",
+                file=sys.stderr,
+            )
+            return result.returncode
+        print("registry update succeeded", file=sys.stderr)
+
+    record_archive_manifest(
+        args.manifest_archives,
+        git_url=args.git_url,
+        ref=args.ref,
+        resolved_sha=resolved_sha,
+        entry=args.entry,
+        name=args.name,
+        owner=args.owner,
+        pkg_type=args.pkg_type,
+    )
+    print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     """Resolve, archive, publish, and emit a registry spec for a non-binary package."""
     ap = argparse.ArgumentParser(description=__doc__)
@@ -345,30 +462,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--write", action="store_true", help="Chain into add-package.py --write")
     args = ap.parse_args(argv)
 
-    if args.activation_kind and not args.provisional:
-        print(
-            "FAIL: --activation-kind requires --provisional (no lifecycle evidence was provided)",
-            file=sys.stderr,
-        )
-        return 1
+    activation_err = _validate_activation(args)
+    if activation_err is not None:
+        return activation_err
 
     try:
-        tags = json.loads(args.tags)
-        if not isinstance(tags, list) or not all(isinstance(t, str) for t in tags):
-            raise ValueError("--tags must be a JSON array of strings")
+        tags = _parse_tags(args.tags)
     except (json.JSONDecodeError, ValueError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
-
-    if args.activation_kind:
-        add_package = _load_add_package()
-        try:
-            add_package.check_module_import_mode(
-                {"entry": args.entry},
-                {"kind": args.activation_kind, "import": args.activation_import or "module"},
-            )
-        except SystemExit:
-            return 1
 
     try:
         validate_git_url(args.git_url)
@@ -387,41 +489,14 @@ def main(argv: list[str] | None = None) -> int:
     tag = f"archive-{args.owner}-{args.name}-{version}"
 
     with tempfile.TemporaryDirectory() as tmp:
-        src_dir = Path(tmp) / "src"
-        try:
-            shallow_clone_at(args.git_url, resolved_sha, src_dir)
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-            print(f"FAIL: could not clone/checkout {resolved_sha}: {exc}", file=sys.stderr)
-            return 1
+        src_dir = _checkout_and_validate_entry(args, resolved_sha, tmp)
+        if isinstance(src_dir, int):
+            return src_dir
 
-        entry_path = src_dir / args.entry
-        try:
-            if Path(args.entry).is_absolute():
-                raise ValueError
-            entry_path.resolve().relative_to(src_dir.resolve())
-        except ValueError:
-            print(f"FAIL: entry path escapes checkout: {args.entry}", file=sys.stderr)
-            return 1
-        if not entry_path.is_file():
-            print(f"FAIL: entry file not found in checkout: {args.entry}", file=sys.stderr)
-            return 1
-
-        archive_path = Path(tmp) / f"{args.owner}-{args.name}-{version}.tar.gz"
-        try:
-            build_archive(src_dir, archive_path)
-        except ValueError as exc:
-            print(f"FAIL: {exc}", file=sys.stderr)
-            return 1
-        digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
-        print(f"Built {archive_path.name} sha256={digest}", file=sys.stderr)
-
-        try:
-            url = upload_to_release(
-                args.release_repo, tag, f"{args.owner}/{args.name} {version}", archive_path
-            )
-        except ValueError as exc:
-            print(f"FAIL: {exc}", file=sys.stderr)
-            return 1
+        published = _build_and_publish(args, src_dir, tag, version)
+        if isinstance(published, int):
+            return published
+        url, digest = published
 
         spec = build_spec(
             owner=args.owner,
@@ -443,36 +518,9 @@ def main(argv: list[str] | None = None) -> int:
         out_path.write_text(json.dumps(spec, indent=2) + "\n", encoding="utf-8")
         print(f"wrote {out_path}", file=sys.stderr)
 
-        if args.write:
-            add_package_script = REPO_ROOT / "scripts" / "add-package.py"
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    str(add_package_script),
-                    "--spec",
-                    str(out_path),
-                    "--write",
-                    *( ["--provisional"] if args.provisional else [] ),
-                ],
-                cwd=REPO_ROOT,
-                check=False,
-            )
-            if result.returncode != 0:
-                print(f"FAIL: registry update failed; release {tag} was already published on {args.release_repo}", file=sys.stderr)
-                return result.returncode
-            print(f"registry update succeeded", file=sys.stderr)
-
-        record_archive_manifest(
-            args.manifest_archives,
-            git_url=args.git_url,
-            ref=args.ref,
-            resolved_sha=resolved_sha,
-            entry=args.entry,
-            name=args.name,
-            owner=args.owner,
-            pkg_type=args.pkg_type,
-        )
-        print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
+        write_err = _write_registry_and_manifest(args, out_path, resolved_sha, tag)
+        if write_err is not None:
+            return write_err
 
     if not args.write:
         rerun_cmd = f"python scripts/add-package.py --spec {out_path} --write"
