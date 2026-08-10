@@ -453,7 +453,7 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.provisional and not args.deferral_reason:
+    if args.provisional and not (args.deferral_reason and args.deferral_reason.strip()):
         print("FAIL: --provisional requires --deferral-reason", file=sys.stderr)
         sys.exit(1)
 
@@ -462,7 +462,7 @@ def main():
 
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
     version_entry = build_version_entry(
-        spec, deferral_reason=args.deferral_reason if args.provisional else None
+        spec, deferral_reason=args.deferral_reason.strip() if args.provisional else None
     )
     package_entry = build_package_entry(spec, version_entry)
 

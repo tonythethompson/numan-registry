@@ -63,6 +63,11 @@ class NeedsMigrationTests(unittest.TestCase):
     def test_non_dict_version_is_not_migrated(self):
         self.assertFalse(self.mod.needs_migration({"type": "plugin"}, "bad"))
 
+    def test_malformed_truthy_verified_with_still_migrates(self):
+        pkg = {"type": "plugin"}
+        version = plugin_version(verified_with="0.113.1")
+        self.assertTrue(self.mod.needs_migration(pkg, version))
+
 
 class MigrateIndexTests(unittest.TestCase):
     @classmethod

@@ -119,6 +119,67 @@ class BuildVersionEntryEvidenceTierTests(unittest.TestCase):
         self.assertNotIn("deferral_reason", version_entry)
 
 
+class SchemaProvisionalTierTests(unittest.TestCase):
+    """Confirm the schema itself rejects a provisional entry missing deferral_reason."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        import json as _json
+
+        try:
+            import jsonschema
+
+            cls.jsonschema = jsonschema
+        except ImportError:
+            cls.jsonschema = None
+        schema_path = Path(__file__).resolve().parent.parent / "schemas" / "index-v1.json"
+        cls.schema = _json.loads(schema_path.read_text(encoding="utf-8"))
+
+    def _index(self, version_entry):
+        return {
+            "schema_version": 1,
+            "updated_at": "2026-01-01T00:00:00Z",
+            "packages": [
+                {
+                    "id": {"owner": "o", "name": "p"},
+                    "description": "p",
+                    "repo": "https://example.invalid/o/p",
+                    "type": "plugin",
+                    "tags": [],
+                    "versions": [version_entry],
+                }
+            ],
+        }
+
+    def test_provisional_without_deferral_reason_is_rejected(self):
+        if self.jsonschema is None:
+            self.skipTest("jsonschema not installed")
+        index = self._index(
+            {
+                "version": "1.0.0",
+                "nu_version": "*",
+                "evidence_tier": "provisional",
+                "artifact": {"kind": "binary", "targets": {}},
+            }
+        )
+        with self.assertRaises(self.jsonschema.ValidationError):
+            self.jsonschema.validate(index, self.schema)
+
+    def test_provisional_with_deferral_reason_is_accepted(self):
+        if self.jsonschema is None:
+            self.skipTest("jsonschema not installed")
+        index = self._index(
+            {
+                "version": "1.0.0",
+                "nu_version": "*",
+                "evidence_tier": "provisional",
+                "deferral_reason": "requires cloud credentials",
+                "artifact": {"kind": "binary", "targets": {}},
+            }
+        )
+        self.jsonschema.validate(index, self.schema)
+
+
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
     result = unittest.TextTestRunner(verbosity=2).run(suite)

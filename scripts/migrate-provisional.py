@@ -30,7 +30,8 @@ def needs_migration(pkg: dict, version: object) -> bool:
         return False
     if "evidence_tier" in version:
         return False
-    if version.get("verified_with"):
+    evidence = version.get("verified_with")
+    if isinstance(evidence, list) and evidence:
         return False
     return pkg.get("type") == "plugin" or "activation" in version
 

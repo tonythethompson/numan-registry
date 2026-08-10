@@ -156,6 +156,13 @@
                     "import": { "type": "string", "enum": ["module", "all"] }
                   }
                 }
+              },
+              "if": {
+                "properties": { "evidence_tier": { "const": "provisional" } },
+                "required": ["evidence_tier"]
+              },
+              "then": {
+                "required": ["deferral_reason"]
               }
             }
           }
