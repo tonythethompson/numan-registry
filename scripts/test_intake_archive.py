@@ -367,6 +367,7 @@ class MainEndToEndTests(unittest.TestCase):
                         "--nu-version", ">=0.114.0",
                         "--activation-kind", "nu-module",
                         "--activation-import", "all",
+                        "--provisional",
                         "--release-repo", "owner/repo",
                         "--out", str(out_path),
                         "--manifest-archives", str(manifest_path),
