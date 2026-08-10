@@ -188,13 +188,8 @@ def lifecycle_evidence_errors(index, *, allow_missing=False):
     return errors
 
 
-def main():
-    """
-    Validate the registry index and its associated signatures and artifacts.
-    
-    Returns:
-    	int: `0` if validation succeeds, `1` if any validation step fails.
-    """
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Build the validate CLI and parse ``argv`` (defaults to ``sys.argv``)."""
     parser = argparse.ArgumentParser(description="Validate the Numan registry index")
     parser.add_argument("--index", default="registry/index.json")
     parser.add_argument("--sig", default="registry/index.json.sig")
@@ -215,88 +210,151 @@ def main():
             "incompatible evidence still fails"
         ),
     )
-    args = parser.parse_args()
+    return parser.parse_args(argv)
 
-    errors = []
 
-    # Load index
+def _load_index(index_path: str) -> dict | None:
+    """Load the index JSON or print a failure line and return ``None``."""
     try:
-        index = load_json(args.index)
+        return load_json(index_path)
     except Exception as exc:
         print(f"FAIL: could not load index: {exc}")
-        return 1
+        return None
 
-    # Schema validation
-    schema_valid = True
+
+def _validate_schema_step(index: dict, schema_path: str, errors: list[str]) -> bool:
+    """Run schema validation. Returns whether the schema check passed."""
     try:
-        validate_schema(index, args.schema)
+        validate_schema(index, schema_path)
         print("OK: schema validation passed")
+        return True
     except Exception as exc:
         print(f"FAIL: schema validation: {exc}")
         errors.append("schema")
-        schema_valid = False
+        return False
 
-    if schema_valid:
-        evidence_errors = lifecycle_evidence_errors(
-            index,
-            allow_missing=args.allow_provisional_lifecycle,
-        )
-        for evidence_error in evidence_errors:
-            print(f"FAIL: {evidence_error}")
-            errors.append(f"lifecycle_evidence:{evidence_error}")
-        if args.allow_provisional_lifecycle and not evidence_errors:
-            print("OK: provisional lifecycle evidence is allowed for staging")
 
-    # schema_version check
+def _validate_lifecycle_step(
+    index: dict,
+    *,
+    allow_missing: bool,
+    errors: list[str],
+) -> None:
+    """Validate lifecycle evidence when the schema step succeeded."""
+    evidence_errors = lifecycle_evidence_errors(index, allow_missing=allow_missing)
+    for evidence_error in evidence_errors:
+        print(f"FAIL: {evidence_error}")
+        errors.append(f"lifecycle_evidence:{evidence_error}")
+    if allow_missing and not evidence_errors:
+        print("OK: provisional lifecycle evidence is allowed for staging")
+
+
+def _validate_schema_version(index: dict, errors: list[str]) -> None:
+    """Ensure the index declares schema_version 1."""
     if index.get("schema_version") != 1:
         print(f"FAIL: schema_version must be 1, got {index.get('schema_version')}")
         errors.append("schema_version")
 
-    # Canonical JSON and SHA-256
-    with open(args.index, "r", encoding="utf-8") as f:
+
+def _canonical_index_bytes(index_path: str) -> bytes:
+    """Read the index file and return canonical UTF-8 bytes for signing."""
+    with open(index_path, "r", encoding="utf-8") as f:
         raw_index = f.read()
     parsed_index = json.loads(raw_index)
-    canonical = canonical_json(parsed_index).encode("utf-8")
+    return canonical_json(parsed_index).encode("utf-8")
+
+
+def _print_canonical_digest(index_path: str) -> bytes:
+    """Print the canonical SHA-256 digest and return the canonical bytes."""
+    canonical = _canonical_index_bytes(index_path)
     index_sha256 = hashlib.sha256(canonical).hexdigest()
     print(f"OK: canonical index sha256 = {index_sha256}")
+    return canonical
 
-    # Production candidates are validated without secrets before signing, then
-    # validated again with the committed public key after signing.
+
+def _validate_signature_step(
+    args: argparse.Namespace,
+    canonical: bytes,
+    errors: list[str],
+) -> None:
+    """Verify the detached Ed25519 signature unless ``--skip-signature``."""
     if args.skip_signature:
         print("OK: signature verification skipped for unsigned candidate")
-    else:
-        try:
-            expected_key_id, public_key_b64 = load_pub_key(args.pub)
-            sig_key_id, signature_b64 = load_sig(args.sig)
-            if sig_key_id != expected_key_id:
-                raise ValueError(
-                    f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
-                )
-            verify_ed25519(public_key_b64, signature_b64, canonical)
-            print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
-        except Exception as exc:
-            print(f"FAIL: signature verification: {exc}")
-            errors.append("signature")
+        return
+    try:
+        expected_key_id, public_key_b64 = load_pub_key(args.pub)
+        sig_key_id, signature_b64 = load_sig(args.sig)
+        if sig_key_id != expected_key_id:
+            raise ValueError(
+                f"Signature key_id '{sig_key_id}' does not match public key '{expected_key_id}'"
+            )
+        verify_ed25519(public_key_b64, signature_b64, canonical)
+        print(f"OK: Ed25519 signature verified with key_id '{sig_key_id}'")
+    except Exception as exc:
+        print(f"FAIL: signature verification: {exc}")
+        errors.append("signature")
 
-    # Artifact digest verification
+
+def _verify_one_artifact(
+    label: str,
+    url: str,
+    expected_sha256: str,
+    *,
+    strict_artifacts: bool,
+    errors: list[str],
+) -> None:
+    """Download and verify one artifact URL, or record fixture/skip outcomes."""
+    if not url:
+        return
+    if is_fixture_url(url):
+        msg = "fixture URL skipped"
+        if strict_artifacts:
+            print(f"FAIL: {label} artifact: {msg}")
+            errors.append(f"artifact:{label}")
+        else:
+            print(f"OK: {label} artifact: {msg}")
+        return
+    ok, msg = download_and_verify(url, expected_sha256)
+    if ok:
+        print(f"OK: {label} artifact digest verified")
+    else:
+        print(f"FAIL: {label} artifact: {msg}")
+        errors.append(f"artifact:{label}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    Validate the registry index and its associated signatures and artifacts.
+
+    Returns:
+        int: ``0`` if validation succeeds, ``1`` if any validation step fails.
+    """
+    args = _parse_args(argv)
+    errors: list[str] = []
+
+    index = _load_index(args.index)
+    if index is None:
+        return 1
+
+    if _validate_schema_step(index, args.schema, errors):
+        _validate_lifecycle_step(
+            index,
+            allow_missing=args.allow_provisional_lifecycle,
+            errors=errors,
+        )
+
+    _validate_schema_version(index, errors)
+    canonical = _print_canonical_digest(args.index)
+    _validate_signature_step(args, canonical, errors)
     if not args.skip_artifacts:
         for label, url, expected_sha256 in collect_artifact_urls(index):
-            if not url:
-                continue
-            if is_fixture_url(url):
-                msg = "fixture URL skipped"
-                if args.strict_artifacts:
-                    print(f"FAIL: {label} artifact: {msg}")
-                    errors.append(f"artifact:{label}")
-                else:
-                    print(f"OK: {label} artifact: {msg}")
-                continue
-            ok, msg = download_and_verify(url, expected_sha256)
-            if ok:
-                print(f"OK: {label} artifact digest verified")
-            else:
-                print(f"FAIL: {label} artifact: {msg}")
-                errors.append(f"artifact:{label}")
+            _verify_one_artifact(
+                label,
+                url,
+                expected_sha256,
+                strict_artifacts=args.strict_artifacts,
+                errors=errors,
+            )
 
     if errors:
         print(f"\nValidation failed with {len(errors)} error(s)")
