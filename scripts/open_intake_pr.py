@@ -330,13 +330,21 @@ def _stage_copy_spec(dest_spec: Path, spec_data: dict, spec_filename: str, *, dr
         )
 
 
-def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str, *, dry_run: bool) -> None:
+def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str,
+                             deferral_reason: str = "lifecycle validation deferred",
+                             *, dry_run: bool) -> None:
     """Run add-package.py --write with an unwrapped spec copy.
+
+    The provisional index entry must retain the lifecycle deferral recorded by
+    Stage 5 evidence.
 
     add-package.py expects bare spec fields (owner, name, …) at the top level,
     not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
     and remove it even if add-package.py fails.
     """
+    if not deferral_reason.strip():
+        print("error: evidence is missing lifecycle_deferral.reason", file=sys.stderr)
+        sys.exit(1)
     if dry_run:
         effective_spec_for_add = spec_path
         bare_tmp_dir: Path | None = None
@@ -350,7 +358,8 @@ def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str, *, 
         _run(
             [sys.executable, str(SCRIPTS / "add-package.py"),
              "--spec", str(effective_spec_for_add),
-             "--write", "--index", str(INDEX_PATH), "--provisional"],
+             "--write", "--index", str(INDEX_PATH), "--provisional",
+             "--deferral-reason", deferral_reason],
             dry_run=dry_run,
         )
     finally:
@@ -467,6 +476,7 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
 
     spec_data, spec, evidence = _load_inputs(spec_path, evidence_path)
     _guard_evidence(evidence)
+    deferral_reason = evidence.get("lifecycle_deferral", {}).get("reason", "")
 
     owner = spec.get("owner", "unknown")
     name = spec.get("name", "unknown")
@@ -494,7 +504,9 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
     try:
         _stage_create_branch(branch, dry_run=dry_run)
         _stage_copy_spec(dest_spec, spec_data, spec_filename, dry_run=dry_run)
-        _stage_merge_into_index(spec_path, spec, spec_filename, dry_run=dry_run)
+        _stage_merge_into_index(
+            spec_path, spec, spec_filename, deferral_reason, dry_run=dry_run
+        )
         _stage_lint_and_validate(dry_run=dry_run)
         _update_intake_state(
             owner, name, version, pkg_type, f"specs/{spec_filename}", repo,
