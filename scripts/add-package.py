@@ -78,6 +78,7 @@ import json
 import re
 import sys
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -158,7 +159,8 @@ def build_artifact(spec_artifact):
         if not targets:
             print("FAIL: artifact.kind 'binary' requires at least one entry in 'targets'")
             sys.exit(1)
-        built_targets = {}
+
+        # Validate all targets before starting downloads.
         for triple, target in targets.items():
             url = target.get("url")
             executable_path = target.get("executable_path")
@@ -166,12 +168,29 @@ def build_artifact(spec_artifact):
                 print(f"FAIL: target '{triple}' requires 'url' and 'executable_path'")
                 sys.exit(1)
             check_archive_format_supported(url, f"target '{triple}'")
-            sha256 = download_and_hash(url)
-            built_targets[triple] = {
-                "url": url,
+
+        # Download and hash all targets in parallel.  Each target is an
+        # independent HTTP fetch + SHA-256 computation with no shared state,
+        # so thread-parallelism eliminates sequential network wait.
+        def _fetch_one(item):
+            triple, target = item
+            sha256 = download_and_hash(target["url"])
+            return triple, {
+                "url": target["url"],
                 "sha256": sha256,
-                "executable_path": executable_path,
+                "executable_path": target["executable_path"],
             }
+
+        built_targets = {}
+        with ThreadPoolExecutor(max_workers=min(len(targets), 8)) as pool:
+            futures = {
+                pool.submit(_fetch_one, (triple, target)): triple
+                for triple, target in targets.items()
+            }
+            for future in as_completed(futures):
+                triple, result = future.result()
+                built_targets[triple] = result
+
         return {"kind": "binary", "targets": built_targets}
 
     if kind == "archive":
