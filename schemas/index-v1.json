@@ -92,6 +92,11 @@
                   "pattern": ".*\\S.*",
                   "description": "Required alongside evidence_tier: 'provisional' — explains why lifecycle-prove was deferred."
                 },
+                "provenance": {
+                  "type": "string",
+                  "enum": ["commit-snapshot"],
+                  "description": "Optional provenance marker. 'commit-snapshot' indicates the version was built from a pinned commit with no upstream tag; requires source.rev to be present."
+                },
                 "verified_with": {
                   "type": "array",
                   "minItems": 1,
@@ -157,13 +162,35 @@
                   }
                 }
               },
-              "if": {
-                "properties": { "evidence_tier": { "const": "provisional" } },
-                "required": ["evidence_tier"]
-              },
-              "then": {
-                "required": ["deferral_reason"]
-              }
+              "allOf": [
+                {
+                  "if": {
+                    "properties": { "evidence_tier": { "const": "provisional" } },
+                    "required": ["evidence_tier"]
+                  },
+                  "then": {
+                    "required": ["deferral_reason"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": { "provenance": { "const": "commit-snapshot" } },
+                    "required": ["provenance"]
+                  },
+                  "then": {
+                    "required": ["source"],
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "rev": {
+                            "pattern": "^[a-f0-9]{40}$"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
             }
           }
         }

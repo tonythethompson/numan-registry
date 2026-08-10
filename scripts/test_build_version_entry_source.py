@@ -16,6 +16,9 @@ SCRIPT = Path(__file__).resolve().parent / "add-package.py"
 
 
 def load_add_package():
+    scripts_dir = str(SCRIPT.parent)
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
     spec = importlib.util.spec_from_file_location("add_package", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -25,7 +28,7 @@ def load_add_package():
 
 class CopySourceFieldTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.ap = load_add_package()
 
     def test_copies_source_when_present(self):
@@ -178,6 +181,148 @@ class SchemaProvisionalTierTests(unittest.TestCase):
             }
         )
         self.jsonschema.validate(index, self.schema)
+
+
+class BuildVersionEntryProvenanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.ap = load_add_package()
+
+    def test_passes_through_provenance_when_present(self):
+        spec = {
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "provenance": "commit-snapshot",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "nu_plugin_plot",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertEqual(version_entry["provenance"], "commit-snapshot")
+
+    def test_omits_provenance_when_absent(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertNotIn("provenance", version_entry)
+
+    def test_rejects_unsupported_provenance_marker(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "hand-wavy",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_rejects_commit_snapshot_without_source(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_accepts_commit_snapshot_with_source_rev(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": {
+                "git": "https://github.com/o/p",
+                "rev": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+                "cargo_name": "p",
+            },
+        }
+        self.ap.validate_spec(spec)
+
+    def test_rejects_commit_snapshot_with_non_object_source(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_rejects_commit_snapshot_with_branch_name_as_rev(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": {
+                "git": "https://github.com/o/p",
+                "rev": "main",
+                "cargo_name": "p",
+            },
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
 
 
 if __name__ == "__main__":
