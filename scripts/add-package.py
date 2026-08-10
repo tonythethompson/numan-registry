@@ -269,8 +269,9 @@ SOURCE_REQUIRED_KEYS = ("git", "rev", "cargo_name")
 def copy_source_field(spec, version_entry):
     """Copy optional `source` provenance onto a version entry.
 
-    Schema (index-v1): required git/rev/cargo_name; optional cargo_lock_sha256.
-    Extracted so unit tests can assert passthrough without downloading artifacts.
+    Schema (index-v1): required git/rev/cargo_name; optional
+    cargo_lock_sha256/upstream. Extracted so unit tests can assert
+    passthrough without downloading artifacts.
     """
     if "source" not in spec:
         return
@@ -289,6 +290,8 @@ def copy_source_field(spec, version_entry):
     out = {k: source[k] for k in SOURCE_REQUIRED_KEYS}
     if "cargo_lock_sha256" in source:
         out["cargo_lock_sha256"] = source["cargo_lock_sha256"]
+    if "upstream" in source:
+        out["upstream"] = source["upstream"]
     version_entry["source"] = out
 
 
@@ -348,6 +351,13 @@ def validate_spec(spec, *, allow_provisional=False):
         sys.exit(1)
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
+        sys.exit(1)
+    if spec.get("owner") == "numan-maintained" and not spec.get("source", {}).get("upstream"):
+        print(
+            "FAIL: owner 'numan-maintained' requires source.upstream (the original "
+            "repo URL) so installing the original owner/name is never silently "
+            "substituted with this fork -- see ADR 0001 fork identity requirements"
+        )
         sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")

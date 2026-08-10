@@ -350,6 +350,28 @@ def _lint_source_provenance(
         )
 
 
+def _lint_fork_identity(
+    pkg: dict,
+    version: dict,
+    errors: list[str],
+    *,
+    label: str,
+) -> None:
+    """Require source.upstream on every numan-maintained fork version.
+
+    Fork identity must never let installing the original owner/name silently
+    resolve to a fork -- source.upstream is what keeps that distinction
+    machine-checkable, not just documented convention.
+    """
+    owner = (pkg.get("id") or {}).get("owner") if isinstance(pkg.get("id"), dict) else None
+    if owner != "numan-maintained":
+        return
+    source = version.get("source")
+    upstream = source.get("upstream") if isinstance(source, dict) else None
+    if not isinstance(upstream, str) or not upstream.strip():
+        errors.append(f"{label}: owner 'numan-maintained' requires source.upstream (original repo URL)")
+
+
 def lint_activation_and_provenance(
     pkg: dict,
     version: dict,
@@ -363,6 +385,7 @@ def lint_activation_and_provenance(
     )
     _lint_activation(pkg, version, errors, label=label)
     _lint_source_provenance(version, errors, label=label)
+    _lint_fork_identity(pkg, version, errors, label=label)
 
 
 def lint_version(
