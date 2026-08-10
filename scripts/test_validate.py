@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import base64
 import importlib.util
 import json
 import sys
@@ -12,6 +13,8 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 from unittest import mock
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 SCRIPT = Path(__file__).resolve().parent / "validate.py"
 ROOT = SCRIPT.parent.parent
@@ -192,6 +195,64 @@ class ValidateMainHelperTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertIn("signature verification skipped", buf.getvalue())
 
+    def test_validate_signature_step_key_id_mismatch(self):
+        args = self.validate._parse_args([])
+        with tempfile.TemporaryDirectory() as tmp:
+            pub_path = Path(tmp) / "official.pub"
+            pub_path.write_text(
+                json.dumps({"key_id": "key-a", "public_key_b64": "cGxhY2Vob2xkZXI="}),
+                encoding="utf-8",
+            )
+            sig_path = Path(tmp) / "index.json.sig"
+            sig_path.write_text(
+                json.dumps({"key_id": "key-b", "algorithm": "ed25519", "signature": "c2ln"}),
+                encoding="utf-8",
+            )
+            args.pub = str(pub_path)
+            args.sig = str(sig_path)
+            errors: list[str] = []
+            buf = StringIO()
+            with redirect_stdout(buf):
+                self.validate._validate_signature_step(args, b"canonical", errors)
+        self.assertEqual(errors, ["signature"])
+        self.assertIn("does not match public key", buf.getvalue())
+
+    def test_verify_one_artifact_empty_url_is_noop(self):
+        errors: list[str] = []
+        buf = StringIO()
+        with redirect_stdout(buf):
+            self.validate._verify_one_artifact(
+                "acme/pkg@1.0.0", "", "a" * 64, strict_artifacts=False, errors=errors
+            )
+        self.assertEqual(errors, [])
+        self.assertEqual(buf.getvalue(), "")
+
+    def test_verify_one_artifact_real_download_success(self):
+        class _Resp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b"payload"
+
+        errors: list[str] = []
+        buf = StringIO()
+        with mock.patch.object(self.validate, "http_opener") as http_opener:
+            http_opener.return_value.open.return_value = _Resp()
+            with redirect_stdout(buf):
+                self.validate._verify_one_artifact(
+                    "acme/pkg@1.0.0",
+                    "https://cdn.example.org/a.zip",
+                    "239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5",
+                    strict_artifacts=False,
+                    errors=errors,
+                )
+        self.assertEqual(errors, [])
+        self.assertIn("artifact digest verified", buf.getvalue())
+
     def test_main_schema_failure_skips_lifecycle_traversal(self):
         malformed = {
             "schema_version": 1,
@@ -216,6 +277,368 @@ class ValidateMainHelperTests(unittest.TestCase):
                 code = self.validate.main(argv)
             lifecycle_errors.assert_not_called()
             self.assertEqual(code, 1)
+
+
+class CanonicalJsonAndKeyLoadTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_canonical_json_numeric_fallback(self):
+        self.assertEqual(self.validate.canonical_json(42), "42")
+        self.assertEqual(self.validate.canonical_json(1.5), "1.5")
+
+    def test_canonical_json_bool(self):
+        self.assertEqual(self.validate.canonical_json(True), "true")
+        self.assertEqual(self.validate.canonical_json(False), "false")
+
+    def test_load_pub_key_missing_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "official.pub"
+            path.write_text(json.dumps({"key_id": "abc"}), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                self.validate.load_pub_key(str(path))
+
+    def test_load_pub_key_placeholder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "official.pub"
+            path.write_text(
+                json.dumps({"key_id": "abc", "public_key_b64": "PLACEHOLDER"}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValueError):
+                self.validate.load_pub_key(str(path))
+
+    def test_load_pub_key_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "official.pub"
+            path.write_text(
+                json.dumps({"key_id": "abc", "public_key_b64": "cGxhY2Vob2xkZXI="}),
+                encoding="utf-8",
+            )
+            key_id, pub_b64 = self.validate.load_pub_key(str(path))
+            self.assertEqual(key_id, "abc")
+            self.assertEqual(pub_b64, "cGxhY2Vob2xkZXI=")
+
+    def test_load_sig_missing_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json.sig"
+            path.write_text(json.dumps({"key_id": "abc"}), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                self.validate.load_sig(str(path))
+
+    def test_load_sig_unsupported_algorithm(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json.sig"
+            path.write_text(
+                json.dumps({"key_id": "abc", "algorithm": "rsa", "signature": "x"}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValueError):
+                self.validate.load_sig(str(path))
+
+    def test_load_sig_placeholder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json.sig"
+            path.write_text(
+                json.dumps(
+                    {"key_id": "abc", "algorithm": "ed25519", "signature": "PLACEHOLDER"}
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValueError):
+                self.validate.load_sig(str(path))
+
+    def test_load_sig_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json.sig"
+            path.write_text(
+                json.dumps({"key_id": "abc", "algorithm": "ed25519", "signature": "c2ln"}),
+                encoding="utf-8",
+            )
+            key_id, sig_b64 = self.validate.load_sig(str(path))
+            self.assertEqual(key_id, "abc")
+            self.assertEqual(sig_b64, "c2ln")
+
+
+class VerifyEd25519Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_round_trip_succeeds(self):
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+        pub_bytes = public_key.public_bytes_raw()
+        data = b"canonical bytes"
+        signature = private_key.sign(data)
+        self.validate.verify_ed25519(
+            base64.b64encode(pub_bytes).decode(),
+            base64.b64encode(signature).decode(),
+            data,
+        )
+
+    def test_wrong_public_key_length_raises(self):
+        with self.assertRaises(ValueError):
+            self.validate.verify_ed25519(
+                base64.b64encode(b"short").decode(),
+                base64.b64encode(b"a" * 64).decode(),
+                b"data",
+            )
+
+    def test_wrong_signature_length_raises(self):
+        private_key = Ed25519PrivateKey.generate()
+        pub_bytes = private_key.public_key().public_bytes_raw()
+        with self.assertRaises(ValueError):
+            self.validate.verify_ed25519(
+                base64.b64encode(pub_bytes).decode(),
+                base64.b64encode(b"short").decode(),
+                b"data",
+            )
+
+    def test_tampered_data_fails_verification(self):
+        private_key = Ed25519PrivateKey.generate()
+        pub_bytes = private_key.public_key().public_bytes_raw()
+        signature = private_key.sign(b"original")
+        with self.assertRaises(Exception):
+            self.validate.verify_ed25519(
+                base64.b64encode(pub_bytes).decode(),
+                base64.b64encode(signature).decode(),
+                b"tampered",
+            )
+
+
+class LifecycleEvidenceErrorsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_plugin_missing_verified_with_reports_error(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "type": "plugin",
+                    "versions": [{"version": "1.0.0", "nu_version": "0.100.0"}],
+                }
+            ]
+        }
+        errors = self.validate.lifecycle_evidence_errors(index)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("acme/pkg@1.0.0", errors[0])
+
+    def test_non_activatable_version_skipped(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "type": "script",
+                    "versions": [{"version": "1.0.0", "nu_version": "0.100.0"}],
+                }
+            ]
+        }
+        self.assertEqual(self.validate.lifecycle_evidence_errors(index), [])
+
+    def test_allow_missing_skips_versions_without_evidence(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "type": "plugin",
+                    "versions": [{"version": "1.0.0", "nu_version": "0.100.0"}],
+                }
+            ]
+        }
+        errors = self.validate.lifecycle_evidence_errors(index, allow_missing=True)
+        self.assertEqual(errors, [])
+
+    def test_valid_evidence_reports_no_error(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "type": "plugin",
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "nu_version": "0.100.0",
+                            "verified_with": ["0.100.0"],
+                        }
+                    ],
+                }
+            ]
+        }
+        self.assertEqual(self.validate.lifecycle_evidence_errors(index), [])
+
+
+class CollectArtifactUrlsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_non_binary_artifact(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "artifact": {"kind": "source", "url": "https://example.com/a", "sha256": "x"},
+                        }
+                    ],
+                }
+            ]
+        }
+        results = list(self.validate.collect_artifact_urls(index))
+        self.assertEqual(results, [("acme/pkg@1.0.0", "https://example.com/a", "x")])
+
+    def test_binary_artifact_yields_per_target(self):
+        index = {
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "artifact": {
+                                "kind": "binary",
+                                "targets": {
+                                    "linux": {"url": "https://example.com/linux", "sha256": "l"},
+                                    "windows": {"url": "https://example.com/win", "sha256": "w"},
+                                },
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+        results = sorted(self.validate.collect_artifact_urls(index))
+        self.assertEqual(
+            results,
+            [
+                ("acme/pkg@1.0.0 (linux)", "https://example.com/linux", "l"),
+                ("acme/pkg@1.0.0 (windows)", "https://example.com/win", "w"),
+            ],
+        )
+
+
+class DownloadAndVerifyRemainingBranchTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_read_exception_reports_download_failed(self):
+        with mock.patch.object(self.validate, "http_opener") as http_opener:
+            http_opener.return_value.open.side_effect = OSError("connection reset")
+            ok, msg = self.validate.download_and_verify(
+                "https://example.com/a.zip", "a" * 64
+            )
+        self.assertFalse(ok)
+        self.assertIn("download failed", msg)
+
+    def test_sha256_mismatch_reported(self):
+        class _Resp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b"payload"
+
+        with mock.patch.object(self.validate, "http_opener") as http_opener:
+            http_opener.return_value.open.return_value = _Resp()
+            ok, msg = self.validate.download_and_verify(
+                "https://example.com/a.zip", "0" * 64
+            )
+        self.assertFalse(ok)
+        self.assertIn("sha256 mismatch", msg)
+
+
+class MainEndToEndTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validate = load_validate()
+
+    def test_main_success_with_real_signature_and_fixture_artifact(self):
+        private_key = Ed25519PrivateKey.generate()
+        pub_bytes = private_key.public_key().public_bytes_raw()
+
+        index = {
+            "schema_version": 1,
+            "updated_at": "2026-07-29T00:00:00Z",
+            "packages": [
+                {
+                    "id": {"owner": "acme", "name": "pkg"},
+                    "description": "test package",
+                    "repo": "https://example.com/acme/pkg",
+                    "type": "script",
+                    "tags": [],
+                    "versions": [
+                        {
+                            "version": "1.0.0",
+                            "nu_version": "0.100.0",
+                            "artifact": {
+                                "kind": "source",
+                                "url": "https://example.com/a.zip",
+                                "sha256": "a" * 64,
+                            },
+                        }
+                    ],
+                }
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            index_path = tmp_path / "index.json"
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+
+            canonical = self.validate.canonical_json(index).encode("utf-8")
+            signature = private_key.sign(canonical)
+
+            pub_path = tmp_path / "official.pub"
+            pub_path.write_text(
+                json.dumps(
+                    {
+                        "key_id": "test-key",
+                        "public_key_b64": base64.b64encode(pub_bytes).decode(),
+                    }
+                ),
+                encoding="utf-8",
+            )
+            sig_path = tmp_path / "index.json.sig"
+            sig_path.write_text(
+                json.dumps(
+                    {
+                        "key_id": "test-key",
+                        "algorithm": "ed25519",
+                        "signature": base64.b64encode(signature).decode(),
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            argv = [
+                "--index",
+                str(index_path),
+                "--sig",
+                str(sig_path),
+                "--pub",
+                str(pub_path),
+                "--schema",
+                str(ROOT / "schemas" / "index-v1.json"),
+            ]
+            buf = StringIO()
+            with redirect_stdout(buf):
+                code = self.validate.main(argv)
+            output = buf.getvalue()
+            self.assertEqual(code, 0, output)
+            self.assertIn("Validation passed", output)
+            self.assertIn("Ed25519 signature verified", output)
+            self.assertIn("fixture URL skipped", output)
 
 
 if __name__ == "__main__":
