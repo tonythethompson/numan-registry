@@ -357,6 +357,11 @@ def validate_spec(spec, *, allow_provisional=False):
             print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
             sys.exit(1)
         source = spec.get("source")
+    if "provenance" in spec:
+        if spec["provenance"] not in VALID_PROVENANCE:
+            print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
+            sys.exit(1)
+        source = spec.get("source")
         if spec["provenance"] == "commit-snapshot" and (
             not isinstance(source, dict)
             or not isinstance(source.get("rev"), str)
