@@ -326,7 +326,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         resolved_sha = resolve_ref(args.git_url, args.ref)
-    except ValueError as exc:
+    except (ValueError, subprocess.TimeoutExpired) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
     print(f"Resolved {args.git_url}@{args.ref} -> {resolved_sha}", file=sys.stderr)
@@ -337,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
         src_dir = Path(tmp) / "src"
         try:
             shallow_clone_at(args.git_url, resolved_sha, src_dir)
-        except subprocess.CalledProcessError as exc:
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             print(f"FAIL: could not clone/checkout {resolved_sha}: {exc}", file=sys.stderr)
             return 1
 
