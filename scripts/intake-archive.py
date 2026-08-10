@@ -415,7 +415,13 @@ def main(argv: list[str] | None = None) -> int:
         digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
         print(f"Built {archive_path.name} sha256={digest}", file=sys.stderr)
 
-        url = f"https://github.com/{args.release_repo}/releases/download/{tag}/{archive_path.name}"
+        try:
+            url = upload_to_release(
+                args.release_repo, tag, f"{args.owner}/{args.name} {version}", archive_path
+            )
+        except ValueError as exc:
+            print(f"FAIL: {exc}", file=sys.stderr)
+            return 1
 
         spec = build_spec(
             owner=args.owner,
@@ -452,7 +458,7 @@ def main(argv: list[str] | None = None) -> int:
                 check=False,
             )
             if result.returncode != 0:
-                print(f"FAIL: registry update failed; not publishing release", file=sys.stderr)
+                print(f"FAIL: registry update failed; release {tag} was already published on {args.release_repo}", file=sys.stderr)
                 return result.returncode
             print(f"registry update succeeded", file=sys.stderr)
 
@@ -467,17 +473,6 @@ def main(argv: list[str] | None = None) -> int:
             pkg_type=args.pkg_type,
         )
         print(f"recorded re-intake tracking in {args.manifest_archives}", file=sys.stderr)
-
-        try:
-            actual_url = upload_to_release(
-                args.release_repo, tag, f"{args.owner}/{args.name} {version}", archive_path
-            )
-        except ValueError as exc:
-            print(f"FAIL: {exc}", file=sys.stderr)
-            return 1
-
-        if actual_url != url:
-            print(f"WARNING: published URL {actual_url} differs from expected {url}", file=sys.stderr)
 
     if not args.write:
         rerun_cmd = f"python scripts/add-package.py --spec {out_path} --write"
