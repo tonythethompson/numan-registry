@@ -73,7 +73,7 @@ def _load_add_package() -> ModuleType:
 
 def resolve_ref(git_url: str, ref: str) -> str:
     """Resolve a branch, tag, or commit SHA on `git_url` to its full 40-char commit SHA."""
-    for candidate in (ref, f"refs/heads/{ref}", f"refs/tags/{ref}", f"refs/tags/{ref}^{{}}"):
+    for candidate in (f"refs/tags/{ref}^{{}}", f"refs/tags/{ref}", f"refs/heads/{ref}", ref):
         result = subprocess.run(
             ["git", "ls-remote", git_url, candidate],
             check=False,
@@ -81,8 +81,12 @@ def resolve_ref(git_url: str, ref: str) -> str:
             text=True,
             timeout=COMMAND_TIMEOUT_SECONDS,
         )
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.split()[0]
+        if result.returncode != 0 or not result.stdout.strip():
+            continue
+        lines = result.stdout.strip().splitlines()
+        if len(lines) > 1:
+            raise ValueError(f"ref {ref!r} is ambiguous on {git_url}: {len(lines)} matches")
+        return lines[0].split()[0]
     if SHA_RE.fullmatch(ref):
         return ref
     raise ValueError(f"could not resolve ref {ref!r} on {git_url}")
