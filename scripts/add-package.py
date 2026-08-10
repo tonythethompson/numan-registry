@@ -90,6 +90,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
 
 SHA256_RE = re.compile(r"^[a-fA-F0-9]{64}$")
+GIT_FULL_SHA1_RE = re.compile(r"^[a-f0-9]{40}$")
 REQUIRED_TOP_FIELDS = (
     "owner",
     "name",
@@ -368,6 +369,12 @@ def validate_spec(spec, *, allow_provisional=False):
             or not source["rev"]
         ):
             print("FAIL: provenance 'commit-snapshot' requires source.rev (the pinned commit)")
+            sys.exit(1)
+        if spec["provenance"] == "commit-snapshot" and not GIT_FULL_SHA1_RE.match(source["rev"]):
+            print(
+                f"FAIL: provenance 'commit-snapshot' requires source.rev to be a full 40-character Git SHA-1 commit ID, "
+                f"got {source['rev']!r} (branch names, tags, and short SHAs are not allowed)"
+            )
             sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")

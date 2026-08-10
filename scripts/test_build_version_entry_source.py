@@ -16,6 +16,9 @@ SCRIPT = Path(__file__).resolve().parent / "add-package.py"
 
 
 def load_add_package():
+    scripts_dir = str(SCRIPT.parent)
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
     spec = importlib.util.spec_from_file_location("add_package", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -171,6 +174,29 @@ class BuildVersionEntryProvenanceTests(unittest.TestCase):
             },
         }
         self.ap.validate_spec(spec)
+
+    def test_rejects_commit_snapshot_with_branch_name_as_rev(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": {
+                "git": "https://github.com/o/p",
+                "rev": "main",
+                "cargo_name": "p",
+            },
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
 
 
 if __name__ == "__main__":

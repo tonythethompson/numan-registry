@@ -157,7 +157,16 @@
                 "required": ["provenance"]
               },
               "then": {
-                "required": ["source"]
+                "required": ["source"],
+                "properties": {
+                  "source": {
+                    "properties": {
+                      "rev": {
+                        "pattern": "^[a-f0-9]{40}$"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
