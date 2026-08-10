@@ -9,7 +9,7 @@ mirrors the shared-constant pattern of archive_formats.py.
 """
 
 import urllib.request
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 #: URL schemes permitted for artifact/manifest downloads.
 HTTP_SCHEMES = frozenset({"https", "http"})
@@ -38,14 +38,18 @@ def ensure_http_url(url: str) -> None:
 
 
 def github_repo_key(url: str) -> str | None:
-    """Return ``owner/name`` for a GitHub http(s) URL, else ``None``."""
+    """Return ``owner/name`` for a GitHub http(s) URL, else ``None``.
+
+    Path segments are percent-decoded before comparison so aliases like
+    ``repo.git`` and ``repo%2Egit`` map to the same repository identity.
+    """
     parsed = urlparse(url.strip().rstrip("/"))
     if parsed.scheme.lower() not in HTTP_SCHEMES:
         return None
     host = (parsed.hostname or "").lower()
     if host not in {"github.com", "www.github.com"}:
         return None
-    parts = [part for part in parsed.path.strip("/").split("/") if part]
+    parts = [unquote(part) for part in parsed.path.strip("/").split("/") if part]
     if len(parts) < 2:
         return None
     owner, name = parts[0], parts[1]

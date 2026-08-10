@@ -12,7 +12,12 @@ SCRIPT = Path(__file__).resolve().parent / "url_safety.py"
 if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
 
-from url_safety import ensure_http_url, http_opener  # noqa: E402
+from url_safety import (  # noqa: E402
+    ensure_http_url,
+    fork_upstream_differs_from_git,
+    github_repo_key,
+    http_opener,
+)
 
 
 class EnsureHttpUrlTests(unittest.TestCase):
@@ -74,6 +79,52 @@ class EnsureHttpUrlTests(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(ValueError):
             ensure_http_url(None)  # type: ignore[arg-type]
+
+
+class GitHubRepoKeyTests(unittest.TestCase):
+    def test_normalizes_plain_and_git_suffix(self):
+        self.assertEqual(
+            github_repo_key("https://github.com/Owner/Repo"),
+            "owner/repo",
+        )
+        self.assertEqual(
+            github_repo_key("https://github.com/Owner/Repo.git"),
+            "owner/repo",
+        )
+        self.assertEqual(
+            github_repo_key("https://www.github.com/Owner/Repo.GIT/"),
+            "owner/repo",
+        )
+
+    def test_decodes_percent_encoded_git_suffix(self):
+        self.assertEqual(
+            github_repo_key("https://github.com/numan-maintained/pkg%2Egit"),
+            "numan-maintained/pkg",
+        )
+        self.assertEqual(
+            github_repo_key("https://github.com/numan-maintained/pkg%2egit"),
+            "numan-maintained/pkg",
+        )
+        self.assertEqual(
+            github_repo_key("https://github.com/numan-maintained/pkg%2E%67%69%74"),
+            "numan-maintained/pkg",
+        )
+
+    def test_rejects_non_github_hosts(self):
+        self.assertIsNone(github_repo_key("https://gitlab.com/owner/repo"))
+        self.assertIsNone(github_repo_key("https://example.com/owner/repo.git"))
+
+
+class ForkUpstreamDiffersTests(unittest.TestCase):
+    def test_same_repo_with_encoded_git_suffix_is_not_different(self):
+        git = "https://github.com/numan-maintained/pkg"
+        upstream = "https://github.com/numan-maintained/pkg%2Egit"
+        self.assertFalse(fork_upstream_differs_from_git(git, upstream))
+
+    def test_distinct_repos_remain_different(self):
+        git = "https://github.com/numan-maintained/pkg"
+        upstream = "https://github.com/original-author/pkg"
+        self.assertTrue(fork_upstream_differs_from_git(git, upstream))
 
 
 class HttpOnlyRedirectHandlerTests(unittest.TestCase):
