@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
         print("\nRe-run with --write to apply.", file=sys.stderr)
         return 0
 
-    args.index.write_text(json.dumps(index, indent=2) + "\n", encoding="utf-8")
+    args.index.write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"\nWrote {args.index}. Review the diff, then run scripts/lint_packages.py before committing.", file=sys.stderr)
     return 0
 
