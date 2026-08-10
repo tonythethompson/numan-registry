@@ -207,7 +207,6 @@ def build_artifact(spec_artifact):
             except BaseException:
                 for pending in futures:
                     pending.cancel()
-                pool.shutdown(wait=False, cancel_futures=True)
                 raise
 
         built_targets = {triple: results[triple] for triple in targets}
