@@ -20,7 +20,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import COMPARATOR, EXACT_NU_VERSION, MINOR_WILDCARD
-from url_safety import ensure_http_url
+from url_safety import ensure_http_url, fork_upstream_differs_from_git
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = REPO_ROOT / "registry" / "index.json"
@@ -384,6 +384,13 @@ def _lint_fork_identity(
         ensure_http_url(upstream.strip())
     except ValueError as exc:
         errors.append(f"{label}: source.upstream {exc}")
+        return
+    git = source.get("git")
+    if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+        errors.append(
+            f"{label}: source.upstream must identify the original repository, "
+            "not the fork's source.git"
+        )
 
 
 def lint_activation_and_provenance(

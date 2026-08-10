@@ -84,7 +84,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
-from url_safety import ensure_http_url, http_opener
+from url_safety import ensure_http_url, fork_upstream_differs_from_git, http_opener
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
@@ -372,6 +372,13 @@ def validate_spec(spec, *, allow_provisional=False):
             ensure_http_url(upstream.strip())
         except ValueError as exc:
             print(f"FAIL: source.upstream {exc}")
+            sys.exit(1)
+        git = source.get("git")
+        if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+            print(
+                "FAIL: source.upstream must identify the original repository, "
+                "not the fork's source.git"
+            )
             sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")

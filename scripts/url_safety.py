@@ -37,6 +37,29 @@ def ensure_http_url(url: str) -> None:
         raise ValueError(f"URL must use http(s), got {url!r}")
 
 
+def github_repo_key(url: str) -> str | None:
+    """Return ``owner/name`` for a GitHub http(s) URL, else ``None``."""
+    parsed = urlparse(url.strip().rstrip("/"))
+    if parsed.scheme.lower() not in HTTP_SCHEMES:
+        return None
+    host = (parsed.hostname or "").lower()
+    if host not in {"github.com", "www.github.com"}:
+        return None
+    parts = [part for part in parsed.path.strip("/").split("/") if part]
+    if len(parts) < 2:
+        return None
+    return f"{parts[0]}/{parts[1]}".lower()
+
+
+def fork_upstream_differs_from_git(git: str, upstream: str) -> bool:
+    """Return whether *upstream* identifies a different repo than *git*."""
+    git_key = github_repo_key(git)
+    upstream_key = github_repo_key(upstream)
+    if git_key and upstream_key:
+        return git_key != upstream_key
+    return git.strip().rstrip("/").lower() != upstream.strip().rstrip("/").lower()
+
+
 class _HttpOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
     """Reject any redirect whose target fails the http(s) scheme guard.
 
