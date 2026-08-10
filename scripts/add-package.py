@@ -182,7 +182,19 @@ def build_artifact(spec_artifact):
                 sys.exit(1)
             check_archive_format_supported(url, f"target '{triple}'")
 
-        # Download and hash all targets in parallel.  Each target is an
+        if len(targets) == 1:
+            (triple, target), = targets.items()
+            sha256 = download_and_hash(target["url"])
+            built_targets = {
+                triple: {
+                    "url": target["url"],
+                    "sha256": sha256,
+                    "executable_path": target["executable_path"],
+                }
+            }
+            return {"kind": "binary", "targets": built_targets}
+
+        # Download and hash all targets in parallel. Each target is an
         # independent HTTP fetch + SHA-256 computation with no shared state,
         # so thread-parallelism eliminates sequential network wait.
         def _fetch_one(item: tuple[str, dict]) -> tuple[str, dict]:
