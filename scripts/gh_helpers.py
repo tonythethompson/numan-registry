@@ -63,3 +63,25 @@ def gh_text(args: list[str]) -> str | None:
         return None
     text = out.stdout.strip()
     return text or None
+
+
+def gh_run_with_timeout(args: list[str], timeout: int) -> subprocess.CompletedProcess[str] | None:
+    """Run a `gh` command with a custom timeout and return its full result.
+
+    ``None`` covers gh missing from PATH or a hung invocation exceeding the
+    timeout. The command runs with ``check=False``: a non-zero exit is
+    reported in the returned ``returncode``.
+    """
+    try:
+        return subprocess.run(
+            ["gh", *args],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except FileNotFoundError:
+        return None
+    except subprocess.TimeoutExpired:
+        raise

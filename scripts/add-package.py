@@ -84,7 +84,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
-from url_safety import ensure_http_url, http_opener
+from url_safety import ensure_http_url, fork_upstream_differs_from_git, http_opener
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
@@ -271,8 +271,9 @@ SOURCE_REQUIRED_KEYS = ("git", "rev", "cargo_name")
 def copy_source_field(spec, version_entry):
     """Copy optional `source` provenance onto a version entry.
 
-    Schema (index-v1): required git/rev/cargo_name; optional cargo_lock_sha256.
-    Extracted so unit tests can assert passthrough without downloading artifacts.
+    Schema (index-v1): required git/rev/cargo_name; optional
+    cargo_lock_sha256/upstream. Extracted so unit tests can assert
+    passthrough without downloading artifacts.
     """
     if "source" not in spec:
         return
@@ -291,16 +292,21 @@ def copy_source_field(spec, version_entry):
     out = {k: source[k] for k in SOURCE_REQUIRED_KEYS}
     if "cargo_lock_sha256" in source:
         out["cargo_lock_sha256"] = source["cargo_lock_sha256"]
+    if "upstream" in source:
+        out["upstream"] = source["upstream"]
     version_entry["source"] = out
 
 
-def build_version_entry(spec):
+def build_version_entry(spec, *, deferral_reason=None):
     version_entry = {
         "version": spec["version"],
         "nu_version": spec["nu_version"],
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    if deferral_reason is not None:
+        version_entry["evidence_tier"] = "provisional"
+        version_entry["deferral_reason"] = deferral_reason
     if "provenance" in spec:
         version_entry["provenance"] = spec["provenance"]
     copy_source_field(spec, version_entry)
@@ -333,6 +339,53 @@ def build_package_entry(spec, version_entry):
         "tags": spec.get("tags", []),
         "versions": [version_entry],
     }
+
+
+def _fail_maintained_fork_source(source) -> None:
+    """Require a valid distinct ``source.upstream`` for a numan-maintained fork."""
+    if not isinstance(source, dict):
+        print(
+            "FAIL: owner 'numan-maintained' requires source to be an object "
+            "containing source.upstream -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    upstream = source.get("upstream")
+    if not isinstance(upstream, str) or not upstream.strip():
+        print(
+            "FAIL: owner 'numan-maintained' requires source.upstream (the original "
+            "repo URL) so installing the original owner/name is never silently "
+            "substituted with this fork -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    try:
+        ensure_http_url(upstream.strip())
+    except ValueError as exc:
+        print(f"FAIL: source.upstream {exc}")
+        sys.exit(1)
+    git = source.get("git")
+    if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+        print(
+            "FAIL: source.upstream must identify the original repository, "
+            "not the fork's source.git"
+        )
+        sys.exit(1)
+
+
+def validate_fork_identity(spec):
+    """Enforce ADR 0001 fork-identity rules on a package spec.
+
+    ``numan-maintained`` owners require a distinct ``source.upstream`` URL;
+    other owners must not set ``source.upstream``.
+    """
+    if spec.get("owner") == "numan-maintained":
+        _fail_maintained_fork_source(spec.get("source"))
+        return
+    if isinstance(spec.get("source"), dict) and "upstream" in spec["source"]:
+        print(
+            "FAIL: source.upstream is only valid for owner 'numan-maintained' "
+            "-- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
 
 
 def validate_provenance(spec):
@@ -378,6 +431,7 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
+    validate_fork_identity(spec)
     validate_provenance(spec)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
@@ -473,13 +527,29 @@ def main():
             "lifecycle-prove; production validation will reject it"
         ),
     )
+    parser.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Required with --provisional: why lifecycle-prove was skipped, recorded in the index",
+    )
     args = parser.parse_args()
 
-    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
-    validate_spec(spec, allow_provisional=args.provisional)
+    if args.provisional and not (args.deferral_reason and args.deferral_reason.strip()):
+        print("FAIL: --provisional requires --deferral-reason", file=sys.stderr)
+        sys.exit(1)
 
+    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    if args.provisional and "verified_with" in spec:
+        print(
+            "FAIL: --provisional cannot be used when spec includes verified_with",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    validate_spec(spec, allow_provisional=args.provisional)
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
-    version_entry = build_version_entry(spec)
+    version_entry = build_version_entry(
+        spec, deferral_reason=args.deferral_reason.strip() if args.provisional else None
+    )
     package_entry = build_package_entry(spec, version_entry)
 
     if not args.write:

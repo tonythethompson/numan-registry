@@ -63,6 +63,35 @@ class CopySourceFieldTests(unittest.TestCase):
         self.ap.copy_source_field(spec, version_entry)
         self.assertEqual(version_entry["source"]["cargo_lock_sha256"], "a" * 64)
 
+
+    def test_copies_optional_upstream(self):
+        version_entry = {}
+        spec = {
+            "source": {
+                "git": "https://github.com/numan-maintained/nu_plugin_x",
+                "rev": "a" * 40,
+                "cargo_name": "nu_plugin_x",
+                "upstream": "https://github.com/original-author/nu_plugin_x",
+            }
+        }
+        self.ap.copy_source_field(spec, version_entry)
+        self.assertEqual(
+            version_entry["source"]["upstream"],
+            "https://github.com/original-author/nu_plugin_x",
+        )
+
+    def test_omits_upstream_when_absent(self):
+        version_entry = {}
+        spec = {
+            "source": {
+                "git": "https://github.com/owner/nu_plugin_x",
+                "rev": "v1.0.0",
+                "cargo_name": "nu_plugin_x",
+            }
+        }
+        self.ap.copy_source_field(spec, version_entry)
+        self.assertNotIn("upstream", version_entry["source"])
+
     def test_noop_when_source_absent(self):
         version_entry = {"version": "1.0.0"}
         self.ap.copy_source_field({}, version_entry)
@@ -74,6 +103,113 @@ class CopySourceFieldTests(unittest.TestCase):
         with self.assertRaises(SystemExit) as ctx:
             self.ap.copy_source_field(spec, version_entry)
         self.assertEqual(ctx.exception.code, 1)
+
+
+class BuildVersionEntryEvidenceTierTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ap = load_add_package()
+
+    def test_sets_evidence_tier_when_deferral_reason_given(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(
+                spec, deferral_reason="requires cloud credentials"
+            )
+        self.assertEqual(version_entry["evidence_tier"], "provisional")
+        self.assertEqual(version_entry["deferral_reason"], "requires cloud credentials")
+
+    def test_omits_evidence_tier_when_no_deferral_reason(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertNotIn("evidence_tier", version_entry)
+        self.assertNotIn("deferral_reason", version_entry)
+
+
+class SchemaProvisionalTierTests(unittest.TestCase):
+    """Confirm the schema itself rejects a provisional entry missing deferral_reason."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        import json as _json
+
+        try:
+            import jsonschema
+
+            cls.jsonschema = jsonschema
+        except ImportError:
+            cls.jsonschema = None
+        schema_path = Path(__file__).resolve().parent.parent / "schemas" / "index-v1.json"
+        cls.schema = _json.loads(schema_path.read_text(encoding="utf-8"))
+
+    def _index(self, version_entry):
+        return {
+            "schema_version": 1,
+            "updated_at": "2026-01-01T00:00:00Z",
+            "packages": [
+                {
+                    "id": {"owner": "o", "name": "p"},
+                    "description": "p",
+                    "repo": "https://example.invalid/o/p",
+                    "type": "plugin",
+                    "tags": [],
+                    "versions": [version_entry],
+                }
+            ],
+        }
+
+    def test_provisional_without_deferral_reason_is_rejected(self):
+        if self.jsonschema is None:
+            self.skipTest("jsonschema not installed")
+        index = self._index(
+            {
+                "version": "1.0.0",
+                "nu_version": "*",
+                "evidence_tier": "provisional",
+                "artifact": {"kind": "binary", "targets": {}},
+            }
+        )
+        with self.assertRaises(self.jsonschema.ValidationError):
+            self.jsonschema.validate(index, self.schema)
+
+    def test_provisional_with_deferral_reason_is_accepted(self):
+        if self.jsonschema is None:
+            self.skipTest("jsonschema not installed")
+        index = self._index(
+            {
+                "version": "1.0.0",
+                "nu_version": "*",
+                "evidence_tier": "provisional",
+                "deferral_reason": "requires cloud credentials",
+                "artifact": {"kind": "binary", "targets": {}},
+            }
+        )
+        self.jsonschema.validate(index, self.schema)
 
 
 class BuildVersionEntryProvenanceTests(unittest.TestCase):

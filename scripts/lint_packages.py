@@ -20,6 +20,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import COMPARATOR, EXACT_NU_VERSION, MINOR_WILDCARD
+from url_safety import ensure_http_url, fork_upstream_differs_from_git
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = REPO_ROOT / "registry" / "index.json"
@@ -350,6 +351,48 @@ def _lint_source_provenance(
         )
 
 
+def _lint_fork_identity(
+    pkg: dict,
+    version: dict,
+    errors: list[str],
+    *,
+    label: str,
+) -> None:
+    """Require source.upstream on every numan-maintained fork version.
+
+    Fork identity must never let installing the original owner/name silently
+    resolve to a fork -- source.upstream is what keeps that distinction
+    machine-checkable, not just documented convention.
+    """
+    owner = (pkg.get("id") or {}).get("owner") if isinstance(pkg.get("id"), dict) else None
+    source = version.get("source")
+    if not isinstance(source, dict):
+        if owner == "numan-maintained":
+            errors.append(f"{label}: owner 'numan-maintained' requires source.upstream (original repo URL)")
+        return
+    upstream = source.get("upstream")
+    if owner != "numan-maintained":
+        if "upstream" in source:
+            errors.append(
+                f"{label}: source.upstream is only valid for owner 'numan-maintained'"
+            )
+        return
+    if not isinstance(upstream, str) or not upstream.strip():
+        errors.append(f"{label}: owner 'numan-maintained' requires source.upstream (original repo URL)")
+        return
+    try:
+        ensure_http_url(upstream.strip())
+    except ValueError as exc:
+        errors.append(f"{label}: source.upstream {exc}")
+        return
+    git = source.get("git")
+    if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+        errors.append(
+            f"{label}: source.upstream must identify the original repository, "
+            "not the fork's source.git"
+        )
+
+
 def lint_activation_and_provenance(
     pkg: dict,
     version: dict,
@@ -363,6 +406,7 @@ def lint_activation_and_provenance(
     )
     _lint_activation(pkg, version, errors, label=label)
     _lint_source_provenance(version, errors, label=label)
+    _lint_fork_identity(pkg, version, errors, label=label)
 
 
 def lint_version(
@@ -459,6 +503,37 @@ def lint_index(index: dict) -> list[str]:
     return errors
 
 
+def provisional_deferral_warnings(index: dict) -> list[str]:
+    """Warn (non-fatally) about provisional versions missing a deferral reason.
+
+    Kept separate from lint_index's error list on purpose: a missing
+    deferral_reason on a pre-reform provisional entry is a migration-tolerance
+    gap, not a hard validation failure.
+    """
+    warnings: list[str] = []
+    packages = index.get("packages")
+    if not isinstance(packages, list):
+        return warnings
+    for entry_index, pkg in enumerate(packages):
+        if not isinstance(pkg, dict):
+            continue
+        versions = pkg.get("versions")
+        if not isinstance(versions, list):
+            continue
+        for version_index, version in enumerate(versions):
+            if not isinstance(version, dict):
+                continue
+            if version.get("evidence_tier") != "provisional":
+                continue
+            reason = version.get("deferral_reason")
+            if not isinstance(reason, str) or not reason.strip():
+                label = version_label(
+                    pkg, version, entry_index=entry_index, version_index=version_index
+                )
+                warnings.append(f"{label}: evidence_tier is provisional but deferral_reason is missing/empty")
+    return warnings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -481,6 +556,13 @@ def main(argv: list[str] | None = None) -> int:
     errors = lint_index(index)
     # Deterministic ordering for before/after PR comparison.
     errors = sorted(set(errors))
+
+    warnings = sorted(set(provisional_deferral_warnings(index)))
+    if warnings:
+        print(f"WARN: {len(warnings)} provisional entry warning(s):", file=sys.stderr)
+        for warning in warnings:
+            print(f"  - {warning}", file=sys.stderr)
+
     if errors:
         print(f"FAIL: {len(errors)} package lint error(s):")
         for error in errors:

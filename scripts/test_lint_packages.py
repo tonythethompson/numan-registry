@@ -306,6 +306,133 @@ class TestLintSourceProvenance(unittest.TestCase):
             self.assertEqual(errors, [])
 
 
+class TestLintForkIdentity(unittest.TestCase):
+    """Unit tests for _lint_fork_identity extracted from lint_activation_and_provenance()."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_non_fork_owner_is_ignored(self):
+        errors: list[str] = []
+        self.lint._lint_fork_identity({"id": {"owner": "acme"}}, {}, errors, label="p@1")
+        self.assertEqual(errors, [])
+
+    def test_fork_owner_without_source_is_error(self):
+        errors: list[str] = []
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, {}, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors, ["p@1: owner 'numan-maintained' requires source.upstream (original repo URL)"]
+        )
+
+    def test_fork_owner_with_source_but_no_upstream_is_error(self):
+        errors: list[str] = []
+        version = {"source": {"git": "g", "rev": "r", "cargo_name": "c"}}
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors, ["p@1: owner 'numan-maintained' requires source.upstream (original repo URL)"]
+        )
+
+    def test_fork_owner_with_upstream_is_ok(self):
+        errors: list[str] = []
+        version = {
+            "source": {
+                "git": "g",
+                "rev": "r",
+                "cargo_name": "c",
+                "upstream": "https://github.com/original/pkg",
+            }
+        }
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(errors, [])
+
+    def test_non_fork_with_upstream_is_error(self):
+        errors: list[str] = []
+        version = {"source": {"upstream": "https://github.com/original/pkg"}}
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "acme"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors,
+            ["p@1: source.upstream is only valid for owner 'numan-maintained'"],
+        )
+
+    def test_non_fork_with_null_upstream_is_error(self):
+        errors: list[str] = []
+        version = {"source": {"upstream": None}}
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "acme"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors,
+            ["p@1: source.upstream is only valid for owner 'numan-maintained'"],
+        )
+
+    def test_fork_owner_with_dotgit_suffix_self_upstream_is_error(self):
+        errors: list[str] = []
+        version = {
+            "source": {
+                "git": "https://github.com/numan-maintained/pkg",
+                "rev": "r",
+                "cargo_name": "c",
+                "upstream": "https://github.com/numan-maintained/pkg.git",
+            }
+        }
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors,
+            [
+                "p@1: source.upstream must identify the original repository, "
+                "not the fork's source.git"
+            ],
+        )
+
+    def test_fork_owner_with_invalid_upstream_is_error(self):
+        errors: list[str] = []
+        version = {
+            "source": {
+                "git": "g",
+                "rev": "r",
+                "cargo_name": "c",
+                "upstream": "typo",
+            }
+        }
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("source.upstream", errors[0])
+
+    def test_fork_owner_with_self_upstream_is_error(self):
+        errors: list[str] = []
+        version = {
+            "source": {
+                "git": "https://github.com/numan-maintained/pkg",
+                "rev": "r",
+                "cargo_name": "c",
+                "upstream": "https://github.com/numan-maintained/pkg",
+            }
+        }
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors,
+            [
+                "p@1: source.upstream must identify the original repository, "
+                "not the fork's source.git"
+            ],
+        )
+
+
 class TestLintActivationAndProvenance(unittest.TestCase):
     """Locks that the orchestrator reports activation AND source errors together."""
 
@@ -395,6 +522,22 @@ class LintPackagesTests(unittest.TestCase):
         errors = self.lint.lint_index({"packages": [pkg]})
         self.assertTrue(any("not immutable provenance" in e for e in errors))
 
+
+    def test_fork_owner_without_upstream_is_index_error(self):
+        pkg = base_package(id={"owner": "numan-maintained", "name": "nu_plugin_x"})
+        errors = self.lint.lint_index({"packages": [pkg]})
+        self.assertIn(
+            "numan-maintained/nu_plugin_x@1.0.0: owner 'numan-maintained' requires "
+            "source.upstream (original repo URL)",
+            errors,
+        )
+
+    def test_fork_owner_with_upstream_passes(self):
+        pkg = base_package(id={"owner": "numan-maintained", "name": "nu_plugin_x"})
+        pkg["versions"][0]["source"]["upstream"] = "https://github.com/original/nu_plugin_x"
+        errors = self.lint.lint_index({"packages": [pkg]})
+        self.assertEqual(errors, [])
+
     def test_module_activation_tag_requires_declaration(self):
         pkg = base_package(
             type="module",
@@ -480,6 +623,48 @@ class LintPackagesTests(unittest.TestCase):
             any(e.startswith("acme/nu_plugin_demo@?#1:") for e in errors)
         )
         self.assertEqual(len(set(errors)), len(errors))
+
+
+class ProvisionalDeferralWarningsTests(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_warns_when_deferral_reason_missing(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("deferral_reason is missing/empty", warnings[0])
+
+    def test_warns_when_deferral_reason_blank(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        pkg["versions"][0]["deferral_reason"] = "   "
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(len(warnings), 1)
+
+    def test_no_warning_when_deferral_reason_present(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        pkg["versions"][0]["deferral_reason"] = "requires cloud credentials"
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(warnings, [])
+
+    def test_no_warning_for_proven_entries(self):
+        warnings = self.lint.provisional_deferral_warnings({"packages": [base_package()]})
+        self.assertEqual(warnings, [])
+
+    def test_missing_deferral_reason_is_warning_not_error(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        errors = self.lint.lint_index({"packages": [pkg]})
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":
