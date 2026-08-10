@@ -48,7 +48,10 @@ def github_repo_key(url: str) -> str | None:
     parts = [part for part in parsed.path.strip("/").split("/") if part]
     if len(parts) < 2:
         return None
-    return f"{parts[0]}/{parts[1]}".lower()
+    owner, name = parts[0], parts[1]
+    if name.lower().endswith(".git"):
+        name = name[: -len(".git")]
+    return f"{owner}/{name}".lower()
 
 
 def fork_upstream_differs_from_git(git: str, upstream: str) -> bool:

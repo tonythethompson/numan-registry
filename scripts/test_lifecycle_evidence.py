@@ -272,6 +272,28 @@ class LifecycleEvidenceTests(unittest.TestCase):
         }
         self.add_package.validate_spec(with_upstream)
 
+    def test_non_fork_owner_rejects_source_upstream(self):
+        spec = {
+            "owner": "acme",
+            "name": "pkg",
+            "description": "not a fork",
+            "repo": "https://example.com/acme/pkg",
+            "type": "plugin",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "source": {
+                "git": "https://example.com/acme/pkg",
+                "rev": "a" * 40,
+                "cargo_name": "pkg",
+                "upstream": None,
+            },
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(spec)
+
     def test_schema_failure_skips_lifecycle_traversal(self):
         malformed = {
             "schema_version": 1,

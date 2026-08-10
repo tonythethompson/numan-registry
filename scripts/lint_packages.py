@@ -372,7 +372,7 @@ def _lint_fork_identity(
         return
     upstream = source.get("upstream")
     if owner != "numan-maintained":
-        if upstream is not None:
+        if "upstream" in source:
             errors.append(
                 f"{label}: source.upstream is only valid for owner 'numan-maintained'"
             )

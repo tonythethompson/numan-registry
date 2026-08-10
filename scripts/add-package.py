@@ -380,6 +380,12 @@ def validate_spec(spec, *, allow_provisional=False):
                 "not the fork's source.git"
             )
             sys.exit(1)
+    elif isinstance(spec.get("source"), dict) and "upstream" in spec["source"]:
+        print(
+            "FAIL: source.upstream is only valid for owner 'numan-maintained' "
+            "-- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
