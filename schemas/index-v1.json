@@ -89,7 +89,7 @@
                 },
                 "deferral_reason": {
                   "type": "string",
-                  "minLength": 1,
+                  "pattern": ".*\\S.*",
                   "description": "Required alongside evidence_tier: 'provisional' — explains why lifecycle-prove was deferred."
                 },
                 "verified_with": {
