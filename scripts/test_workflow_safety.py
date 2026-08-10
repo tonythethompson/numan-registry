@@ -101,7 +101,7 @@ class WorkflowSafetyTests(unittest.TestCase):
         text = (WORKFLOWS / "repo-safety.yml").read_text(encoding="utf-8")
         self.assertIn("os: [ubuntu-latest, windows-latest]", text)
         self.assertIn("python -m pip install cryptography jsonschema", text)
-        self.assertIn('coverage run -m unittest discover -s scripts -p "test_*.py" -v', text)
+        self.assertIn('python -m unittest discover -s scripts -p "test_*.py" -v', text)
 
     def test_manifest_lint_uses_immutable_plugins_merge(self):
         sha = "eb435983cfd8bed568a3c275ba6518607e904e89"
