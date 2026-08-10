@@ -82,6 +82,16 @@
               "properties": {
                 "version": { "type": "string" },
                 "nu_version": { "type": "string" },
+                "evidence_tier": {
+                  "type": "string",
+                  "enum": ["proven", "provisional"],
+                  "description": "Absence means 'proven' (full lifecycle evidence). 'provisional' means the version passed structural validation only; deferral_reason should explain why lifecycle-prove was skipped."
+                },
+                "deferral_reason": {
+                  "type": "string",
+                  "pattern": ".*\\S.*",
+                  "description": "Required alongside evidence_tier: 'provisional' — explains why lifecycle-prove was deferred."
+                },
                 "provenance": {
                   "type": "string",
                   "enum": ["commit-snapshot"],
@@ -152,22 +162,35 @@
                   }
                 }
               },
-              "if": {
-                "properties": { "provenance": { "const": "commit-snapshot" } },
-                "required": ["provenance"]
-              },
-              "then": {
-                "required": ["source"],
-                "properties": {
-                  "source": {
+              "allOf": [
+                {
+                  "if": {
+                    "properties": { "evidence_tier": { "const": "provisional" } },
+                    "required": ["evidence_tier"]
+                  },
+                  "then": {
+                    "required": ["deferral_reason"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": { "provenance": { "const": "commit-snapshot" } },
+                    "required": ["provenance"]
+                  },
+                  "then": {
+                    "required": ["source"],
                     "properties": {
-                      "rev": {
-                        "pattern": "^[a-f0-9]{40}$"
+                      "source": {
+                        "properties": {
+                          "rev": {
+                            "pattern": "^[a-f0-9]{40}$"
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
+              ]
             }
           }
         }

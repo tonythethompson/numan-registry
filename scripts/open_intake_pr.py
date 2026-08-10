@@ -330,8 +330,16 @@ def _stage_copy_spec(dest_spec: Path, spec_data: dict, spec_filename: str, *, dr
         )
 
 
-def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str, *, dry_run: bool) -> None:
+def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str,
+                             deferral_reason: str = "",
+                             *, dry_run: bool) -> None:
     """Run add-package.py --write with an unwrapped spec copy.
+
+    A nonblank deferral_reason means Stage 5 evidence deferred lifecycle-prove;
+    the index entry must retain that reason and go in as provisional. An empty
+    deferral_reason means evidence passed fully (verified_with present) — the
+    entry is proven and add-package.py must run without --provisional, since
+    it rejects --provisional together with verified_with.
 
     add-package.py expects bare spec fields (owner, name, …) at the top level,
     not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
@@ -346,13 +354,13 @@ def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str, *, 
         effective_spec_for_add.write_text(
             json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
+    command = [sys.executable, str(SCRIPTS / "add-package.py"),
+               "--spec", str(effective_spec_for_add),
+               "--write", "--index", str(INDEX_PATH)]
+    if deferral_reason.strip():
+        command += ["--provisional", "--deferral-reason", deferral_reason]
     try:
-        _run(
-            [sys.executable, str(SCRIPTS / "add-package.py"),
-             "--spec", str(effective_spec_for_add),
-             "--write", "--index", str(INDEX_PATH), "--provisional"],
-            dry_run=dry_run,
-        )
+        _run(command, dry_run=dry_run)
     finally:
         if bare_tmp_dir is not None:
             shutil.rmtree(bare_tmp_dir, ignore_errors=True)
@@ -467,6 +475,7 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
 
     spec_data, spec, evidence = _load_inputs(spec_path, evidence_path)
     _guard_evidence(evidence)
+    deferral_reason = evidence.get("lifecycle_deferral", {}).get("reason", "")
 
     owner = spec.get("owner", "unknown")
     name = spec.get("name", "unknown")
@@ -494,7 +503,9 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
     try:
         _stage_create_branch(branch, dry_run=dry_run)
         _stage_copy_spec(dest_spec, spec_data, spec_filename, dry_run=dry_run)
-        _stage_merge_into_index(spec_path, spec, spec_filename, dry_run=dry_run)
+        _stage_merge_into_index(
+            spec_path, spec, spec_filename, deferral_reason, dry_run=dry_run
+        )
         _stage_lint_and_validate(dry_run=dry_run)
         _update_intake_state(
             owner, name, version, pkg_type, f"specs/{spec_filename}", repo,

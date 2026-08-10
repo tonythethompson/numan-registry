@@ -214,13 +214,32 @@ class TestStageHelpers(unittest.TestCase):
             patch.object(open_intake_pr.tempfile, "mkdtemp", return_value=tmp),
         ):
             open_intake_pr._stage_merge_into_index(
-                Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json", dry_run=False
+                Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json",
+                "lifecycle validation deferred", dry_run=False
             )
         args, kwargs = run.call_args
         self.assertIn("add-package.py", " ".join(args[0]))
         self.assertIn("--spec", args[0])
         self.assertIn("--write", args[0])
         self.assertIn("--provisional", args[0])
+        self.assertFalse(kwargs["dry_run"])
+
+    def test_stage_merge_into_index_proven_skips_provisional(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0", "verified_with": "1.2.3"}
+        with (
+            patch.object(open_intake_pr, "_run") as run,
+            tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp,
+            patch.object(open_intake_pr.tempfile, "mkdtemp", return_value=tmp),
+        ):
+            open_intake_pr._stage_merge_into_index(
+                Path(tmp) / "spec.json", spec, "acme-pkg-1.0.0.json", dry_run=False
+            )
+        args, kwargs = run.call_args
+        self.assertIn("add-package.py", " ".join(args[0]))
+        self.assertIn("--spec", args[0])
+        self.assertIn("--write", args[0])
+        self.assertNotIn("--provisional", args[0])
+        self.assertNotIn("--deferral-reason", args[0])
         self.assertFalse(kwargs["dry_run"])
 
     def test_stage_commit_and_push_dry_run_prints_exact_lines(self):

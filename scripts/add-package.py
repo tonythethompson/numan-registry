@@ -294,13 +294,16 @@ def copy_source_field(spec, version_entry):
     version_entry["source"] = out
 
 
-def build_version_entry(spec):
+def build_version_entry(spec, *, deferral_reason=None):
     version_entry = {
         "version": spec["version"],
         "nu_version": spec["nu_version"],
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    if deferral_reason is not None:
+        version_entry["evidence_tier"] = "provisional"
+        version_entry["deferral_reason"] = deferral_reason
     if "provenance" in spec:
         version_entry["provenance"] = spec["provenance"]
     copy_source_field(spec, version_entry)
@@ -473,13 +476,29 @@ def main():
             "lifecycle-prove; production validation will reject it"
         ),
     )
+    parser.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Required with --provisional: why lifecycle-prove was skipped, recorded in the index",
+    )
     args = parser.parse_args()
 
-    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
-    validate_spec(spec, allow_provisional=args.provisional)
+    if args.provisional and not (args.deferral_reason and args.deferral_reason.strip()):
+        print("FAIL: --provisional requires --deferral-reason", file=sys.stderr)
+        sys.exit(1)
 
+    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    if args.provisional and "verified_with" in spec:
+        print(
+            "FAIL: --provisional cannot be used when spec includes verified_with",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    validate_spec(spec, allow_provisional=args.provisional)
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
-    version_entry = build_version_entry(spec)
+    version_entry = build_version_entry(
+        spec, deferral_reason=args.deferral_reason.strip() if args.provisional else None
+    )
     package_entry = build_package_entry(spec, version_entry)
 
     if not args.write:
