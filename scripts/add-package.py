@@ -84,7 +84,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import lifecycle_evidence_error
-from url_safety import ensure_http_url, http_opener
+from url_safety import ensure_http_url, fork_upstream_differs_from_git, http_opener
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schemas" / "index-v1.json"
@@ -271,8 +271,9 @@ SOURCE_REQUIRED_KEYS = ("git", "rev", "cargo_name")
 def copy_source_field(spec, version_entry):
     """Copy optional `source` provenance onto a version entry.
 
-    Schema (index-v1): required git/rev/cargo_name; optional cargo_lock_sha256.
-    Extracted so unit tests can assert passthrough without downloading artifacts.
+    Schema (index-v1): required git/rev/cargo_name; optional
+    cargo_lock_sha256/upstream. Extracted so unit tests can assert
+    passthrough without downloading artifacts.
     """
     if "source" not in spec:
         return
@@ -291,6 +292,8 @@ def copy_source_field(spec, version_entry):
     out = {k: source[k] for k in SOURCE_REQUIRED_KEYS}
     if "cargo_lock_sha256" in source:
         out["cargo_lock_sha256"] = source["cargo_lock_sha256"]
+    if "upstream" in source:
+        out["upstream"] = source["upstream"]
     version_entry["source"] = out
 
 
@@ -338,6 +341,53 @@ def build_package_entry(spec, version_entry):
     }
 
 
+def _fail_maintained_fork_source(source) -> None:
+    """Require a valid distinct ``source.upstream`` for a numan-maintained fork."""
+    if not isinstance(source, dict):
+        print(
+            "FAIL: owner 'numan-maintained' requires source to be an object "
+            "containing source.upstream -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    upstream = source.get("upstream")
+    if not isinstance(upstream, str) or not upstream.strip():
+        print(
+            "FAIL: owner 'numan-maintained' requires source.upstream (the original "
+            "repo URL) so installing the original owner/name is never silently "
+            "substituted with this fork -- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+    try:
+        ensure_http_url(upstream.strip())
+    except ValueError as exc:
+        print(f"FAIL: source.upstream {exc}")
+        sys.exit(1)
+    git = source.get("git")
+    if isinstance(git, str) and not fork_upstream_differs_from_git(git, upstream):
+        print(
+            "FAIL: source.upstream must identify the original repository, "
+            "not the fork's source.git"
+        )
+        sys.exit(1)
+
+
+def validate_fork_identity(spec):
+    """Enforce ADR 0001 fork-identity rules on a package spec.
+
+    ``numan-maintained`` owners require a distinct ``source.upstream`` URL;
+    other owners must not set ``source.upstream``.
+    """
+    if spec.get("owner") == "numan-maintained":
+        _fail_maintained_fork_source(spec.get("source"))
+        return
+    if isinstance(spec.get("source"), dict) and "upstream" in spec["source"]:
+        print(
+            "FAIL: source.upstream is only valid for owner 'numan-maintained' "
+            "-- see ADR 0001 fork identity requirements"
+        )
+        sys.exit(1)
+
+
 def validate_provenance(spec):
     """Validate the optional provenance marker and its commit-snapshot pin, if present."""
     if "provenance" not in spec:
@@ -381,6 +431,7 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
+    validate_fork_identity(spec)
     validate_provenance(spec)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")

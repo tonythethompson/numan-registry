@@ -226,6 +226,74 @@ class LifecycleEvidenceTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.add_package.validate_spec(invalid, allow_provisional=True)
 
+    def test_numan_maintained_owner_requires_source_upstream(self):
+        spec = {
+            "owner": "numan-maintained",
+            "name": "pkg",
+            "description": "fixture fork",
+            "repo": "https://example.com/numan-maintained/pkg",
+            "type": "plugin",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(spec)
+
+        with_non_dict_source = copy.deepcopy(spec)
+        with_non_dict_source["source"] = "oops"
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(with_non_dict_source)
+
+        with_source_no_upstream = copy.deepcopy(spec)
+        with_source_no_upstream["source"] = {
+            "git": "https://example.com/numan-maintained/pkg",
+            "rev": "a" * 40,
+            "cargo_name": "pkg",
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(with_source_no_upstream)
+
+        with_whitespace_upstream = copy.deepcopy(spec)
+        with_whitespace_upstream["source"] = {
+            "upstream": "   ",
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(with_whitespace_upstream)
+
+        with_upstream = copy.deepcopy(spec)
+        with_upstream["source"] = {
+            "git": "https://example.com/numan-maintained/pkg",
+            "rev": "a" * 40,
+            "cargo_name": "pkg",
+            "upstream": "https://example.com/original-author/pkg",
+        }
+        self.add_package.validate_spec(with_upstream)
+
+    def test_non_fork_owner_rejects_source_upstream(self):
+        spec = {
+            "owner": "acme",
+            "name": "pkg",
+            "description": "not a fork",
+            "repo": "https://example.com/acme/pkg",
+            "type": "plugin",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "source": {
+                "git": "https://example.com/acme/pkg",
+                "rev": "a" * 40,
+                "cargo_name": "pkg",
+                "upstream": None,
+            },
+        }
+        with self.assertRaises(SystemExit):
+            self.add_package.validate_spec(spec)
+
     def test_schema_failure_skips_lifecycle_traversal(self):
         malformed = {
             "schema_version": 1,

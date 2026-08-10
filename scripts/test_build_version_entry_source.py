@@ -63,6 +63,35 @@ class CopySourceFieldTests(unittest.TestCase):
         self.ap.copy_source_field(spec, version_entry)
         self.assertEqual(version_entry["source"]["cargo_lock_sha256"], "a" * 64)
 
+
+    def test_copies_optional_upstream(self):
+        version_entry = {}
+        spec = {
+            "source": {
+                "git": "https://github.com/numan-maintained/nu_plugin_x",
+                "rev": "a" * 40,
+                "cargo_name": "nu_plugin_x",
+                "upstream": "https://github.com/original-author/nu_plugin_x",
+            }
+        }
+        self.ap.copy_source_field(spec, version_entry)
+        self.assertEqual(
+            version_entry["source"]["upstream"],
+            "https://github.com/original-author/nu_plugin_x",
+        )
+
+    def test_omits_upstream_when_absent(self):
+        version_entry = {}
+        spec = {
+            "source": {
+                "git": "https://github.com/owner/nu_plugin_x",
+                "rev": "v1.0.0",
+                "cargo_name": "nu_plugin_x",
+            }
+        }
+        self.ap.copy_source_field(spec, version_entry)
+        self.assertNotIn("upstream", version_entry["source"])
+
     def test_noop_when_source_absent(self):
         version_entry = {"version": "1.0.0"}
         self.ap.copy_source_field({}, version_entry)

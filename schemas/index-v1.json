@@ -145,7 +145,11 @@
                     "git": { "type": "string" },
                     "rev": { "type": "string" },
                     "cargo_name": { "type": "string" },
-                    "cargo_lock_sha256": { "type": "string" }
+                    "cargo_lock_sha256": { "type": "string" },
+                    "upstream": {
+                      "type": "string",
+                      "description": "Original upstream repo URL, set only when this version is a numan-maintained fork (owner: \"numan-maintained\"). `git`/`rev` above point at the fork; `upstream` preserves the original author's identity so installing the original owner/name is never silently substituted."
+                    }
                   }
                 },
                 "dependencies": {
