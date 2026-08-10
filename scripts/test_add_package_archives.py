@@ -44,15 +44,102 @@ class FakeResponse:
     def __exit__(self, *_args):
         return False
 
-    def read(self):
-        """Return the response payload as bytes."""
-        return self.data
+    def read(self, nbytes=-1):
+        """Return the response payload as bytes, optionally capped to *nbytes*."""
+        if nbytes < 0:
+            chunk = self.data
+            self.data = b""
+            return chunk
+        if nbytes == 0:
+            return b""
+        chunk = self.data[:nbytes]
+        self.data = self.data[nbytes:]
+        return chunk
+
+
+def _binary_target(url: str, executable_path: str) -> dict[str, str]:
+    return {"url": url, "executable_path": executable_path}
 
 
 class AddPackageArchiveTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mod = load_mod()
+
+    def _mock_opener_for_payloads(self, payloads: dict[str, bytes]):
+        def open_side_effect(req, timeout=60):
+            return FakeResponse(payloads[req.full_url])
+
+        opener = mock.Mock()
+        opener.open.side_effect = open_side_effect
+        return opener
+
+    def test_binary_parallel_hashes_all_targets(self):
+        payloads = {
+            "https://example.invalid/linux.tar.gz": b"linux artifact",
+            "https://example.invalid/windows.zip": b"windows artifact",
+            "https://example.invalid/macos.tar.gz": b"macos artifact",
+        }
+        targets = {
+            "x86_64-unknown-linux-gnu": _binary_target(
+                "https://example.invalid/linux.tar.gz", "nu_plugin"
+            ),
+            "x86_64-pc-windows-msvc": _binary_target(
+                "https://example.invalid/windows.zip", "nu_plugin.exe"
+            ),
+            "x86_64-apple-darwin": _binary_target(
+                "https://example.invalid/macos.tar.gz", "nu_plugin"
+            ),
+        }
+        with mock.patch.object(
+            self.mod, "http_opener", return_value=self._mock_opener_for_payloads(payloads)
+        ) as http_opener:
+            artifact = self.mod.build_artifact({"kind": "binary", "targets": targets})
+
+        self.assertEqual(artifact["kind"], "binary")
+        self.assertEqual(len(artifact["targets"]), len(targets))
+        for triple, target in targets.items():
+            built = artifact["targets"][triple]
+            self.assertEqual(built["url"], target["url"])
+            self.assertEqual(built["executable_path"], target["executable_path"])
+            self.assertEqual(
+                built["sha256"],
+                hashlib.sha256(payloads[target["url"]]).hexdigest(),
+            )
+        self.assertEqual(http_opener.return_value.open.call_count, len(targets))
+
+    def test_binary_parallel_preserves_input_target_order(self):
+        payloads = {
+            "https://example.invalid/linux.tar.gz": b"linux artifact",
+            "https://example.invalid/windows.zip": b"windows artifact",
+            "https://example.invalid/macos.tar.gz": b"macos artifact",
+        }
+        targets = {
+            "x86_64-unknown-linux-gnu": _binary_target(
+                "https://example.invalid/linux.tar.gz", "nu_plugin"
+            ),
+            "x86_64-pc-windows-msvc": _binary_target(
+                "https://example.invalid/windows.zip", "nu_plugin.exe"
+            ),
+            "x86_64-apple-darwin": _binary_target(
+                "https://example.invalid/macos.tar.gz", "nu_plugin"
+            ),
+        }
+
+        def completion_order_reversed(futures):
+            return reversed(list(futures))
+
+        with (
+            mock.patch.object(
+                self.mod,
+                "http_opener",
+                return_value=self._mock_opener_for_payloads(payloads),
+            ),
+            mock.patch.object(self.mod, "as_completed", side_effect=completion_order_reversed),
+        ):
+            artifact = self.mod.build_artifact({"kind": "binary", "targets": targets})
+
+        self.assertEqual(list(artifact["targets"]), list(targets))
 
     def assert_downloaded_archive(self, suffix: str):
         """

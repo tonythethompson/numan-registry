@@ -78,6 +78,7 @@ import json
 import re
 import sys
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -122,23 +123,31 @@ def check_archive_format_supported(url, label):
         sys.exit(1)
 
 
-def download_and_hash(url):
+def download_and_hash(url, label=None):
     try:
         ensure_http_url(url)
     except ValueError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         sys.exit(1)
-    print(f"  downloading {url} ...", file=sys.stderr)
+    prefix = f"[{label}] " if label else ""
+    print(f"  {prefix}downloading {url} ...", file=sys.stderr)
     req = urllib.request.Request(url, method="GET")
     try:
         with http_opener().open(req, timeout=60) as resp:
-            data = resp.read()
+            hasher = hashlib.sha256()
+            nbytes = 0
+            while True:
+                chunk = resp.read(1 << 20)
+                if not chunk:
+                    break
+                hasher.update(chunk)
+                nbytes += len(chunk)
     except ValueError as exc:
         # A redirect to a non-http(s) target fails the guard mid-download.
         print(f"FAIL: {exc}", file=sys.stderr)
         sys.exit(1)
-    digest = hashlib.sha256(data).hexdigest()
-    print(f"  OK: sha256={digest} ({len(data)} bytes)", file=sys.stderr)
+    digest = hasher.hexdigest()
+    print(f"  {prefix}OK: sha256={digest} ({nbytes} bytes)", file=sys.stderr)
     return digest
 
 
@@ -158,20 +167,61 @@ def build_artifact(spec_artifact):
         if not targets:
             print("FAIL: artifact.kind 'binary' requires at least one entry in 'targets'")
             sys.exit(1)
-        built_targets = {}
+
+        # Validate all targets before starting downloads.
         for triple, target in targets.items():
             url = target.get("url")
             executable_path = target.get("executable_path")
             if not url or not executable_path:
                 print(f"FAIL: target '{triple}' requires 'url' and 'executable_path'")
                 sys.exit(1)
+            try:
+                ensure_http_url(url)
+            except ValueError as exc:
+                print(f"FAIL: target '{triple}': {exc}", file=sys.stderr)
+                sys.exit(1)
             check_archive_format_supported(url, f"target '{triple}'")
-            sha256 = download_and_hash(url)
-            built_targets[triple] = {
-                "url": url,
-                "sha256": sha256,
-                "executable_path": executable_path,
+
+        if len(targets) == 1:
+            (triple, target), = targets.items()
+            sha256 = download_and_hash(target["url"])
+            built_targets = {
+                triple: {
+                    "url": target["url"],
+                    "sha256": sha256,
+                    "executable_path": target["executable_path"],
+                }
             }
+            return {"kind": "binary", "targets": built_targets}
+
+        # Download and hash all targets in parallel. Each target is an
+        # independent HTTP fetch + SHA-256 computation with no shared state,
+        # so thread-parallelism eliminates sequential network wait.
+        def _fetch_one(item: tuple[str, dict]) -> tuple[str, dict]:
+            triple, target = item
+            sha256 = download_and_hash(target["url"], label=triple)
+            return triple, {
+                "url": target["url"],
+                "sha256": sha256,
+                "executable_path": target["executable_path"],
+            }
+
+        results: dict[str, dict] = {}
+        with ThreadPoolExecutor(max_workers=min(len(targets), 8)) as pool:
+            futures = {
+                pool.submit(_fetch_one, (triple, target)): triple
+                for triple, target in targets.items()
+            }
+            try:
+                for future in as_completed(futures):
+                    triple, result = future.result()
+                    results[triple] = result
+            except BaseException:
+                for pending in futures:
+                    pending.cancel()
+                raise
+
+        built_targets = {triple: results[triple] for triple in targets}
         return {"kind": "binary", "targets": built_targets}
 
     if kind == "archive":
