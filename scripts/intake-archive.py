@@ -59,12 +59,13 @@ FIXED_MTIME = 315532800  # 1980-01-01 UTC; matches package_plugin.py
 VALID_TYPES = ("module", "script", "completion")
 
 
-def _load_add_package():
+def _load_add_package() -> ModuleType:
     """Dynamically load add-package.py (hyphenated filename, not import-able)."""
     spec = importlib.util.spec_from_file_location(
         "add_package", Path(__file__).resolve().parent / "add-package.py"
     )
-    assert spec is not None and spec.loader is not None
+    if spec is None or spec.loader is None:
+        raise ImportError("could not load scripts/add-package.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
