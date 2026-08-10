@@ -352,6 +352,33 @@ class TestLintForkIdentity(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_non_fork_with_upstream_is_error(self):
+        errors: list[str] = []
+        version = {"source": {"upstream": "https://github.com/original/pkg"}}
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "acme"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(
+            errors,
+            ["p@1: source.upstream is only valid for owner 'numan-maintained'"],
+        )
+
+    def test_fork_owner_with_invalid_upstream_is_error(self):
+        errors: list[str] = []
+        version = {
+            "source": {
+                "git": "g",
+                "rev": "r",
+                "cargo_name": "c",
+                "upstream": "typo",
+            }
+        }
+        self.lint._lint_fork_identity(
+            {"id": {"owner": "numan-maintained"}}, version, errors, label="p@1"
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("source.upstream", errors[0])
+
 
 class TestLintActivationAndProvenance(unittest.TestCase):
     """Locks that the orchestrator reports activation AND source errors together."""

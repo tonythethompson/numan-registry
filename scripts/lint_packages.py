@@ -20,6 +20,7 @@ from pathlib import Path
 
 from archive_formats import SUPPORTED_ARCHIVE_SUFFIXES
 from nu_version_constraint import COMPARATOR, EXACT_NU_VERSION, MINOR_WILDCARD
+from url_safety import ensure_http_url
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_INDEX = REPO_ROOT / "registry" / "index.json"
@@ -364,12 +365,25 @@ def _lint_fork_identity(
     machine-checkable, not just documented convention.
     """
     owner = (pkg.get("id") or {}).get("owner") if isinstance(pkg.get("id"), dict) else None
-    if owner != "numan-maintained":
-        return
     source = version.get("source")
-    upstream = source.get("upstream") if isinstance(source, dict) else None
+    if not isinstance(source, dict):
+        if owner == "numan-maintained":
+            errors.append(f"{label}: owner 'numan-maintained' requires source.upstream (original repo URL)")
+        return
+    upstream = source.get("upstream")
+    if owner != "numan-maintained":
+        if upstream is not None:
+            errors.append(
+                f"{label}: source.upstream is only valid for owner 'numan-maintained'"
+            )
+        return
     if not isinstance(upstream, str) or not upstream.strip():
         errors.append(f"{label}: owner 'numan-maintained' requires source.upstream (original repo URL)")
+        return
+    try:
+        ensure_http_url(upstream.strip())
+    except ValueError as exc:
+        errors.append(f"{label}: source.upstream {exc}")
 
 
 def lint_activation_and_provenance(

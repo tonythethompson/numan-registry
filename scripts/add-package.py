@@ -368,6 +368,11 @@ def validate_spec(spec, *, allow_provisional=False):
                 "substituted with this fork -- see ADR 0001 fork identity requirements"
             )
             sys.exit(1)
+        try:
+            ensure_http_url(upstream.strip())
+        except ValueError as exc:
+            print(f"FAIL: source.upstream {exc}")
+            sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
