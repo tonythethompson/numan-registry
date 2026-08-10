@@ -79,8 +79,11 @@ class ShallowCloneTests(unittest.TestCase):
             calls.append(cmd)
             return subprocess.CompletedProcess(cmd, 0)
 
-        with mock.patch.object(self.mod.subprocess, "run", side_effect=fake_run):
-            self.mod.shallow_clone_at("https://example.invalid/x", "d" * 40, Path("/tmp/dest"))
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(self.mod.subprocess, "run", side_effect=fake_run):
+                self.mod.shallow_clone_at(
+                    "https://example.invalid/x", "d" * 40, Path(tmp) / "dest"
+                )
 
         self.assertEqual(calls[0][:2], ["git", "init"])
         self.assertIn("remote", calls[1])
@@ -89,13 +92,14 @@ class ShallowCloneTests(unittest.TestCase):
         self.assertIn("checkout", calls[3])
 
     def test_propagates_failure(self):
-        with mock.patch.object(
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
             self.mod.subprocess,
             "run",
             side_effect=subprocess.CalledProcessError(1, ["git", "fetch"]),
-        ):
-            with self.assertRaises(subprocess.CalledProcessError):
-                self.mod.shallow_clone_at("https://example.invalid/x", "e" * 40, Path("/tmp/dest"))
+        ), self.assertRaises(subprocess.CalledProcessError):
+            self.mod.shallow_clone_at(
+                "https://example.invalid/x", "e" * 40, Path(tmp) / "dest"
+            )
 
 
 class ArchiveDeterminismTests(unittest.TestCase):
