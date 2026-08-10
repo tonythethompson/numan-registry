@@ -40,8 +40,11 @@ def ensure_http_url(url: str) -> None:
 def github_repo_key(url: str) -> str | None:
     """Return ``owner/name`` for a GitHub http(s) URL, else ``None``.
 
-    Path segments are percent-decoded before comparison so aliases like
-    ``repo.git`` and ``repo%2Egit`` map to the same repository identity.
+    The path is percent-decoded as a whole before splitting on ``/`` so
+    aliases like ``repo.git``, ``repo%2Egit``, and an encoded path
+    separator such as ``repo%2Fissues`` all map to the same repository
+    identity instead of a percent-encoded ``%2F`` hiding an extra path
+    segment from the split.
     """
     parsed = urlparse(url.strip().rstrip("/"))
     if parsed.scheme.lower() not in HTTP_SCHEMES:
@@ -49,7 +52,8 @@ def github_repo_key(url: str) -> str | None:
     host = (parsed.hostname or "").lower()
     if host not in {"github.com", "www.github.com"}:
         return None
-    parts = [unquote(part) for part in parsed.path.strip("/").split("/") if part]
+    decoded_path = unquote(parsed.path).strip("/")
+    parts = [part for part in decoded_path.split("/") if part]
     if len(parts) < 2:
         return None
     owner, name = parts[0], parts[1]

@@ -114,11 +114,25 @@ class GitHubRepoKeyTests(unittest.TestCase):
         self.assertIsNone(github_repo_key("https://gitlab.com/owner/repo"))
         self.assertIsNone(github_repo_key("https://example.com/owner/repo.git"))
 
+    def test_decodes_percent_encoded_path_separator(self):
+        # An encoded "/" (%2F) must not hide an extra path segment from the
+        # split -- decoding after split let "pkg%2Fissues" masquerade as a
+        # distinct repo "pkg/issues" instead of resolving to "pkg".
+        self.assertEqual(
+            github_repo_key("https://github.com/numan-maintained/pkg%2Fissues"),
+            "numan-maintained/pkg",
+        )
+
 
 class ForkUpstreamDiffersTests(unittest.TestCase):
     def test_same_repo_with_encoded_git_suffix_is_not_different(self):
         git = "https://github.com/numan-maintained/pkg"
         upstream = "https://github.com/numan-maintained/pkg%2Egit"
+        self.assertFalse(fork_upstream_differs_from_git(git, upstream))
+
+    def test_same_repo_with_encoded_path_separator_is_not_different(self):
+        git = "https://github.com/numan-maintained/pkg"
+        upstream = "https://github.com/numan-maintained/pkg%2Fissues"
         self.assertFalse(fork_upstream_differs_from_git(git, upstream))
 
     def test_distinct_repos_remain_different(self):
