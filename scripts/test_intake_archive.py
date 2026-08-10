@@ -219,7 +219,14 @@ class BuildSpecTests(unittest.TestCase):
             activation_import="all",
         )
         self.assertEqual(spec["activation"], {"kind": "nu-module", "import": "all"})
-        self.assertEqual(spec["artifact"], {"kind": "archive", "url": spec["artifact"]["url"], "entry": "mod.nu"})
+        self.assertEqual(
+            spec["artifact"],
+            {
+                "kind": "archive",
+                "url": "https://github.com/owner/repo/releases/download/tag/asset.tar.gz",
+                "entry": "mod.nu",
+            },
+        )
         self.assertNotIn("source", spec)
 
     def test_script_spec_omits_activation(self):
