@@ -356,7 +356,12 @@ def validate_spec(spec, *, allow_provisional=False):
         if spec["provenance"] not in VALID_PROVENANCE:
             print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
             sys.exit(1)
-        if spec["provenance"] == "commit-snapshot" and not spec.get("source", {}).get("rev"):
+        source = spec.get("source")
+        if spec["provenance"] == "commit-snapshot" and (
+            not isinstance(source, dict)
+            or not isinstance(source.get("rev"), str)
+            or not source["rev"]
+        ):
             print("FAIL: provenance 'commit-snapshot' requires source.rev (the pinned commit)")
             sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
