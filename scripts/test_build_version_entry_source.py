@@ -25,7 +25,7 @@ def load_add_package():
 
 class CopySourceFieldTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.ap = load_add_package()
 
     def test_copies_source_when_present(self):
@@ -75,7 +75,7 @@ class CopySourceFieldTests(unittest.TestCase):
 
 class BuildVersionEntryProvenanceTests(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.ap = load_add_package()
 
     def test_passes_through_provenance_when_present(self):
@@ -114,6 +114,63 @@ class BuildVersionEntryProvenanceTests(unittest.TestCase):
         with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
             version_entry = self.ap.build_version_entry(spec)
         self.assertNotIn("provenance", version_entry)
+
+    def test_rejects_unsupported_provenance_marker(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "hand-wavy",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_rejects_commit_snapshot_without_source(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_accepts_commit_snapshot_with_source_rev(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": {
+                "git": "https://github.com/o/p",
+                "rev": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+                "cargo_name": "p",
+            },
+        }
+        self.ap.validate_spec(spec)
 
 
 if __name__ == "__main__":

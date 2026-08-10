@@ -84,7 +84,8 @@
                 "nu_version": { "type": "string" },
                 "provenance": {
                   "type": "string",
-                  "description": "Optional provenance marker. 'commit-snapshot' indicates the version was built from a pinned commit with no upstream tag."
+                  "enum": ["commit-snapshot"],
+                  "description": "Optional provenance marker. 'commit-snapshot' indicates the version was built from a pinned commit with no upstream tag; requires source.rev to be present."
                 },
                 "verified_with": {
                   "type": "array",
@@ -150,6 +151,13 @@
                     "import": { "type": "string", "enum": ["module", "all"] }
                   }
                 }
+              },
+              "if": {
+                "properties": { "provenance": { "const": "commit-snapshot" } },
+                "required": ["provenance"]
+              },
+              "then": {
+                "required": ["source"]
               }
             }
           }

@@ -102,6 +102,7 @@ REQUIRED_TOP_FIELDS = (
     "artifact",
 )
 VALID_TYPES = ("plugin", "module", "script", "completion")
+VALID_PROVENANCE = ("commit-snapshot",)
 
 def check_archive_format_supported(url, label):
     """
@@ -351,6 +352,13 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
+    if "provenance" in spec:
+        if spec["provenance"] not in VALID_PROVENANCE:
+            print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
+            sys.exit(1)
+        if spec["provenance"] == "commit-snapshot" and not spec.get("source", {}).get("rev"):
+            print("FAIL: provenance 'commit-snapshot' requires source.rev (the pinned commit)")
+            sys.exit(1)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
