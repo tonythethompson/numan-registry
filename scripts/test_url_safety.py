@@ -123,6 +123,24 @@ class GitHubRepoKeyTests(unittest.TestCase):
             "numan-maintained/pkg",
         )
 
+    def test_recognizes_scp_like_ssh_clone_url(self):
+        self.assertEqual(
+            github_repo_key("git@github.com:numan-maintained/pkg.git"),
+            "numan-maintained/pkg",
+        )
+
+    def test_recognizes_ssh_scheme_clone_url(self):
+        self.assertEqual(
+            github_repo_key("ssh://git@github.com/numan-maintained/pkg.git"),
+            "numan-maintained/pkg",
+        )
+
+    def test_recognizes_git_scheme_clone_url(self):
+        self.assertEqual(
+            github_repo_key("git://github.com/numan-maintained/pkg.git"),
+            "numan-maintained/pkg",
+        )
+
 
 class ForkUpstreamDiffersTests(unittest.TestCase):
     def test_same_repo_with_encoded_git_suffix_is_not_different(self):
@@ -139,6 +157,15 @@ class ForkUpstreamDiffersTests(unittest.TestCase):
         git = "https://github.com/numan-maintained/pkg"
         upstream = "https://github.com/original-author/pkg"
         self.assertTrue(fork_upstream_differs_from_git(git, upstream))
+
+    def test_same_repo_across_ssh_and_https_transports_is_not_different(self):
+        # A fork could otherwise name its own SSH clone URL as source.git and
+        # the equivalent https URL as source.upstream; github_repo_key must
+        # recognize both transports as the same repo instead of falling back
+        # to a raw string comparison that always treats them as distinct.
+        git = "git@github.com:numan-maintained/pkg.git"
+        upstream = "https://github.com/numan-maintained/pkg"
+        self.assertFalse(fork_upstream_differs_from_git(git, upstream))
 
 
 class HttpOnlyRedirectHandlerTests(unittest.TestCase):

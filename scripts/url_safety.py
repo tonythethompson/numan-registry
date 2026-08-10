@@ -8,11 +8,19 @@ that leaves the http(s) allowlist. Keeping the guard in one module
 mirrors the shared-constant pattern of archive_formats.py.
 """
 
+import re
 import urllib.request
 from urllib.parse import unquote, urlparse
 
 #: URL schemes permitted for artifact/manifest downloads.
 HTTP_SCHEMES = frozenset({"https", "http"})
+
+#: Additional URL schemes accepted only for git clone-URL identity
+#: comparison (never for downloading artifacts/manifests).
+_GIT_CLONE_SCHEMES = frozenset({"ssh", "git"})
+
+#: scp-like syntax, e.g. ``git@github.com:owner/repo.git``.
+_SCP_LIKE_RE = re.compile(r"^(?:[^@/]+@)?(?P<host>[^:/]+):(?!//)(?P<path>.+)$")
 
 
 def ensure_http_url(url: str) -> None:
@@ -37,22 +45,10 @@ def ensure_http_url(url: str) -> None:
         raise ValueError(f"URL must use http(s), got {url!r}")
 
 
-def github_repo_key(url: str) -> str | None:
-    """Return ``owner/name`` for a GitHub http(s) URL, else ``None``.
-
-    The path is percent-decoded as a whole before splitting on ``/`` so
-    aliases like ``repo.git``, ``repo%2Egit``, and an encoded path
-    separator such as ``repo%2Fissues`` all map to the same repository
-    identity instead of a percent-encoded ``%2F`` hiding an extra path
-    segment from the split.
-    """
-    parsed = urlparse(url.strip().rstrip("/"))
-    if parsed.scheme.lower() not in HTTP_SCHEMES:
-        return None
-    host = (parsed.hostname or "").lower()
+def _github_repo_key_from_path(host: str, path: str) -> str | None:
     if host not in {"github.com", "www.github.com"}:
         return None
-    decoded_path = unquote(parsed.path).strip("/")
+    decoded_path = unquote(path).strip("/")
     parts = [part for part in decoded_path.split("/") if part]
     if len(parts) < 2:
         return None
@@ -60,6 +56,34 @@ def github_repo_key(url: str) -> str | None:
     if name.lower().endswith(".git"):
         name = name[: -len(".git")]
     return f"{owner}/{name}".lower()
+
+
+def github_repo_key(url: str) -> str | None:
+    """Return ``owner/name`` for a GitHub clone/browse URL, else ``None``.
+
+    Accepts http(s) URLs, the ``ssh://``/``git://`` clone-URL schemes, and
+    scp-like syntax (``git@github.com:owner/repo.git``) so that comparing
+    ``source.git`` (often an SSH clone URL) against ``source.upstream``
+    (typically an https URL) can recognize the same repository across
+    transports instead of falling back to a raw string comparison that
+    always treats them as different.
+
+    The path is percent-decoded as a whole before splitting on ``/`` so
+    aliases like ``repo.git``, ``repo%2Egit``, and an encoded path
+    separator such as ``repo%2Fissues`` all map to the same repository
+    identity instead of a percent-encoded ``%2F`` hiding an extra path
+    segment from the split.
+    """
+    stripped = url.strip().rstrip("/")
+    scp_match = _SCP_LIKE_RE.match(stripped)
+    if scp_match:
+        return _github_repo_key_from_path(scp_match.group("host").lower(), scp_match.group("path"))
+    parsed = urlparse(stripped)
+    scheme = parsed.scheme.lower()
+    if scheme not in HTTP_SCHEMES and scheme not in _GIT_CLONE_SCHEMES:
+        return None
+    host = (parsed.hostname or "").lower()
+    return _github_repo_key_from_path(host, parsed.path)
 
 
 def fork_upstream_differs_from_git(git: str, upstream: str) -> bool:
