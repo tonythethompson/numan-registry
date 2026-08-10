@@ -331,20 +331,20 @@ def _stage_copy_spec(dest_spec: Path, spec_data: dict, spec_filename: str, *, dr
 
 
 def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str,
-                             deferral_reason: str = "lifecycle validation deferred",
+                             deferral_reason: str = "",
                              *, dry_run: bool) -> None:
     """Run add-package.py --write with an unwrapped spec copy.
 
-    The provisional index entry must retain the lifecycle deferral recorded by
-    Stage 5 evidence.
+    A nonblank deferral_reason means Stage 5 evidence deferred lifecycle-prove;
+    the index entry must retain that reason and go in as provisional. An empty
+    deferral_reason means evidence passed fully (verified_with present) — the
+    entry is proven and add-package.py must run without --provisional, since
+    it rejects --provisional together with verified_with.
 
     add-package.py expects bare spec fields (owner, name, …) at the top level,
     not the {spec, _meta} wrapper — write an unwrapped copy outside the repo
     and remove it even if add-package.py fails.
     """
-    if not deferral_reason.strip():
-        print("error: evidence is missing lifecycle_deferral.reason", file=sys.stderr)
-        sys.exit(1)
     if dry_run:
         effective_spec_for_add = spec_path
         bare_tmp_dir: Path | None = None
@@ -354,14 +354,13 @@ def _stage_merge_into_index(spec_path: Path, spec: dict, spec_filename: str,
         effective_spec_for_add.write_text(
             json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
+    command = [sys.executable, str(SCRIPTS / "add-package.py"),
+               "--spec", str(effective_spec_for_add),
+               "--write", "--index", str(INDEX_PATH)]
+    if deferral_reason.strip():
+        command += ["--provisional", "--deferral-reason", deferral_reason]
     try:
-        _run(
-            [sys.executable, str(SCRIPTS / "add-package.py"),
-             "--spec", str(effective_spec_for_add),
-             "--write", "--index", str(INDEX_PATH), "--provisional",
-             "--deferral-reason", deferral_reason],
-            dry_run=dry_run,
-        )
+        _run(command, dry_run=dry_run)
     finally:
         if bare_tmp_dir is not None:
             shutil.rmtree(bare_tmp_dir, ignore_errors=True)
