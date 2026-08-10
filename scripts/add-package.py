@@ -458,8 +458,13 @@ def main():
         sys.exit(1)
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    if args.provisional and "verified_with" in spec:
+        print(
+            "FAIL: --provisional cannot be used when spec includes verified_with",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     validate_spec(spec, allow_provisional=args.provisional)
-
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
     version_entry = build_version_entry(
         spec, deferral_reason=args.deferral_reason.strip() if args.provisional else None
