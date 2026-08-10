@@ -47,7 +47,9 @@ class FakeResponse:
     def read(self, nbytes=-1):
         """Return the response payload as bytes, optionally capped to *nbytes*."""
         if nbytes < 0:
-            return self.data
+            chunk = self.data
+            self.data = b""
+            return chunk
         if nbytes == 0:
             return b""
         chunk = self.data[:nbytes]
