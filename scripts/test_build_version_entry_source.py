@@ -175,6 +175,25 @@ class BuildVersionEntryProvenanceTests(unittest.TestCase):
         }
         self.ap.validate_spec(spec)
 
+    def test_rejects_commit_snapshot_with_non_object_source(self):
+        spec = {
+            "owner": "o",
+            "name": "p",
+            "description": "p",
+            "repo": "https://github.com/o/p",
+            "type": "plugin",
+            "tags": [],
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "verified_with": ["0.114.1"],
+            "artifact": {"kind": "binary", "targets": {}},
+            "provenance": "commit-snapshot",
+            "source": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+        }
+        with self.assertRaises(SystemExit) as ctx:
+            self.ap.validate_spec(spec)
+        self.assertEqual(ctx.exception.code, 1)
+
     def test_rejects_commit_snapshot_with_branch_name_as_rev(self):
         spec = {
             "owner": "o",

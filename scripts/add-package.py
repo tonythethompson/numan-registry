@@ -335,14 +335,39 @@ def build_package_entry(spec, version_entry):
     }
 
 
+def validate_provenance(spec):
+    """Validate the optional provenance marker and its commit-snapshot pin, if present."""
+    if "provenance" not in spec:
+        return
+    if spec["provenance"] not in VALID_PROVENANCE:
+        print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
+        sys.exit(1)
+    if spec["provenance"] != "commit-snapshot":
+        return
+    source = spec.get("source")
+    if (
+        not isinstance(source, dict)
+        or not isinstance(source.get("rev"), str)
+        or not source["rev"]
+    ):
+        print("FAIL: provenance 'commit-snapshot' requires source.rev (the pinned commit)")
+        sys.exit(1)
+    if not GIT_FULL_SHA1_RE.match(source["rev"]):
+        print(
+            f"FAIL: provenance 'commit-snapshot' requires source.rev to be a full 40-character Git SHA-1 commit ID, "
+            f"got {source['rev']!r} (branch names, tags, and short SHAs are not allowed)"
+        )
+        sys.exit(1)
+
+
 def validate_spec(spec, *, allow_provisional=False):
     """
     Validate required fields, package type, and lifecycle evidence in a package specification.
-    
+
     Parameters:
         spec (dict): Package specification to validate.
         allow_provisional (bool): Whether activatable specifications may omit lifecycle evidence.
-    
+
     Returns:
         None
     """
@@ -353,29 +378,7 @@ def validate_spec(spec, *, allow_provisional=False):
     if spec["type"] not in VALID_TYPES:
         print(f"FAIL: type must be one of {VALID_TYPES}, got '{spec['type']}'")
         sys.exit(1)
-    if "provenance" in spec:
-        if spec["provenance"] not in VALID_PROVENANCE:
-            print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
-            sys.exit(1)
-        source = spec.get("source")
-    if "provenance" in spec:
-        if spec["provenance"] not in VALID_PROVENANCE:
-            print(f"FAIL: provenance must be one of {VALID_PROVENANCE}, got {spec['provenance']!r}")
-            sys.exit(1)
-        source = spec.get("source")
-        if spec["provenance"] == "commit-snapshot" and (
-            not isinstance(source, dict)
-            or not isinstance(source.get("rev"), str)
-            or not source["rev"]
-        ):
-            print("FAIL: provenance 'commit-snapshot' requires source.rev (the pinned commit)")
-            sys.exit(1)
-        if spec["provenance"] == "commit-snapshot" and not GIT_FULL_SHA1_RE.match(source["rev"]):
-            print(
-                f"FAIL: provenance 'commit-snapshot' requires source.rev to be a full 40-character Git SHA-1 commit ID, "
-                f"got {source['rev']!r} (branch names, tags, and short SHAs are not allowed)"
-            )
-            sys.exit(1)
+    validate_provenance(spec)
     if spec["type"] == "plugin" or "activation" in spec:
         evidence = spec.get("verified_with")
         evidence_error = lifecycle_evidence_error(spec["nu_version"], evidence)
