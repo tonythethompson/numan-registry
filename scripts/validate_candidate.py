@@ -155,15 +155,19 @@ def _count_targets(tmp_index: Path) -> int:
     return targets_count
 
 
-def _step_download_and_hash(effective_spec: Path, tmp_index: Path) -> dict:
+def _step_download_and_hash(effective_spec: Path, tmp_index: Path,
+                             lifecycle_deferral: str = "") -> dict:
     """Step 1: download artifacts and compute hashes via add-package.py."""
-    ok, output = _run_script(
-        [str(SCRIPTS / "add-package.py"),
-         "--spec", str(effective_spec),
-         "--write", "--index", str(tmp_index),
-         "--provisional"],
-        label="add-package",
-    )
+    command = [
+        str(SCRIPTS / "add-package.py"),
+        "--spec", str(effective_spec),
+        "--write", "--index", str(tmp_index),
+    ]
+    # Provisional entries must carry the lifecycle deferral reason through to
+    # add-package.py; without a deferral, require the spec's verified_with.
+    if lifecycle_deferral:
+        command += ["--provisional", "--deferral-reason", lifecycle_deferral]
+    ok, output = _run_script(command, label="add-package")
     targets_count = _count_targets(tmp_index) if ok else 0
     return {
         "name": "download_and_hash",
@@ -339,7 +343,7 @@ def validate_candidate(spec_path: Path, *, prove: bool = False,
     with tempfile.TemporaryDirectory(prefix="numan-validate-") as tmp:
         effective_spec, tmp_index = _seed_workdir(Path(tmp), spec_data)
         checks = [
-            _step_download_and_hash(effective_spec, tmp_index),
+            _step_download_and_hash(effective_spec, tmp_index, deferral),
             _step_lint(tmp_index),
             _step_schema(tmp_index),
         ]

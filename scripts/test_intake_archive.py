@@ -537,6 +537,107 @@ class MainEndToEndTests(unittest.TestCase):
             )
         self.assertEqual(code, 1)
 
+    def test_write_flag_success_chains_into_add_package_after_upload(self):
+        sha = "e" * 40
+        upload_url = "https://github.com/owner/repo/releases/download/tag/asset.tar.gz"
+        calls = []
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if cmd[:2] == ["git", "ls-remote"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=f"{sha}\tHEAD\n", stderr="")
+            if "add-package.py" in cmd[1]:
+                return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        def fake_clone(git_url, resolved_sha, dest):
+            dest.mkdir(parents=True)
+            (dest / "run.nu").write_text("export def main [] {}\n", encoding="utf-8")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_path = Path(tmp) / "spec.json"
+            manifest_path = Path(tmp) / "manifest-archives.json"
+
+            with (
+                mock.patch.object(self.mod.subprocess, "run", side_effect=fake_run),
+                mock.patch.object(self.mod, "shallow_clone_at", side_effect=fake_clone),
+                mock.patch.object(self.mod, "upload_to_release", return_value=upload_url) as mock_upload,
+            ):
+                code = self.mod.main(
+                    [
+                        "--git-url", "https://github.com/someone/cool-script",
+                        "--ref", "main",
+                        "--entry", "run.nu",
+                        "--name", "cool-script",
+                        "--owner", "someone",
+                        "--type", "script",
+                        "--description", "A cool script",
+                        "--tags", '["script"]',
+                        "--nu-version", ">=0.114.0",
+                        "--release-repo", "owner/repo",
+                        "--out", str(out_path),
+                        "--manifest-archives", str(manifest_path),
+                        "--write",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            mock_upload.assert_called_once()
+            add_package_calls = [c for c in calls if len(c) > 1 and "add-package.py" in c[1]]
+            self.assertEqual(len(add_package_calls), 1)
+            self.assertIn("--write", add_package_calls[0])
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(manifest[0]["resolved_sha"], sha)
+
+    def test_write_flag_failure_after_upload_propagates_returncode_without_recording_manifest(self):
+        sha = "d" * 40
+
+        def fake_run(cmd, **kwargs):
+            if cmd[:2] == ["git", "ls-remote"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=f"{sha}\tHEAD\n", stderr="")
+            if len(cmd) > 1 and "add-package.py" in cmd[1]:
+                return subprocess.CompletedProcess(cmd, 3, stdout="", stderr="registry validation failed")
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        def fake_clone(git_url, resolved_sha, dest):
+            dest.mkdir(parents=True)
+            (dest / "run.nu").write_text("export def main [] {}\n", encoding="utf-8")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_path = Path(tmp) / "spec.json"
+            manifest_path = Path(tmp) / "manifest-archives.json"
+
+            with (
+                mock.patch.object(self.mod.subprocess, "run", side_effect=fake_run),
+                mock.patch.object(self.mod, "shallow_clone_at", side_effect=fake_clone),
+                mock.patch.object(
+                    self.mod,
+                    "upload_to_release",
+                    return_value="https://github.com/owner/repo/releases/download/tag/asset.tar.gz",
+                ) as mock_upload,
+            ):
+                code = self.mod.main(
+                    [
+                        "--git-url", "https://github.com/someone/cool-script",
+                        "--ref", "main",
+                        "--entry", "run.nu",
+                        "--name", "cool-script",
+                        "--owner", "someone",
+                        "--type", "script",
+                        "--description", "A cool script",
+                        "--tags", '["script"]',
+                        "--nu-version", ">=0.114.0",
+                        "--release-repo", "owner/repo",
+                        "--out", str(out_path),
+                        "--manifest-archives", str(manifest_path),
+                        "--write",
+                    ]
+                )
+
+            self.assertEqual(code, 3)
+            mock_upload.assert_called_once()
+            self.assertFalse(manifest_path.exists(), "manifest should not record a package the registry rejected")
+
 
 if __name__ == "__main__":
     suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
