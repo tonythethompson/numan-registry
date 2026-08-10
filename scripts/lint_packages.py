@@ -459,6 +459,37 @@ def lint_index(index: dict) -> list[str]:
     return errors
 
 
+def provisional_deferral_warnings(index: dict) -> list[str]:
+    """Warn (non-fatally) about provisional versions missing a deferral reason.
+
+    Kept separate from lint_index's error list on purpose: a missing
+    deferral_reason on a pre-reform provisional entry is a migration-tolerance
+    gap, not a hard validation failure.
+    """
+    warnings: list[str] = []
+    packages = index.get("packages")
+    if not isinstance(packages, list):
+        return warnings
+    for entry_index, pkg in enumerate(packages):
+        if not isinstance(pkg, dict):
+            continue
+        versions = pkg.get("versions")
+        if not isinstance(versions, list):
+            continue
+        for version_index, version in enumerate(versions):
+            if not isinstance(version, dict):
+                continue
+            if version.get("evidence_tier") != "provisional":
+                continue
+            reason = version.get("deferral_reason")
+            if not isinstance(reason, str) or not reason.strip():
+                label = version_label(
+                    pkg, version, entry_index=entry_index, version_index=version_index
+                )
+                warnings.append(f"{label}: evidence_tier is provisional but deferral_reason is missing/empty")
+    return warnings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -481,6 +512,13 @@ def main(argv: list[str] | None = None) -> int:
     errors = lint_index(index)
     # Deterministic ordering for before/after PR comparison.
     errors = sorted(set(errors))
+
+    warnings = sorted(set(provisional_deferral_warnings(index)))
+    if warnings:
+        print(f"WARN: {len(warnings)} provisional entry warning(s):", file=sys.stderr)
+        for warning in warnings:
+            print(f"  - {warning}", file=sys.stderr)
+
     if errors:
         print(f"FAIL: {len(errors)} package lint error(s):")
         for error in errors:

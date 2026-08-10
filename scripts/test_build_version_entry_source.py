@@ -10,6 +10,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "add-package.py"
 
@@ -72,7 +73,53 @@ class CopySourceFieldTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 1)
 
 
+class BuildVersionEntryEvidenceTierTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ap = load_add_package()
+
+    def test_sets_evidence_tier_when_deferral_reason_given(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(
+                spec, deferral_reason="requires cloud credentials"
+            )
+        self.assertEqual(version_entry["evidence_tier"], "provisional")
+        self.assertEqual(version_entry["deferral_reason"], "requires cloud credentials")
+
+    def test_omits_evidence_tier_when_no_deferral_reason(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertNotIn("evidence_tier", version_entry)
+        self.assertNotIn("deferral_reason", version_entry)
+
+
 if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(CopySourceFieldTests)
+    suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)

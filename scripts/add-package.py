@@ -292,13 +292,16 @@ def copy_source_field(spec, version_entry):
     version_entry["source"] = out
 
 
-def build_version_entry(spec):
+def build_version_entry(spec, *, deferral_reason=None):
     version_entry = {
         "version": spec["version"],
         "nu_version": spec["nu_version"],
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    if deferral_reason is not None:
+        version_entry["evidence_tier"] = "provisional"
+        version_entry["deferral_reason"] = deferral_reason
     copy_source_field(spec, version_entry)
     if "activation" in spec:
         check_module_import_mode(spec["artifact"], spec["activation"])
@@ -443,13 +446,24 @@ def main():
             "lifecycle-prove; production validation will reject it"
         ),
     )
+    parser.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Required with --provisional: why lifecycle-prove was skipped, recorded in the index",
+    )
     args = parser.parse_args()
+
+    if args.provisional and not args.deferral_reason:
+        print("FAIL: --provisional requires --deferral-reason", file=sys.stderr)
+        sys.exit(1)
 
     spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
     validate_spec(spec, allow_provisional=args.provisional)
 
     print(f"Building {spec['owner']}/{spec['name']}@{spec['version']} ...", file=sys.stderr)
-    version_entry = build_version_entry(spec)
+    version_entry = build_version_entry(
+        spec, deferral_reason=args.deferral_reason if args.provisional else None
+    )
     package_entry = build_package_entry(spec, version_entry)
 
     if not args.write:

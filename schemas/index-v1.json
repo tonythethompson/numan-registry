@@ -82,6 +82,16 @@
               "properties": {
                 "version": { "type": "string" },
                 "nu_version": { "type": "string" },
+                "evidence_tier": {
+                  "type": "string",
+                  "enum": ["proven", "provisional"],
+                  "description": "Absence means 'proven' (full lifecycle evidence). 'provisional' means the version passed structural validation only; deferral_reason should explain why lifecycle-prove was skipped."
+                },
+                "deferral_reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Required alongside evidence_tier: 'provisional' — explains why lifecycle-prove was deferred."
+                },
                 "verified_with": {
                   "type": "array",
                   "minItems": 1,

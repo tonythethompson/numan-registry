@@ -482,5 +482,47 @@ class LintPackagesTests(unittest.TestCase):
         self.assertEqual(len(set(errors)), len(errors))
 
 
+class ProvisionalDeferralWarningsTests(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.lint = load_lint()
+
+    def test_warns_when_deferral_reason_missing(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(len(warnings), 1)
+        self.assertIn("deferral_reason is missing/empty", warnings[0])
+
+    def test_warns_when_deferral_reason_blank(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        pkg["versions"][0]["deferral_reason"] = "   "
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(len(warnings), 1)
+
+    def test_no_warning_when_deferral_reason_present(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        pkg["versions"][0]["deferral_reason"] = "requires cloud credentials"
+        warnings = self.lint.provisional_deferral_warnings({"packages": [pkg]})
+        self.assertEqual(warnings, [])
+
+    def test_no_warning_for_proven_entries(self):
+        warnings = self.lint.provisional_deferral_warnings({"packages": [base_package()]})
+        self.assertEqual(warnings, [])
+
+    def test_missing_deferral_reason_is_warning_not_error(self):
+        pkg = base_package()
+        del pkg["versions"][0]["verified_with"]
+        pkg["versions"][0]["evidence_tier"] = "provisional"
+        errors = self.lint.lint_index({"packages": [pkg]})
+        self.assertEqual(errors, [])
+
+
 if __name__ == "__main__":
     unittest.main()
