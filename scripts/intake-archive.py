@@ -341,7 +341,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL: could not clone/checkout {resolved_sha}: {exc}", file=sys.stderr)
             return 1
 
-        if not (src_dir / args.entry).is_file():
+        entry_path = src_dir / args.entry
+        try:
+            if Path(args.entry).is_absolute():
+                raise ValueError
+            entry_path.resolve().relative_to(src_dir.resolve())
+        except ValueError:
+            print(f"FAIL: entry path escapes checkout: {args.entry}", file=sys.stderr)
+            return 1
+        if not entry_path.is_file():
             print(f"FAIL: entry file not found in checkout: {args.entry}", file=sys.stderr)
             return 1
 
