@@ -1,5 +1,5 @@
 {
   "key_id": "staging-ephemeral",
   "algorithm": "ed25519",
-  "signature": "X3MKaXZBKvmFG5HkDfN3CKcM+2HVMicA0G0it2OCWXS/vdcQjZ7u9kS0VaOfiqWENDIe5iQ/RCxspgcU3DFMAg=="
+  "signature": "83S4HaxFrCB/MBBRw3EvBTDfDJ76A3UsPiKZu37HNU/lkuFBcaEVTDCzGoy390hhr1D5FIRGuck3jOdtJVXICg=="
 }
