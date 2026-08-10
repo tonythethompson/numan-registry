@@ -299,6 +299,8 @@ def build_version_entry(spec):
     }
     if "verified_with" in spec:
         version_entry["verified_with"] = spec["verified_with"]
+    if "provenance" in spec:
+        version_entry["provenance"] = spec["provenance"]
     copy_source_field(spec, version_entry)
     if "activation" in spec:
         check_module_import_mode(spec["artifact"], spec["activation"])

@@ -10,6 +10,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parent / "add-package.py"
 
@@ -72,7 +73,50 @@ class CopySourceFieldTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, 1)
 
 
+class BuildVersionEntryProvenanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ap = load_add_package()
+
+    def test_passes_through_provenance_when_present(self):
+        spec = {
+            "version": "0.0.0-snapshot.20260809.5a1ca2a",
+            "nu_version": ">=0.114.0 <0.115.0",
+            "provenance": "commit-snapshot",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "nu_plugin_plot",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertEqual(version_entry["provenance"], "commit-snapshot")
+
+    def test_omits_provenance_when_absent(self):
+        spec = {
+            "version": "1.0.0",
+            "nu_version": "*",
+            "artifact": {
+                "kind": "binary",
+                "targets": {
+                    "x86_64-unknown-linux-gnu": {
+                        "url": "https://example.invalid/a.tar.gz",
+                        "executable_path": "p",
+                    }
+                },
+            },
+        }
+        with mock.patch.object(self.ap, "download_and_hash", return_value="a" * 64):
+            version_entry = self.ap.build_version_entry(spec)
+        self.assertNotIn("provenance", version_entry)
+
+
 if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(CopySourceFieldTests)
+    suite = unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__])
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)
