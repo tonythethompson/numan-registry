@@ -112,9 +112,16 @@ def shallow_clone_at(git_url: str, sha: str, dest: Path) -> None:
 def sorted_files(root: Path) -> list[Path]:
     """List regular files under `root` (excluding .git), sorted for deterministic archiving."""
     files = []
+    resolved_root = root.resolve()
     for p in root.rglob("*"):
+        if p.is_symlink():
+            raise ValueError(f"symlink not allowed in archive source: {p.relative_to(root)}")
         if not p.is_file():
             continue
+        try:
+            p.resolve().relative_to(resolved_root)
+        except ValueError as exc:
+            raise ValueError(f"archive source path resolves outside checkout: {p.relative_to(root)}") from exc
         rel = p.relative_to(root)
         if rel.parts and rel.parts[0] == ".git":
             continue
@@ -269,6 +276,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--activation-kind", default=None)
     ap.add_argument("--activation-import", default=None, choices=("module", "all"))
     ap.add_argument(
+        "--provisional",
+        action="store_true",
+        help="Allow activation-bearing specs without lifecycle evidence",
+    )
+    ap.add_argument(
         "--version",
         default=None,
         help="Version string for this intake; derived from --ref if omitted",
@@ -286,6 +298,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--write", action="store_true", help="Chain into add-package.py --write")
     args = ap.parse_args(argv)
+
+    if args.activation_kind and not args.provisional:
+        print(
+            "FAIL: --activation-kind requires --provisional (no lifecycle evidence was provided)",
+            file=sys.stderr,
+        )
+        return 1
 
     try:
         tags = json.loads(args.tags)
@@ -374,7 +393,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.write:
         add_package_script = REPO_ROOT / "scripts" / "add-package.py"
         result = subprocess.run(
-            [sys.executable, str(add_package_script), "--spec", str(out_path), "--write"],
+            [
+                sys.executable,
+                str(add_package_script),
+                "--spec",
+                str(out_path),
+                "--write",
+                *( ["--provisional"] if args.provisional else [] ),
+            ],
             cwd=REPO_ROOT,
         )
         return result.returncode
