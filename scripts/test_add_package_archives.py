@@ -240,9 +240,14 @@ class BuildArtifactEdgeCaseTests(unittest.TestCase):
             http_opener.return_value.open.return_value = FakeResponse(payload)
             artifact = self.mod.build_artifact({"kind": "binary", "targets": targets})
         self.assertEqual(artifact["kind"], "binary")
+        built = artifact["targets"]["x86_64-unknown-linux-gnu"]
         self.assertEqual(
-            artifact["targets"]["x86_64-unknown-linux-gnu"]["sha256"],
-            hashlib.sha256(payload).hexdigest(),
+            built,
+            {
+                "url": "https://example.invalid/a.tar.gz",
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "executable_path": "nu_plugin",
+            },
         )
 
 
@@ -261,6 +266,12 @@ class CheckModuleImportModeTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.mod.check_module_import_mode(
                 {"entry": "mod.nu"}, {"kind": "nu-module", "import": "module"}
+            )
+
+    def test_mod_nu_with_default_import_mode_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.check_module_import_mode(
+                {"entry": "mod.nu"}, {"kind": "nu-module"}
             )
 
     def test_mod_nu_with_all_import_ok(self):
@@ -382,6 +393,12 @@ class ValidateProvenanceTests(unittest.TestCase):
                 {"provenance": "commit-snapshot", "source": {"rev": "abc123"}}
             )
 
+    def test_commit_snapshot_rejects_non_hex_full_length(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_provenance(
+                {"provenance": "commit-snapshot", "source": {"rev": "g" * 40}}
+            )
+
     def test_commit_snapshot_valid(self):
         self.mod.validate_provenance(
             {"provenance": "commit-snapshot", "source": {"rev": "a" * 40}}
@@ -476,17 +493,21 @@ class MergeIntoIndexTests(unittest.TestCase):
     def test_duplicate_version_without_force_exits(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write_index(tmp, [self._package_entry("1.0.0")])
+            before = path.read_text(encoding="utf-8")
             with self.assertRaises(SystemExit):
                 self.mod.merge_into_index(path, self._package_entry("1.0.0"), force=False)
+            self.assertEqual(path.read_text(encoding="utf-8"), before)
 
     def test_duplicate_version_with_force_replaces(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write_index(tmp, [self._package_entry("1.0.0")])
             entry = self._package_entry("1.0.0")
             entry["description"] = "updated"
+            entry["versions"][0]["nu_version"] = "0.200.0"
             index = self.mod.merge_into_index(path, entry, force=True)
         self.assertEqual(len(index["packages"][0]["versions"]), 1)
         self.assertEqual(index["packages"][0]["description"], "updated")
+        self.assertEqual(index["packages"][0]["versions"][0]["nu_version"], "0.200.0")
 
 
 class MainTests(unittest.TestCase):
@@ -522,17 +543,25 @@ class MainTests(unittest.TestCase):
             ):
                 code = self.mod.main()
             self.assertEqual(code, 0)
-            self.assertIn("package entry", buf.getvalue())
+            output = buf.getvalue()
+            self.assertIn("package entry", output)
+            self.assertIn('"owner": "acme"', output)
+            self.assertIn('"version": "1.0.0"', output)
+            self.assertIn('"sha256": "y"', output)
 
     def test_provisional_requires_deferral_reason(self):
         with tempfile.TemporaryDirectory() as tmp:
             spec_path = Path(tmp) / "spec.json"
             spec_path.write_text(json.dumps(self._spec_dict()), encoding="utf-8")
             argv = ["add-package.py", "--spec", str(spec_path), "--provisional"]
-            with mock.patch.object(self.mod.sys, "argv", argv):
+            with (
+                mock.patch.object(self.mod.sys, "argv", argv),
+                mock.patch.object(self.mod, "build_artifact") as build_artifact,
+            ):
                 with self.assertRaises(SystemExit) as raised:
                     self.mod.main()
             self.assertEqual(raised.exception.code, 1)
+            build_artifact.assert_not_called()
 
     def test_write_merges_into_index(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -552,12 +581,15 @@ class MainTests(unittest.TestCase):
                 mock.patch.object(
                     self.mod, "build_artifact", return_value={"kind": "archive", "url": "x", "sha256": "y"}
                 ),
-                mock.patch.object(self.mod, "validate_against_schema"),
+                mock.patch.object(self.mod, "validate_against_schema") as validate_against_schema,
             ):
                 code = self.mod.main()
             self.assertEqual(code, 0)
             written = json.loads(index_path.read_text(encoding="utf-8"))
             self.assertEqual(len(written["packages"]), 1)
+            validate_against_schema.assert_called_once()
+            (validated_index,), _ = validate_against_schema.call_args
+            self.assertEqual(validated_index["packages"], written["packages"])
 
 
 if __name__ == "__main__":

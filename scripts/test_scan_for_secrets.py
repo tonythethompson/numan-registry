@@ -38,7 +38,12 @@ class GitTrackedFilesTests(unittest.TestCase):
         )
         with patch.object(subprocess, "run", return_value=result) as run:
             files = self.scan.git_tracked_files()
-        run.assert_called_once()
+        run.assert_called_once_with(
+            ["git", "-C", str(self.scan.REPO_ROOT), "ls-files"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         self.assertEqual(
             files, [self.scan.REPO_ROOT / "a.txt", self.scan.REPO_ROOT / "b/c.txt"]
         )

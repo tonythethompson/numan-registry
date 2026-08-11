@@ -131,6 +131,16 @@ class CheckKeyIdConsistencyTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("inconsistent placeholder", errors[0])
 
+    def test_half_placeholder_error_reverse(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_sig(
+                tmp, {"key_id": "real-key", "signature": "PLACEHOLDER"}
+            )
+            with patch.object(self.preflight, "SIG_PATH", path):
+                errors = self.preflight.check_key_id_consistency(None)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("inconsistent placeholder", errors[0])
+
     def test_real_sig_but_pub_still_placeholder(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write_sig(tmp, {"key_id": "real-key", "signature": "abc123"})
