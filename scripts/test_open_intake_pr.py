@@ -535,6 +535,7 @@ class TestLoadInputs(unittest.TestCase):
             spec_data, spec, evidence = open_intake_pr._load_inputs(spec_path, evidence_path)
             self.assertEqual(spec_data, {"owner": "acme"})
             self.assertIs(spec, spec_data)
+            self.assertEqual(evidence, {"overall": "pass"})
 
 
 class TestPreparePushBranch(unittest.TestCase):
