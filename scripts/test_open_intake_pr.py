@@ -610,10 +610,23 @@ class TestOpenIntakePrOrchestration(unittest.TestCase):
             evidence_path = Path(tmp) / "evidence.json"
             spec_path.write_text(json.dumps({"owner": "acme", "name": "pkg"}), encoding="utf-8")
             evidence_path.write_text(json.dumps({"overall": "fail"}), encoding="utf-8")
-            with patch.object(open_intake_pr, "_stage_create_branch") as stage:
+            with (
+                patch.object(open_intake_pr, "_stage_create_branch") as create_branch,
+                patch.object(open_intake_pr, "_stage_copy_spec") as copy_spec,
+                patch.object(open_intake_pr, "_stage_merge_into_index") as merge_into_index,
+                patch.object(open_intake_pr, "_stage_lint_and_validate") as lint_and_validate,
+                patch.object(open_intake_pr, "_update_intake_state") as update_intake_state,
+                patch.object(open_intake_pr, "_stage_refresh_docs") as refresh_docs,
+                patch.object(open_intake_pr, "_stage_commit_and_push") as commit_and_push,
+                patch.object(open_intake_pr, "_stage_open_pr") as open_pr,
+            ):
                 with self.assertRaises(SystemExit):
                     open_intake_pr.open_intake_pr(spec_path, evidence_path, push=False)
-            stage.assert_not_called()
+            for stage in (
+                create_branch, copy_spec, merge_into_index, lint_and_validate,
+                update_intake_state, refresh_docs, commit_and_push, open_pr,
+            ):
+                stage.assert_not_called()
 
     def test_push_cleans_up_on_stage_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -628,7 +641,18 @@ class TestOpenIntakePrOrchestration(unittest.TestCase):
             ):
                 with self.assertRaises(RuntimeError):
                     open_intake_pr.open_intake_pr(spec_path, evidence_path, push=True)
-            cleanup.assert_called_once()
+            expected_mutated_paths = [
+                open_intake_pr.SPECS_DIR / "acme-pkg-1.0.0.json",
+                open_intake_pr.INDEX_PATH,
+                open_intake_pr.INTAKE_STATE_PATH,
+                open_intake_pr.REPO_ROOT / "docs" / "intake-candidates.md",
+                open_intake_pr.INTAKE_STATE_PATH.with_suffix(
+                    open_intake_pr.INTAKE_STATE_PATH.suffix + ".bak"
+                ),
+            ]
+            cleanup.assert_called_once_with(
+                "intake/acme-pkg-1.0.0", "main", expected_mutated_paths
+            )
 
 
 class TestMain(unittest.TestCase):
@@ -669,6 +693,19 @@ class TestMain(unittest.TestCase):
             with self.assertRaises(SystemExit) as raised:
                 open_intake_pr.main()
         self.assertEqual(raised.exception.code, 1)
+
+    def test_main_missing_evidence_exits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "s.json"
+            spec_path.write_text("{}", encoding="utf-8")
+            argv = [
+                "open_intake_pr.py", "--spec", str(spec_path),
+                "--evidence", "/nonexistent/e.json",
+            ]
+            with patch.object(open_intake_pr.sys, "argv", argv):
+                with self.assertRaises(SystemExit) as raised:
+                    open_intake_pr.main()
+            self.assertEqual(raised.exception.code, 1)
 
 
 if __name__ == "__main__":

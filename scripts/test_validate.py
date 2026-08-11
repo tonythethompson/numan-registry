@@ -14,6 +14,7 @@ from io import StringIO
 from pathlib import Path
 from unittest import mock
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 SCRIPT = Path(__file__).resolve().parent / "validate.py"
@@ -403,7 +404,7 @@ class VerifyEd25519Tests(unittest.TestCase):
         private_key = Ed25519PrivateKey.generate()
         pub_bytes = private_key.public_key().public_bytes_raw()
         signature = private_key.sign(b"original")
-        with self.assertRaises(Exception):
+        with self.assertRaises(InvalidSignature):
             self.validate.verify_ed25519(
                 base64.b64encode(pub_bytes).decode(),
                 base64.b64encode(signature).decode(),
@@ -487,7 +488,7 @@ class CollectArtifactUrlsTests(unittest.TestCase):
                     "versions": [
                         {
                             "version": "1.0.0",
-                            "artifact": {"kind": "source", "url": "https://example.com/a", "sha256": "x"},
+                            "artifact": {"kind": "archive", "url": "https://example.com/a", "sha256": "x"},
                         }
                     ],
                 }
@@ -584,7 +585,7 @@ class MainEndToEndTests(unittest.TestCase):
                             "version": "1.0.0",
                             "nu_version": "0.100.0",
                             "artifact": {
-                                "kind": "source",
+                                "kind": "archive",
                                 "url": "https://example.com/a.zip",
                                 "sha256": "a" * 64,
                             },
