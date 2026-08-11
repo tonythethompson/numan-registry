@@ -58,7 +58,10 @@ class AssertMirrorPathsSafeTests(unittest.TestCase):
             target = root / "real.txt"
             target.write_text("hi", encoding="utf-8")
             link = root / "link.txt"
-            link.symlink_to(target)
+            try:
+                link.symlink_to(target)
+            except OSError:
+                self.skipTest("symlinks not supported/allowed on this platform")
             with self.assertRaises(SystemExit):
                 self.bmz.assert_mirror_paths_safe(root, ["link.txt"])
 
@@ -69,7 +72,10 @@ class AssertMirrorPathsSafeTests(unittest.TestCase):
             sub.mkdir()
             target = root / "real.txt"
             target.write_text("hi", encoding="utf-8")
-            (sub / "link.txt").symlink_to(target)
+            try:
+                (sub / "link.txt").symlink_to(target)
+            except OSError:
+                self.skipTest("symlinks not supported/allowed on this platform")
             with self.assertRaises(SystemExit):
                 self.bmz.assert_mirror_paths_safe(root, ["sub"])
 
@@ -197,7 +203,7 @@ class CloneTests(unittest.TestCase):
             with patch.object(subprocess, "run") as run:
                 run.return_value = subprocess.CompletedProcess(args=[], returncode=0)
                 self.bmz.clone_at_ref("https://example.com/repo.git", "v1.0.0", workdir)
-        self.assertFalse((existing / "stale.txt").exists())
+            self.assertFalse((existing / "stale.txt").exists())
 
     def test_clone_at_commit_invokes_git_sequence(self):
         with tempfile.TemporaryDirectory() as tmp:
