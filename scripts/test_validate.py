@@ -31,6 +31,9 @@ def load_validate():
     return mod
 
 
+VALIDATE = load_validate()
+
+
 MINIMAL_INDEX = {
     "schema_version": 1,
     "updated_at": "2026-07-29T00:00:00Z",
@@ -41,7 +44,7 @@ MINIMAL_INDEX = {
 class DownloadAndVerifyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_missing_sha256_short_circuits(self):
         ok, msg = self.validate.download_and_verify("https://example.com/a.zip", "")
@@ -92,7 +95,7 @@ class DownloadAndVerifyTests(unittest.TestCase):
 class ValidateMainHelperTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_load_index_missing_file_returns_none(self):
         buf = StringIO()
@@ -282,7 +285,7 @@ class ValidateMainHelperTests(unittest.TestCase):
 class CanonicalJsonAndKeyLoadTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_canonical_json_numeric_fallback(self):
         self.assertEqual(self.validate.canonical_json(42), "42")
@@ -364,7 +367,7 @@ class CanonicalJsonAndKeyLoadTests(unittest.TestCase):
 class VerifyEd25519Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_round_trip_succeeds(self):
         private_key = Ed25519PrivateKey.generate()
@@ -411,7 +414,7 @@ class VerifyEd25519Tests(unittest.TestCase):
 class LifecycleEvidenceErrorsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_plugin_missing_verified_with_reports_error(self):
         index = {
@@ -474,7 +477,7 @@ class LifecycleEvidenceErrorsTests(unittest.TestCase):
 class CollectArtifactUrlsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_non_binary_artifact(self):
         index = {
@@ -526,7 +529,7 @@ class CollectArtifactUrlsTests(unittest.TestCase):
 class DownloadAndVerifyRemainingBranchTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_read_exception_reports_download_failed(self):
         with mock.patch.object(self.validate, "http_opener") as http_opener:
@@ -560,7 +563,7 @@ class DownloadAndVerifyRemainingBranchTests(unittest.TestCase):
 class MainEndToEndTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.validate = load_validate()
+        cls.validate = VALIDATE
 
     def test_main_success_with_real_signature_and_fixture_artifact(self):
         private_key = Ed25519PrivateKey.generate()

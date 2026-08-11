@@ -38,6 +38,9 @@ def load_mod():
     return mod
 
 
+MOD = load_mod()
+
+
 class FakeResponse:
     def __init__(self, data: bytes):
         self.data = data
@@ -68,7 +71,7 @@ def _binary_target(url: str, executable_path: str) -> dict[str, str]:
 class AddPackageArchiveTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def _mock_opener_for_payloads(self, payloads: dict[str, bytes]):
         def open_side_effect(req, timeout=60):
@@ -206,7 +209,7 @@ class AddPackageArchiveTests(unittest.TestCase):
 class BuildArtifactEdgeCaseTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def test_source_kind_rejected(self):
         with self.assertRaises(SystemExit) as raised:
@@ -246,7 +249,7 @@ class BuildArtifactEdgeCaseTests(unittest.TestCase):
 class CheckModuleImportModeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def test_no_activation_is_noop(self):
         self.mod.check_module_import_mode({"entry": "mod.nu"}, None)
@@ -274,7 +277,7 @@ class CheckModuleImportModeTests(unittest.TestCase):
 class CopySourceFieldTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def test_absent_source_is_noop(self):
         version_entry = {}
@@ -318,7 +321,7 @@ class CopySourceFieldTests(unittest.TestCase):
 class ValidateForkIdentityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def test_non_fork_owner_with_upstream_rejected(self):
         with self.assertRaises(SystemExit):
@@ -360,7 +363,7 @@ class ValidateForkIdentityTests(unittest.TestCase):
 class ValidateProvenanceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def test_absent_is_noop(self):
         self.mod.validate_provenance({})
@@ -388,7 +391,7 @@ class ValidateProvenanceTests(unittest.TestCase):
 class ValidateSpecTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def _spec(self, **overrides):
         base = {
@@ -437,7 +440,7 @@ class ValidateSpecTests(unittest.TestCase):
 class MergeIntoIndexTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def _write_index(self, tmp, packages):
         path = Path(tmp) / "index.json"
@@ -489,7 +492,7 @@ class MergeIntoIndexTests(unittest.TestCase):
 class MainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def _spec_dict(self):
         return {
