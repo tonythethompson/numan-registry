@@ -3,9 +3,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import importlib.util
+import io
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -32,6 +36,9 @@ def load_mod():
     assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
+
+
+MOD = load_mod()
 
 
 class FakeResponse:
@@ -64,7 +71,7 @@ def _binary_target(url: str, executable_path: str) -> dict[str, str]:
 class AddPackageArchiveTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mod = load_mod()
+        cls.mod = MOD
 
     def _mock_opener_for_payloads(self, payloads: dict[str, bytes]):
         def open_side_effect(req, timeout=60):
@@ -197,6 +204,392 @@ class AddPackageArchiveTests(unittest.TestCase):
             f"artifact must be {SUPPORTED_ARCHIVE_SUFFIXES_MARKDOWN};",
             intake_doc,
         )
+
+
+class BuildArtifactEdgeCaseTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def test_source_kind_rejected(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.mod.build_artifact({"kind": "source"})
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_unsupported_kind_rejected(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.mod.build_artifact({"kind": "wat"})
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_binary_requires_targets(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.mod.build_artifact({"kind": "binary", "targets": {}})
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_binary_target_missing_executable_path(self):
+        with self.assertRaises(SystemExit) as raised:
+            self.mod.build_artifact(
+                {"kind": "binary", "targets": {"t": {"url": "https://x/y.tar.gz"}}}
+            )
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_binary_single_target_fast_path(self):
+        payload = b"single target payload"
+        targets = {"x86_64-unknown-linux-gnu": _binary_target("https://example.invalid/a.tar.gz", "nu_plugin")}
+        with mock.patch.object(self.mod, "http_opener") as http_opener:
+            http_opener.return_value.open.return_value = FakeResponse(payload)
+            artifact = self.mod.build_artifact({"kind": "binary", "targets": targets})
+        self.assertEqual(artifact["kind"], "binary")
+        built = artifact["targets"]["x86_64-unknown-linux-gnu"]
+        self.assertEqual(
+            built,
+            {
+                "url": "https://example.invalid/a.tar.gz",
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "executable_path": "nu_plugin",
+            },
+        )
+
+
+class CheckModuleImportModeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def test_no_activation_is_noop(self):
+        self.mod.check_module_import_mode({"entry": "mod.nu"}, None)
+
+    def test_non_nu_module_kind_is_noop(self):
+        self.mod.check_module_import_mode({"entry": "mod.nu"}, {"kind": "other"})
+
+    def test_mod_nu_with_module_import_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.check_module_import_mode(
+                {"entry": "mod.nu"}, {"kind": "nu-module", "import": "module"}
+            )
+
+    def test_mod_nu_with_default_import_mode_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.check_module_import_mode(
+                {"entry": "mod.nu"}, {"kind": "nu-module"}
+            )
+
+    def test_mod_nu_with_all_import_ok(self):
+        self.mod.check_module_import_mode(
+            {"entry": "mod.nu"}, {"kind": "nu-module", "import": "all"}
+        )
+
+    def test_non_mod_nu_entry_ok(self):
+        self.mod.check_module_import_mode(
+            {"entry": "lib.nu"}, {"kind": "nu-module", "import": "module"}
+        )
+
+
+class CopySourceFieldTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def test_absent_source_is_noop(self):
+        version_entry = {}
+        self.mod.copy_source_field({}, version_entry)
+        self.assertNotIn("source", version_entry)
+
+    def test_non_dict_source_exits(self):
+        with self.assertRaises(SystemExit):
+            self.mod.copy_source_field({"source": "nope"}, {})
+
+    def test_missing_required_keys_exits(self):
+        with self.assertRaises(SystemExit):
+            self.mod.copy_source_field({"source": {"git": "https://x"}}, {})
+
+    def test_copies_required_and_optional_fields(self):
+        version_entry = {}
+        self.mod.copy_source_field(
+            {
+                "source": {
+                    "git": "https://x/y",
+                    "rev": "a" * 40,
+                    "cargo_name": "y",
+                    "cargo_lock_sha256": "b" * 64,
+                    "upstream": "https://upstream/y",
+                }
+            },
+            version_entry,
+        )
+        self.assertEqual(
+            version_entry["source"],
+            {
+                "git": "https://x/y",
+                "rev": "a" * 40,
+                "cargo_name": "y",
+                "cargo_lock_sha256": "b" * 64,
+                "upstream": "https://upstream/y",
+            },
+        )
+
+
+class ValidateForkIdentityTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def test_non_fork_owner_with_upstream_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_fork_identity(
+                {"owner": "someone", "source": {"upstream": "https://x"}}
+            )
+
+    def test_non_fork_owner_without_source_ok(self):
+        self.mod.validate_fork_identity({"owner": "someone"})
+
+    def test_maintained_fork_requires_source_object(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_fork_identity({"owner": "numan-maintained"})
+
+    def test_maintained_fork_requires_upstream(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_fork_identity(
+                {"owner": "numan-maintained", "source": {"git": "https://x"}}
+            )
+
+    def test_maintained_fork_upstream_must_differ_from_git(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_fork_identity(
+                {
+                    "owner": "numan-maintained",
+                    "source": {"git": "https://x/y", "upstream": "https://x/y"},
+                }
+            )
+
+    def test_maintained_fork_valid(self):
+        self.mod.validate_fork_identity(
+            {
+                "owner": "numan-maintained",
+                "source": {"git": "https://fork/y", "upstream": "https://upstream/y"},
+            }
+        )
+
+
+class ValidateProvenanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def test_absent_is_noop(self):
+        self.mod.validate_provenance({})
+
+    def test_unknown_provenance_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_provenance({"provenance": "bogus"})
+
+    def test_commit_snapshot_requires_rev(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_provenance({"provenance": "commit-snapshot", "source": {}})
+
+    def test_commit_snapshot_requires_full_sha(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_provenance(
+                {"provenance": "commit-snapshot", "source": {"rev": "abc123"}}
+            )
+
+    def test_commit_snapshot_rejects_non_hex_full_length(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_provenance(
+                {"provenance": "commit-snapshot", "source": {"rev": "g" * 40}}
+            )
+
+    def test_commit_snapshot_valid(self):
+        self.mod.validate_provenance(
+            {"provenance": "commit-snapshot", "source": {"rev": "a" * 40}}
+        )
+
+
+class ValidateSpecTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def _spec(self, **overrides):
+        base = {
+            "owner": "acme",
+            "name": "pkg",
+            "description": "d",
+            "repo": "https://x",
+            "type": "script",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": "0.100.0",
+            "artifact": {"kind": "archive", "url": "https://x/y.tar.gz"},
+        }
+        base.update(overrides)
+        return base
+
+    def test_missing_required_field_rejected(self):
+        spec = self._spec()
+        del spec["repo"]
+        with self.assertRaises(SystemExit):
+            self.mod.validate_spec(spec)
+
+    def test_invalid_type_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_spec(self._spec(type="bogus"))
+
+    def test_plugin_without_evidence_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.mod.validate_spec(self._spec(type="plugin"))
+
+    def test_plugin_without_evidence_allowed_provisional(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stderr(buf):
+            self.mod.validate_spec(self._spec(type="plugin"), allow_provisional=True)
+        self.assertIn("WARN", buf.getvalue())
+
+    def test_plugin_with_valid_evidence_ok(self):
+        self.mod.validate_spec(
+            self._spec(type="plugin", verified_with=["0.100.0"])
+        )
+
+    def test_valid_non_activatable_spec_ok(self):
+        self.mod.validate_spec(self._spec())
+
+
+class MergeIntoIndexTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def _write_index(self, tmp, packages):
+        path = Path(tmp) / "index.json"
+        path.write_text(
+            json.dumps({"schema_version": 1, "updated_at": "x", "packages": packages}),
+            encoding="utf-8",
+        )
+        return path
+
+    def _package_entry(self, version="1.0.0"):
+        return {
+            "id": {"owner": "acme", "name": "pkg"},
+            "description": "d",
+            "repo": "https://x",
+            "type": "script",
+            "tags": ["a"],
+            "versions": [{"version": version, "nu_version": "0.100.0", "artifact": {}}],
+        }
+
+    def test_adds_new_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_index(tmp, [])
+            index = self.mod.merge_into_index(path, self._package_entry(), force=False)
+        self.assertEqual(len(index["packages"]), 1)
+
+    def test_adds_new_version_to_existing_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_index(tmp, [self._package_entry("1.0.0")])
+            index = self.mod.merge_into_index(path, self._package_entry("2.0.0"), force=False)
+        versions = [v["version"] for v in index["packages"][0]["versions"]]
+        self.assertEqual(sorted(versions), ["1.0.0", "2.0.0"])
+
+    def test_duplicate_version_without_force_exits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_index(tmp, [self._package_entry("1.0.0")])
+            before = path.read_text(encoding="utf-8")
+            with self.assertRaises(SystemExit):
+                self.mod.merge_into_index(path, self._package_entry("1.0.0"), force=False)
+            self.assertEqual(path.read_text(encoding="utf-8"), before)
+
+    def test_duplicate_version_with_force_replaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_index(tmp, [self._package_entry("1.0.0")])
+            entry = self._package_entry("1.0.0")
+            entry["description"] = "updated"
+            entry["versions"][0]["nu_version"] = "0.200.0"
+            index = self.mod.merge_into_index(path, entry, force=True)
+        self.assertEqual(len(index["packages"][0]["versions"]), 1)
+        self.assertEqual(index["packages"][0]["description"], "updated")
+        self.assertEqual(index["packages"][0]["versions"][0]["nu_version"], "0.200.0")
+
+
+class MainTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.mod = MOD
+
+    def _spec_dict(self):
+        return {
+            "owner": "acme",
+            "name": "pkg",
+            "description": "d",
+            "repo": "https://x",
+            "type": "script",
+            "tags": [],
+            "version": "1.0.0",
+            "nu_version": "0.100.0",
+            "artifact": {"kind": "archive", "url": "https://x/y.tar.gz"},
+        }
+
+    def test_no_write_prints_entry_and_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            spec_path.write_text(json.dumps(self._spec_dict()), encoding="utf-8")
+            argv = ["add-package.py", "--spec", str(spec_path)]
+            buf = io.StringIO()
+            with (
+                mock.patch.object(self.mod.sys, "argv", argv),
+                mock.patch.object(
+                    self.mod, "build_artifact", return_value={"kind": "archive", "url": "x", "sha256": "y"}
+                ),
+                contextlib.redirect_stdout(buf),
+            ):
+                code = self.mod.main()
+            self.assertEqual(code, 0)
+            output = buf.getvalue()
+            self.assertIn("package entry", output)
+            self.assertIn('"owner": "acme"', output)
+            self.assertIn('"version": "1.0.0"', output)
+            self.assertIn('"sha256": "y"', output)
+
+    def test_provisional_requires_deferral_reason(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            spec_path.write_text(json.dumps(self._spec_dict()), encoding="utf-8")
+            argv = ["add-package.py", "--spec", str(spec_path), "--provisional"]
+            with (
+                mock.patch.object(self.mod.sys, "argv", argv),
+                mock.patch.object(self.mod, "build_artifact") as build_artifact,
+            ):
+                with self.assertRaises(SystemExit) as raised:
+                    self.mod.main()
+            self.assertEqual(raised.exception.code, 1)
+            build_artifact.assert_not_called()
+
+    def test_write_merges_into_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            spec_path.write_text(json.dumps(self._spec_dict()), encoding="utf-8")
+            index_path = Path(tmp) / "index.json"
+            index_path.write_text(
+                json.dumps({"schema_version": 1, "updated_at": "x", "packages": []}),
+                encoding="utf-8",
+            )
+            argv = [
+                "add-package.py", "--spec", str(spec_path),
+                "--write", "--index", str(index_path),
+            ]
+            with (
+                mock.patch.object(self.mod.sys, "argv", argv),
+                mock.patch.object(
+                    self.mod, "build_artifact", return_value={"kind": "archive", "url": "x", "sha256": "y"}
+                ),
+                mock.patch.object(self.mod, "validate_against_schema") as validate_against_schema,
+            ):
+                code = self.mod.main()
+            self.assertEqual(code, 0)
+            written = json.loads(index_path.read_text(encoding="utf-8"))
+            self.assertEqual(len(written["packages"]), 1)
+            validate_against_schema.assert_called_once()
+            (validated_index,), _ = validate_against_schema.call_args
+            self.assertEqual(validated_index["packages"], written["packages"])
 
 
 if __name__ == "__main__":

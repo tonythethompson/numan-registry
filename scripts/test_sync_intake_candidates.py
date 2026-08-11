@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import tempfile
 import unittest
@@ -22,10 +23,14 @@ def load_sync():
     return mod
 
 
+SYNC = load_sync()
+
+
+
 class SyncIntakeCandidatesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_artifact_provenance_classes(self):
         self.assertEqual(
@@ -298,6 +303,396 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         rendered = self.sync.render_intake_doc({}, {}, index, {})
         self.assertIn("`acme/nu_plugin_mixed@1.0.0` (mixed)", rendered)
         self.assertIn("`acme/nu_plugin_empty_binary@0.1.0` (other)", rendered)
+
+    def test_render_intake_doc_full_sections(self):
+        state = {
+            "ready": [
+                {
+                    "id": "acme/ready1",
+                    "repo": "https://github.com/acme/ready1",
+                    "type": "plugin",
+                    "version": "1.0.0",
+                    "platforms": "linux",
+                }
+            ],
+            "mirror": [
+                {
+                    "id": "acme/mirror1",
+                    "repo": "https://github.com/acme/mirror1",
+                    "type": "script",
+                    "source": "tag v1",
+                }
+            ],
+            "blocked": [
+                {"id": "acme/blocked1", "blocker": "no releases"},
+                {"id": "some free text blocker", "blocker": "n/a"},
+            ],
+            "changelog": [
+                {"date": "2024-01-01", "change": "added acme/ready1"},
+            ],
+        }
+        rendered = self.sync.render_intake_doc(state, {}, {"packages": []}, {})
+        self.assertIn(
+            "| [`acme/ready1`](https://github.com/acme/ready1) | plugin | v1.0.0 "
+            "| linux | candidate |",
+            rendered,
+        )
+        self.assertIn("[`acme/mirror1`](https://github.com/acme/mirror1)", rendered)
+        self.assertIn("[`acme/blocked1`](https://github.com/acme/blocked1)", rendered)
+        self.assertIn("some free text blocker | n/a", rendered)
+        self.assertIn("2024-01-01 | added acme/ready1", rendered)
+
+    def test_render_intake_doc_empty_registry_line(self):
+        rendered = self.sync.render_intake_doc({}, {}, {"packages": []}, {})
+        self.assertIn(
+            "**Currently in committed index** (source tree; unsigned until "
+            "production publish signs and deploys): (none).",
+            rendered,
+        )
+
+
+class PrStateTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sync = SYNC
+
+    def test_maps_gh_response_states(self):
+        with patch.object(self.sync, "gh_json", return_value={"state": "MERGED"}):
+            self.assertEqual(self.sync.pr_state(42), "merged")
+        with patch.object(self.sync, "gh_json", return_value={"state": "OPEN"}):
+            self.assertEqual(self.sync.pr_state(42), "open")
+        with patch.object(self.sync, "gh_json", return_value={"state": "CLOSED"}):
+            self.assertEqual(self.sync.pr_state(42), "closed")
+        with patch.object(self.sync, "gh_json", return_value=None):
+            self.assertIsNone(self.sync.pr_state(42))
+
+    def test_none_without_number(self):
+        self.assertIsNone(self.sync.pr_state(None))
+
+
+class OutreachStatusTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sync = SYNC
+
+    def test_no_upstream_repo(self):
+        self.assertEqual(self.sync.outreach_status({})["summary"], "not started")
+
+    def test_blocked(self):
+        result = self.sync.outreach_status(
+            {"upstream_repo": "acme/x", "blocked": "no maintainer response"}
+        )
+        self.assertEqual(result["summary"], "blocked (no maintainer response)")
+
+    def test_pending_when_no_issue_found(self):
+        with patch.object(self.sync, "gh_json", return_value=None):
+            result = self.sync.outreach_status({"upstream_repo": "acme/x"})
+        self.assertEqual(result["summary"], "outreach pending")
+
+    def test_responded(self):
+        detail = {
+            "number": 9,
+            "url": "https://github.com/acme/x/issues/9",
+            "state": "OPEN",
+            "createdAt": "2024-01-01T00:00:00Z",
+        }
+        comments = [{"user": "someone_else", "created_at": "2024-02-01T00:00:00Z"}]
+
+        def fake_gh_json(args):
+            if args[:2] == ["issue", "view"]:
+                return detail
+            if args[0] == "api" and "comments" in args[1]:
+                return comments
+            return None
+
+        with patch.object(self.sync, "gh_json", side_effect=fake_gh_json), patch.object(
+            self.sync, "gh_text", return_value="me"
+        ):
+            result = self.sync.outreach_status(
+                {"upstream_repo": "acme/x", "issue_url": "https://github.com/acme/x/issues/9"}
+            )
+        self.assertTrue(result["response"].startswith("yes"))
+        self.assertIn("responded", result["summary"])
+
+    def test_issue_closed(self):
+        detail = {
+            "number": 9,
+            "url": "https://github.com/acme/x/issues/9",
+            "state": "CLOSED",
+            "createdAt": "2024-01-01T00:00:00Z",
+        }
+
+        def fake_gh_json(args):
+            if args[:2] == ["issue", "view"]:
+                return detail
+            if args[0] == "api" and "comments" in args[1]:
+                return []
+            return None
+
+        with patch.object(self.sync, "gh_json", side_effect=fake_gh_json), patch.object(
+            self.sync, "gh_text", return_value="me"
+        ):
+            result = self.sync.outreach_status(
+                {"upstream_repo": "acme/x", "issue_url": "https://github.com/acme/x/issues/9"}
+            )
+        self.assertIn("issue closed", result["summary"])
+
+
+class UpdateOutreachTrackerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sync = SYNC
+
+    def test_missing_doc_returns_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "outreach.md"
+            with patch.object(self.sync, "OUTREACH_DOC", missing):
+                self.assertFalse(self.sync.update_outreach_tracker({}, {}, {}))
+
+    def test_missing_marker_returns_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = Path(tmp) / "outreach.md"
+            doc.write_text("# No tracker section here\n", encoding="utf-8")
+            with patch.object(self.sync, "OUTREACH_DOC", doc):
+                self.assertFalse(self.sync.update_outreach_tracker({}, {}, {}))
+
+    def test_rewrites_rows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = Path(tmp) / "outreach.md"
+            doc.write_text(
+                "# Upstream release outreach\n\n"
+                "## Outreach tracker\n\n"
+                "old content here\n\n"
+                "---\n\n"
+                "## Notes\n",
+                encoding="utf-8",
+            )
+            state = {
+                "mirror": [
+                    {"id": "acme/x", "owner": "acme", "name": "x", "outreach": {}},
+                    {
+                        "id": "nushell/foo",
+                        "owner": "nushell",
+                        "name": "foo",
+                        "outreach": {},
+                    },
+                ]
+            }
+            live = {"acme/x": {"mirror": False}}
+            outreach_cache = {
+                "acme/x": {
+                    "issue": "[#1](url)",
+                    "opened": "2024-01-01",
+                    "response": "yes (2024-01-02)",
+                    "summary": "responded",
+                },
+            }
+            with patch.object(self.sync, "OUTREACH_DOC", doc):
+                changed = self.sync.update_outreach_tracker(state, live, outreach_cache)
+            self.assertTrue(changed)
+            text = doc.read_text(encoding="utf-8")
+        self.assertIn("acme/x", text)
+        self.assertIn("nushell/nu_scripts (foo)", text)
+        self.assertIn("[#1](url)", text)
+        self.assertNotIn("old content here", text)
+
+    def test_returns_false_when_no_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            doc = Path(tmp) / "outreach.md"
+            doc.write_text(
+                "# Doc\n\n## Outreach tracker\n\nplaceholder\n\n---\n\nfooter\n",
+                encoding="utf-8",
+            )
+            with patch.object(self.sync, "OUTREACH_DOC", doc):
+                first = self.sync.update_outreach_tracker({}, {}, {})
+                self.assertTrue(first)
+                second = self.sync.update_outreach_tracker({}, {}, {})
+            self.assertFalse(second)
+
+
+class SyncTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sync = SYNC
+
+    def test_returns_false_when_state_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state_path = Path(tmp) / "intake-state.json"
+            with patch.object(self.sync, "STATE_PATH", state_path):
+                self.assertFalse(self.sync.sync())
+
+    def test_writes_new_doc_and_returns_true(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_path = root / "intake-state.json"
+            out_path = root / "intake-candidates.md"
+            index_path = root / "index.json"
+            outreach_doc = root / "outreach.md"
+
+            state = {"ready": [], "mirror": [], "blocked": [], "changelog": []}
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+
+            with patch.object(self.sync, "STATE_PATH", state_path), patch.object(
+                self.sync, "OUT_PATH", out_path
+            ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
+                self.sync, "OUTREACH_DOC", outreach_doc
+            ):
+                changed = self.sync.sync()
+
+            self.assertTrue(changed)
+            self.assertTrue(out_path.exists())
+            self.assertIn("Registry intake candidates", out_path.read_text(encoding="utf-8"))
+
+    def test_returns_false_when_nothing_changed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_path = root / "intake-state.json"
+            out_path = root / "intake-candidates.md"
+            index_path = root / "index.json"
+            outreach_doc = root / "outreach.md"
+
+            state = {"ready": [], "mirror": [], "blocked": [], "changelog": []}
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+
+            with patch.object(self.sync, "STATE_PATH", state_path), patch.object(
+                self.sync, "OUT_PATH", out_path
+            ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
+                self.sync, "OUTREACH_DOC", outreach_doc
+            ):
+                self.sync.sync()
+                changed_again = self.sync.sync()
+
+            self.assertFalse(changed_again)
+
+    def test_persists_discovered_issue_url_and_marks_dirty(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_path = root / "intake-state.json"
+            out_path = root / "intake-candidates.md"
+            index_path = root / "index.json"
+            outreach_doc = root / "outreach.md"
+
+            state = {
+                "ready": [],
+                "mirror": [
+                    {
+                        "id": "acme/x",
+                        "owner": "acme",
+                        "name": "x",
+                        "repo": "https://github.com/acme/x",
+                        "type": "plugin",
+                        "source": "tag v1",
+                        "outreach": {"upstream_repo": "acme/x"},
+                    }
+                ],
+                "blocked": [],
+                "changelog": [],
+            }
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+
+            found_issue = [
+                {
+                    "number": 5,
+                    "title": "t",
+                    "state": "OPEN",
+                    "url": "https://github.com/acme/x/issues/5",
+                    "comments": 0,
+                    "updatedAt": "2024-01-01",
+                }
+            ]
+            detail = {
+                "number": 5,
+                "title": "t",
+                "state": "OPEN",
+                "url": "https://github.com/acme/x/issues/5",
+                "comments": 0,
+                "createdAt": "2024-01-01T00:00:00Z",
+                "updatedAt": "2024-01-01T00:00:00Z",
+            }
+
+            def fake_gh_json(args):
+                if args[:2] == ["issue", "list"]:
+                    return found_issue
+                if args[:2] == ["issue", "view"]:
+                    return detail
+                if args[0] == "api" and "comments" in args[1]:
+                    return []
+                return None
+
+            with patch.object(self.sync, "STATE_PATH", state_path), patch.object(
+                self.sync, "OUT_PATH", out_path
+            ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
+                self.sync, "OUTREACH_DOC", outreach_doc
+            ), patch.object(
+                self.sync, "gh_json", side_effect=fake_gh_json
+            ), patch.object(
+                self.sync, "gh_text", return_value="me"
+            ):
+                changed = self.sync.sync()
+
+            self.assertTrue(changed)
+            saved_state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                saved_state["mirror"][0]["outreach"]["issue_url"],
+                "https://github.com/acme/x/issues/5",
+            )
+
+
+class FilesChangedSinceLastSyncTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sync = SYNC
+
+    def test_true_when_no_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / ".mrge" / "sync-checksums.json"
+            watched = Path(tmp) / "a.json"
+            watched.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "CHECKSUM_CACHE", cache):
+                self.assertTrue(self.sync.files_changed_since_last_sync([watched]))
+
+    def test_false_after_save(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / ".mrge" / "sync-checksums.json"
+            watched = Path(tmp) / "a.json"
+            watched.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "CHECKSUM_CACHE", cache), patch.object(
+                self.sync, "REPO_ROOT", Path(tmp)
+            ):
+                self.sync.save_checksums([watched])
+                self.assertFalse(self.sync.files_changed_since_last_sync([watched]))
+
+    def test_true_after_edit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / ".mrge" / "sync-checksums.json"
+            watched = Path(tmp) / "a.json"
+            watched.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "CHECKSUM_CACHE", cache), patch.object(
+                self.sync, "REPO_ROOT", Path(tmp)
+            ):
+                self.sync.save_checksums([watched])
+                watched.write_text('{"changed": true}', encoding="utf-8")
+                self.assertTrue(self.sync.files_changed_since_last_sync([watched]))
+
+    def test_true_on_corrupt_cache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / ".mrge" / "sync-checksums.json"
+            cache.parent.mkdir(parents=True)
+            cache.write_text("not json", encoding="utf-8")
+            watched = Path(tmp) / "a.json"
+            watched.write_text("{}", encoding="utf-8")
+            with patch.object(self.sync, "CHECKSUM_CACHE", cache):
+                self.assertTrue(self.sync.files_changed_since_last_sync([watched]))
+
+    def test_handles_missing_watched_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp) / ".mrge" / "sync-checksums.json"
+            watched = Path(tmp) / "missing.json"
+            with patch.object(self.sync, "CHECKSUM_CACHE", cache), patch.object(
+                self.sync, "REPO_ROOT", Path(tmp)
+            ):
+                self.sync.save_checksums([watched])
+                self.assertFalse(self.sync.files_changed_since_last_sync([watched]))
 
 
 if __name__ == "__main__":

@@ -12,10 +12,16 @@ to start — the "application" is the command-line toolchain under `scripts/`.
 
 - Python 3.12 (matches CI `python-version: "3.12"`).
 - `cryptography` (pre-installed on the image) and `jsonschema` are the only
-  third-party Python dependencies. The update script installs them with
-  `python3 -m pip install --user`. There is no `requirements.txt`; the dependency
-  list lives in the CI workflows (`.github/workflows/staging.yml`,
-  `production.yml`) and is `cryptography jsonschema`.
+  third-party Python dependencies the signing/staging/production path uses.
+  The update script installs them with `python3 -m pip install --user`. There
+  is no `requirements.txt`; the dependency list lives in the CI workflows
+  (`.github/workflows/staging.yml`, `production.yml`) and is
+  `cryptography jsonschema`.
+- `repo-safety.yml`'s `script-tests` job additionally installs `coverage`
+  (pinned, e.g. `coverage==7.15.4`) to generate an informational statement-
+  coverage report for `scripts/`. This is CI-only test tooling — it never
+  ships in the signed index, never runs in `staging.yml`/`production.yml`,
+  and is not imported by any `scripts/*.py` module.
 
 ### Checks CI runs
 

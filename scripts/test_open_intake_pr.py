@@ -510,5 +510,203 @@ class TestGitSafetyHelpers(unittest.TestCase):
                 "intake/test-pkg-1.0.0", "main", [Path("registry/index.json")]
             )
 
+
+class TestLoadInputs(unittest.TestCase):
+    def test_unwraps_spec_meta_wrapper(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            evidence_path = Path(tmp) / "evidence.json"
+            spec_path.write_text(
+                json.dumps({"spec": {"owner": "acme"}, "_meta": {"x": 1}}),
+                encoding="utf-8",
+            )
+            evidence_path.write_text(json.dumps({"overall": "pass"}), encoding="utf-8")
+            spec_data, spec, evidence = open_intake_pr._load_inputs(spec_path, evidence_path)
+            self.assertEqual(spec_data["_meta"], {"x": 1})
+            self.assertEqual(spec, {"owner": "acme"})
+            self.assertEqual(evidence, {"overall": "pass"})
+
+    def test_bare_spec_passthrough(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            evidence_path = Path(tmp) / "evidence.json"
+            spec_path.write_text(json.dumps({"owner": "acme"}), encoding="utf-8")
+            evidence_path.write_text(json.dumps({"overall": "pass"}), encoding="utf-8")
+            spec_data, spec, evidence = open_intake_pr._load_inputs(spec_path, evidence_path)
+            self.assertEqual(spec_data, {"owner": "acme"})
+            self.assertIs(spec, spec_data)
+            self.assertEqual(evidence, {"overall": "pass"})
+
+
+class TestPreparePushBranch(unittest.TestCase):
+    def test_refuses_dirty_worktree(self):
+        with patch.object(open_intake_pr, "_is_worktree_dirty", return_value=True):
+            with self.assertRaises(SystemExit) as raised:
+                open_intake_pr._prepare_push_branch()
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_refuses_detached_head(self):
+        with (
+            patch.object(open_intake_pr, "_is_worktree_dirty", return_value=False),
+            patch.object(open_intake_pr, "_current_branch", return_value=""),
+        ):
+            with self.assertRaises(SystemExit) as raised:
+                open_intake_pr._prepare_push_branch()
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_returns_current_branch(self):
+        with (
+            patch.object(open_intake_pr, "_is_worktree_dirty", return_value=False),
+            patch.object(open_intake_pr, "_current_branch", return_value="main"),
+        ):
+            self.assertEqual(open_intake_pr._prepare_push_branch(), "main")
+
+
+class TestStageLintAndRefreshDocs(unittest.TestCase):
+    def test_stage_lint_and_validate_runs_lint_then_validate(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            open_intake_pr._stage_lint_and_validate(dry_run=False)
+        self.assertEqual(run.call_count, 2)
+        first_args = run.call_args_list[0][0][0]
+        second_args = run.call_args_list[1][0][0]
+        self.assertIn("lint_packages.py", " ".join(first_args))
+        self.assertIn("validate.py", " ".join(second_args))
+        self.assertIn("--skip-signature", second_args)
+        self.assertIn("--skip-artifacts", second_args)
+        self.assertIn("--allow-provisional-lifecycle", second_args)
+    def test_stage_refresh_docs_runs_sync_with_check_false(self):
+        with patch.object(open_intake_pr, "_run") as run:
+            open_intake_pr._stage_refresh_docs(dry_run=False)
+        run.assert_called_once()
+        args, kwargs = run.call_args
+        self.assertIn("sync-intake-candidates.py", " ".join(args[0]))
+        self.assertFalse(kwargs["check"])
+
+
+class TestOpenIntakePrOrchestration(unittest.TestCase):
+    def _write_inputs(self, tmp):
+        spec_path = Path(tmp) / "spec.json"
+        evidence_path = Path(tmp) / "evidence.json"
+        spec_path.write_text(
+            json.dumps({"owner": "acme", "name": "pkg", "version": "1.0.0", "type": "script"}),
+            encoding="utf-8",
+        )
+        evidence_path.write_text(json.dumps({"overall": "pass"}), encoding="utf-8")
+        return spec_path, evidence_path
+
+    def test_dry_run_completes_without_mutating(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path, evidence_path = self._write_inputs(tmp)
+            buf = io.StringIO()
+            with contextlib.redirect_stderr(buf):
+                open_intake_pr.open_intake_pr(spec_path, evidence_path, push=False)
+        output = buf.getvalue()
+        self.assertIn("Dry run complete. Use --push to execute.", output)
+        self.assertIn("[dry-run] would: git checkout -b intake/acme-pkg-1.0.0", output)
+
+    def test_guard_evidence_failure_aborts_before_any_stage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "spec.json"
+            evidence_path = Path(tmp) / "evidence.json"
+            spec_path.write_text(json.dumps({"owner": "acme", "name": "pkg"}), encoding="utf-8")
+            evidence_path.write_text(json.dumps({"overall": "fail"}), encoding="utf-8")
+            with (
+                patch.object(open_intake_pr, "_stage_create_branch") as create_branch,
+                patch.object(open_intake_pr, "_stage_copy_spec") as copy_spec,
+                patch.object(open_intake_pr, "_stage_merge_into_index") as merge_into_index,
+                patch.object(open_intake_pr, "_stage_lint_and_validate") as lint_and_validate,
+                patch.object(open_intake_pr, "_update_intake_state") as update_intake_state,
+                patch.object(open_intake_pr, "_stage_refresh_docs") as refresh_docs,
+                patch.object(open_intake_pr, "_stage_commit_and_push") as commit_and_push,
+                patch.object(open_intake_pr, "_stage_open_pr") as open_pr,
+            ):
+                with self.assertRaises(SystemExit):
+                    open_intake_pr.open_intake_pr(spec_path, evidence_path, push=False)
+            for stage in (
+                create_branch, copy_spec, merge_into_index, lint_and_validate,
+                update_intake_state, refresh_docs, commit_and_push, open_pr,
+            ):
+                stage.assert_not_called()
+
+    def test_push_cleans_up_on_stage_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path, evidence_path = self._write_inputs(tmp)
+            with (
+                patch.object(open_intake_pr, "_prepare_push_branch", return_value="main"),
+                patch.object(open_intake_pr, "_stage_create_branch"),
+                patch.object(
+                    open_intake_pr, "_stage_copy_spec", side_effect=RuntimeError("boom")
+                ),
+                patch.object(open_intake_pr, "_cleanup_intake_branch") as cleanup,
+            ):
+                with self.assertRaises(RuntimeError):
+                    open_intake_pr.open_intake_pr(spec_path, evidence_path, push=True)
+            expected_mutated_paths = [
+                open_intake_pr.SPECS_DIR / "acme-pkg-1.0.0.json",
+                open_intake_pr.INDEX_PATH,
+                open_intake_pr.INTAKE_STATE_PATH,
+                open_intake_pr.REPO_ROOT / "docs" / "intake-candidates.md",
+                open_intake_pr.INTAKE_STATE_PATH.with_suffix(
+                    open_intake_pr.INTAKE_STATE_PATH.suffix + ".bak"
+                ),
+            ]
+            cleanup.assert_called_once_with(
+                "intake/acme-pkg-1.0.0", "main", expected_mutated_paths
+            )
+
+
+class TestMain(unittest.TestCase):
+    def test_main_parses_args_and_delegates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "s.json"
+            evidence_path = Path(tmp) / "e.json"
+            spec_path.write_text("{}", encoding="utf-8")
+            evidence_path.write_text("{}", encoding="utf-8")
+            argv = ["open_intake_pr.py", "--spec", str(spec_path), "--evidence", str(evidence_path)]
+            with (
+                patch.object(open_intake_pr.sys, "argv", argv),
+                patch.object(open_intake_pr, "open_intake_pr") as delegate,
+            ):
+                open_intake_pr.main()
+            delegate.assert_called_once_with(spec_path, evidence_path, push=False)
+
+    def test_main_push_flag_forwarded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "s.json"
+            evidence_path = Path(tmp) / "e.json"
+            spec_path.write_text("{}", encoding="utf-8")
+            evidence_path.write_text("{}", encoding="utf-8")
+            argv = [
+                "open_intake_pr.py", "--spec", str(spec_path),
+                "--evidence", str(evidence_path), "--push",
+            ]
+            with (
+                patch.object(open_intake_pr.sys, "argv", argv),
+                patch.object(open_intake_pr, "open_intake_pr") as delegate,
+            ):
+                open_intake_pr.main()
+            delegate.assert_called_once_with(spec_path, evidence_path, push=True)
+
+    def test_main_missing_spec_exits(self):
+        argv = ["open_intake_pr.py", "--spec", "/nonexistent/s.json", "--evidence", "/nonexistent/e.json"]
+        with patch.object(open_intake_pr.sys, "argv", argv):
+            with self.assertRaises(SystemExit) as raised:
+                open_intake_pr.main()
+        self.assertEqual(raised.exception.code, 1)
+
+    def test_main_missing_evidence_exits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec_path = Path(tmp) / "s.json"
+            spec_path.write_text("{}", encoding="utf-8")
+            argv = [
+                "open_intake_pr.py", "--spec", str(spec_path),
+                "--evidence", "/nonexistent/e.json",
+            ]
+            with patch.object(open_intake_pr.sys, "argv", argv):
+                with self.assertRaises(SystemExit) as raised:
+                    open_intake_pr.main()
+            self.assertEqual(raised.exception.code, 1)
+
+
 if __name__ == "__main__":
     unittest.main()
