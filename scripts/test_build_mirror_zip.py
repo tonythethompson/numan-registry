@@ -24,10 +24,13 @@ def load_build_mirror_zip():
     return mod
 
 
+BMZ = load_build_mirror_zip()
+
+
 class IgnoreVcsMetadataTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_filters_vcs_dirs_only(self):
         result = self.bmz.ignore_vcs_metadata(
@@ -39,7 +42,7 @@ class IgnoreVcsMetadataTests(unittest.TestCase):
 class AssertMirrorPathsSafeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_allows_regular_file_and_dir(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -89,7 +92,7 @@ class AssertMirrorPathsSafeTests(unittest.TestCase):
 class CopyPathsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_copies_file_and_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -118,7 +121,7 @@ class CopyPathsTests(unittest.TestCase):
 class MakeZipTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_creates_zip_with_expected_entries(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -169,7 +172,7 @@ class MakeZipTests(unittest.TestCase):
 class CloneTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_clone_at_ref_invokes_git_clone(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -205,13 +208,22 @@ class CloneTests(unittest.TestCase):
                     "https://example.com/repo.git", "abc123", workdir
                 )
         self.assertEqual(result, workdir / "src")
-        self.assertEqual(run.call_count, 4)
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertEqual(
+            commands,
+            [
+                ["git", "init", "-q"],
+                ["git", "remote", "add", "origin", "https://example.com/repo.git"],
+                ["git", "fetch", "--depth", "1", "origin", "abc123"],
+                ["git", "checkout", "-q", "FETCH_HEAD"],
+            ],
+        )
 
 
 class MainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.bmz = load_build_mirror_zip()
+        cls.bmz = BMZ
 
     def test_main_end_to_end_with_mocked_clone(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -253,39 +265,41 @@ class MainTests(unittest.TestCase):
             self.assertEqual(names, ["demo-1.0.0/pkgs/demo/plugin.nu"])
 
     def test_main_rejects_both_ref_and_commit(self):
-        argv = [
-            "build-mirror-zip.py",
-            "--repo",
-            "https://example.com/repo.git",
-            "--ref",
-            "v1.0.0",
-            "--commit",
-            "abc123",
-            "--paths",
-            "pkgs/demo",
-            "--archive-root",
-            "demo-1.0.0",
-            "--output",
-            "/tmp/whatever.zip",
-        ]
-        with patch.object(sys, "argv", argv):
-            rc = self.bmz.main()
+        with tempfile.TemporaryDirectory() as tmp:
+            argv = [
+                "build-mirror-zip.py",
+                "--repo",
+                "https://example.com/repo.git",
+                "--ref",
+                "v1.0.0",
+                "--commit",
+                "abc123",
+                "--paths",
+                "pkgs/demo",
+                "--archive-root",
+                "demo-1.0.0",
+                "--output",
+                str(Path(tmp) / "out.zip"),
+            ]
+            with patch.object(sys, "argv", argv):
+                rc = self.bmz.main()
         self.assertEqual(rc, 1)
 
     def test_main_rejects_missing_ref_and_commit(self):
-        argv = [
-            "build-mirror-zip.py",
-            "--repo",
-            "https://example.com/repo.git",
-            "--paths",
-            "pkgs/demo",
-            "--archive-root",
-            "demo-1.0.0",
-            "--output",
-            "/tmp/whatever.zip",
-        ]
-        with patch.object(sys, "argv", argv):
-            rc = self.bmz.main()
+        with tempfile.TemporaryDirectory() as tmp:
+            argv = [
+                "build-mirror-zip.py",
+                "--repo",
+                "https://example.com/repo.git",
+                "--paths",
+                "pkgs/demo",
+                "--archive-root",
+                "demo-1.0.0",
+                "--output",
+                str(Path(tmp) / "out.zip"),
+            ]
+            with patch.object(sys, "argv", argv):
+                rc = self.bmz.main()
         self.assertEqual(rc, 1)
 
 

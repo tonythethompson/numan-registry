@@ -23,10 +23,14 @@ def load_scan():
     return mod
 
 
+SCAN = load_scan()
+
+
+
 class GitTrackedFilesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.scan = load_scan()
+        cls.scan = SCAN
 
     def test_parses_ls_files_output(self):
         result = subprocess.CompletedProcess(
@@ -43,7 +47,7 @@ class GitTrackedFilesTests(unittest.TestCase):
 class MatchesPrivateFilenameTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.scan = load_scan()
+        cls.scan = SCAN
 
     def test_matches_key_extension(self):
         self.assertEqual(self.scan.matches_private_filename(Path("id_rsa.key")), "*.key")
@@ -66,7 +70,7 @@ class MatchesPrivateFilenameTests(unittest.TestCase):
 class ScanFileContentsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.scan = load_scan()
+        cls.scan = SCAN
 
     def _write(self, tmp, text):
         path = Path(tmp) / "sample.txt"
@@ -76,7 +80,7 @@ class ScanFileContentsTests(unittest.TestCase):
     def test_pem_marker_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(
-                tmp, "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n"
+                tmp, "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n"  # secretscan:allow
             )
             findings = self.scan.scan_file_contents(path)
         self.assertEqual(len(findings), 1)
@@ -108,7 +112,7 @@ class ScanFileContentsTests(unittest.TestCase):
     def test_hardcoded_secret_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(
-                tmp, "NUMAN_REGISTRY_PRIVATE_KEY: some-hardcoded-secret-value\n"
+                tmp, "NUMAN_REGISTRY_PRIVATE_KEY: some-hardcoded-secret-value\n"  # secretscan:allow
             )
             findings = self.scan.scan_file_contents(path)
         self.assertEqual(len(findings), 1)
@@ -131,13 +135,15 @@ class ScanFileContentsTests(unittest.TestCase):
 class MainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.scan = load_scan()
+        cls.scan = SCAN
 
     def test_main_returns_0_when_clean(self):
         with tempfile.TemporaryDirectory() as tmp:
             clean = Path(tmp) / "clean.txt"
             clean.write_text("hello world\n", encoding="utf-8")
-            with patch.object(self.scan, "git_tracked_files", return_value=[clean]):
+            with patch.object(
+                self.scan, "git_tracked_files", return_value=[clean]
+            ), patch.object(self.scan, "REPO_ROOT", Path(tmp)):
                 self.assertEqual(self.scan.main(), 0)
 
     def test_main_returns_1_on_filename_hit(self):
@@ -152,7 +158,7 @@ class MainTests(unittest.TestCase):
     def test_main_returns_1_on_content_hit(self):
         with tempfile.TemporaryDirectory() as tmp:
             bad = Path(tmp) / "leak.txt"
-            bad.write_text("-----BEGIN PRIVATE KEY-----\n", encoding="utf-8")
+            bad.write_text("-----BEGIN PRIVATE KEY-----\n", encoding="utf-8")  # secretscan:allow
             with patch.object(self.scan, "git_tracked_files", return_value=[bad]), patch.object(
                 self.scan, "REPO_ROOT", Path(tmp)
             ):

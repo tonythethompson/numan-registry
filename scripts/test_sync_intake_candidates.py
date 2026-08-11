@@ -23,10 +23,14 @@ def load_sync():
     return mod
 
 
+SYNC = load_sync()
+
+
+
 class SyncIntakeCandidatesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_artifact_provenance_classes(self):
         self.assertEqual(
@@ -328,19 +332,29 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
             ],
         }
         rendered = self.sync.render_intake_doc(state, {}, {"packages": []}, {})
-        self.assertIn("[`acme/ready1`](https://github.com/acme/ready1)", rendered)
-        self.assertIn("candidate", rendered)
+        self.assertIn(
+            "| [`acme/ready1`](https://github.com/acme/ready1) | plugin | v1.0.0 "
+            "| linux | candidate |",
+            rendered,
+        )
         self.assertIn("[`acme/mirror1`](https://github.com/acme/mirror1)", rendered)
         self.assertIn("[`acme/blocked1`](https://github.com/acme/blocked1)", rendered)
         self.assertIn("some free text blocker | n/a", rendered)
         self.assertIn("2024-01-01 | added acme/ready1", rendered)
-        self.assertIn("(none)", rendered)
+
+    def test_render_intake_doc_empty_registry_line(self):
+        rendered = self.sync.render_intake_doc({}, {}, {"packages": []}, {})
+        self.assertIn(
+            "**Currently in committed index** (source tree; unsigned until "
+            "production publish signs and deploys): (none).",
+            rendered,
+        )
 
 
 class PrStateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_maps_gh_response_states(self):
         with patch.object(self.sync, "gh_json", return_value={"state": "MERGED"}):
@@ -359,7 +373,7 @@ class PrStateTests(unittest.TestCase):
 class OutreachStatusTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_no_upstream_repo(self):
         self.assertEqual(self.sync.outreach_status({})["summary"], "not started")
@@ -427,7 +441,7 @@ class OutreachStatusTests(unittest.TestCase):
 class UpdateOutreachTrackerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_missing_doc_returns_false(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -499,7 +513,7 @@ class UpdateOutreachTrackerTests(unittest.TestCase):
 class SyncTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_returns_false_when_state_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -514,7 +528,6 @@ class SyncTests(unittest.TestCase):
             out_path = root / "intake-candidates.md"
             index_path = root / "index.json"
             outreach_doc = root / "outreach.md"
-            checksum_cache = root / ".mrge" / "sync-checksums.json"
 
             state = {"ready": [], "mirror": [], "blocked": [], "changelog": []}
             state_path.write_text(json.dumps(state), encoding="utf-8")
@@ -523,7 +536,7 @@ class SyncTests(unittest.TestCase):
                 self.sync, "OUT_PATH", out_path
             ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
                 self.sync, "OUTREACH_DOC", outreach_doc
-            ), patch.object(self.sync, "CHECKSUM_CACHE", checksum_cache):
+            ):
                 changed = self.sync.sync()
 
             self.assertTrue(changed)
@@ -537,7 +550,6 @@ class SyncTests(unittest.TestCase):
             out_path = root / "intake-candidates.md"
             index_path = root / "index.json"
             outreach_doc = root / "outreach.md"
-            checksum_cache = root / ".mrge" / "sync-checksums.json"
 
             state = {"ready": [], "mirror": [], "blocked": [], "changelog": []}
             state_path.write_text(json.dumps(state), encoding="utf-8")
@@ -546,7 +558,7 @@ class SyncTests(unittest.TestCase):
                 self.sync, "OUT_PATH", out_path
             ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
                 self.sync, "OUTREACH_DOC", outreach_doc
-            ), patch.object(self.sync, "CHECKSUM_CACHE", checksum_cache):
+            ):
                 self.sync.sync()
                 changed_again = self.sync.sync()
 
@@ -559,7 +571,6 @@ class SyncTests(unittest.TestCase):
             out_path = root / "intake-candidates.md"
             index_path = root / "index.json"
             outreach_doc = root / "outreach.md"
-            checksum_cache = root / ".mrge" / "sync-checksums.json"
 
             state = {
                 "ready": [],
@@ -612,7 +623,7 @@ class SyncTests(unittest.TestCase):
                 self.sync, "OUT_PATH", out_path
             ), patch.object(self.sync, "INDEX_PATH", index_path), patch.object(
                 self.sync, "OUTREACH_DOC", outreach_doc
-            ), patch.object(self.sync, "CHECKSUM_CACHE", checksum_cache), patch.object(
+            ), patch.object(
                 self.sync, "gh_json", side_effect=fake_gh_json
             ), patch.object(
                 self.sync, "gh_text", return_value="me"
@@ -630,7 +641,7 @@ class SyncTests(unittest.TestCase):
 class FilesChangedSinceLastSyncTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.sync = load_sync()
+        cls.sync = SYNC
 
     def test_true_when_no_cache(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -24,10 +24,14 @@ def load_preflight():
     return mod
 
 
+PREFLIGHT = load_preflight()
+
+
+
 class CheckOfficialPubTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.preflight = load_preflight()
+        cls.preflight = PREFLIGHT
 
     def _write_pub(self, tmp, data):
         path = Path(tmp) / "official.pub"
@@ -93,7 +97,7 @@ class CheckOfficialPubTests(unittest.TestCase):
 class CheckKeyIdConsistencyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.preflight = load_preflight()
+        cls.preflight = PREFLIGHT
 
     def _write_sig(self, tmp, data):
         path = Path(tmp) / "index.json.sig"
@@ -154,7 +158,7 @@ class CheckKeyIdConsistencyTests(unittest.TestCase):
 class CheckProductionWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.preflight = load_preflight()
+        cls.preflight = PREFLIGHT
 
     def _write_workflow(self, tmp, text):
         path = Path(tmp) / "production.yml"
@@ -212,7 +216,7 @@ class CheckProductionWorkflowTests(unittest.TestCase):
 class MainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.preflight = load_preflight()
+        cls.preflight = PREFLIGHT
 
     def test_main_returns_0_when_clean(self):
         with tempfile.TemporaryDirectory() as tmp:

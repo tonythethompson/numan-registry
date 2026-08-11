@@ -27,10 +27,14 @@ def load_ci_sign():
     return mod
 
 
+CI_SIGN = load_ci_sign()
+
+
+
 class CanonicalJsonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ci_sign = load_ci_sign()
+        cls.ci_sign = CI_SIGN
 
     def test_sorts_dict_keys(self):
         self.assertEqual(self.ci_sign.canonical_json({"b": 1, "a": 2}), '{"a":2,"b":1}')
@@ -56,7 +60,7 @@ class CanonicalJsonTests(unittest.TestCase):
 class SignIndexRoundTripTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ci_sign = load_ci_sign()
+        cls.ci_sign = CI_SIGN
 
     def test_sign_then_verify(self):
         private_key = Ed25519PrivateKey.generate()
@@ -78,7 +82,7 @@ class SignIndexRoundTripTests(unittest.TestCase):
 class MainTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ci_sign = load_ci_sign()
+        cls.ci_sign = CI_SIGN
 
     def test_main_writes_valid_signature(self):
         private_key = Ed25519PrivateKey.generate()
