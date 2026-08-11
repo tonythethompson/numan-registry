@@ -571,7 +571,8 @@ class TestStageLintAndRefreshDocs(unittest.TestCase):
         self.assertIn("lint_packages.py", " ".join(first_args))
         self.assertIn("validate.py", " ".join(second_args))
         self.assertIn("--skip-signature", second_args)
-
+        self.assertIn("--skip-artifacts", second_args)
+        self.assertIn("--allow-provisional-lifecycle", second_args)
     def test_stage_refresh_docs_runs_sync_with_check_false(self):
         with patch.object(open_intake_pr, "_run") as run:
             open_intake_pr._stage_refresh_docs(dry_run=False)
