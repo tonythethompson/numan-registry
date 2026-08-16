@@ -448,10 +448,11 @@ def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
                    evidence: dict, *, dry_run: bool, auto_merge: bool = False) -> None:
     """Open the intake PR with a generated body (or print a preview)."""
     pr_body = _generate_pr_body(spec, evidence)
+    branch = _branch_name(owner, name, version)
     if dry_run:
         print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
         if auto_merge:
-            print("  [dry-run] would: gh pr merge --auto --squash", file=sys.stderr)
+            print(f"  [dry-run] would: gh pr merge {branch} --auto --squash", file=sys.stderr)
         print("\n--- PR body preview ---", file=sys.stderr)
         print(pr_body, file=sys.stderr)
     else:
@@ -471,7 +472,8 @@ def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
             sys.exit(1)
 
         if auto_merge:
-            merge_result = gh_run(["pr", "merge", "--auto", "--squash"])
+            pr_target = result.stdout.strip() if (result is not None and result.stdout.strip()) else branch
+            merge_result = gh_run(["pr", "merge", pr_target, "--auto", "--squash"])
             if merge_result is not None and merge_result.returncode != 0:
                 print("warning: failed to enable auto-merge on PR", file=sys.stderr)
 
