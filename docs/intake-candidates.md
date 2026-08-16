@@ -50,6 +50,7 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 | [`oderwat/nu_plugin_logfmt`](https://github.com/oderwat/nu_plugin_logfmt) | plugin | v0.0.0-snapshot.20260816.892c4f9 | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built commit-snapshot (Go); Wave 4 Lane 1 |
 | [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | plugin | v0.11.17 | Windows zip; Linux + macOS tar.xz (nested cargo-dist paths) | live (upstream asset) — multi-OS upstream assets (.tar.xz + .zip) |
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | plugin | v1.9.0 | Linux x86_64 + macOS tar.xz (nested cargo-dist paths) | live (upstream asset) — multi-OS upstream assets (.tar.xz) |
+| [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | plugin | v0.3.0 | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built via numan-plugins; P6 provisional tier (GCP credential requirement) |
 
 ---
 
@@ -93,6 +94,8 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 |---------|---------|
 | [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release |
 | [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | requires GCP credentials; pending provisional evidence tier intake |
+| [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | Linux/macOS tar.xz assets; pending multi-platform intake |
+| [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | Linux/macOS tar.xz assets; pending multi-platform intake |
 
 ---
 
@@ -101,6 +104,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 | Date | Change |
 |------|--------|
 | 2026-08-16 | Wave 4 Lane 4 intake: abusch/nu_plugin_semver@0.11.17, Trivernis/nu-plugin-dialog@0.1.0, fennewald/nu_plugin_net@1.9.0 (multi-OS .tar.xz upstream assets). |
+| 2026-08-16 | Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution). |
 | 2026-08-16 | Wave 4 Lane 2 intake: fj0r/ai.nu, fj0r/docker.nu, fj0r/kubernetes.nu, fj0r/git.nu, lassoColombo/conventional-commits, nushell-prophet/nu-history-tools, ArmoredPony/nu-digital-rain, yh17549/nu-dir-bookmark, Yethal/terraform-importer (pure Nu module & script archive intake). |
 | 2026-08-16 | Wave 4 Lane 1 intake: Euphrasiologist/nu_plugin_plot, Euphrasiologist/nu_plugin_bio, WindSoilder/nu_plugin_mongo, hulthe/nu_plugin_msgpack, kik4444/nu_plugin_mime, yybit/nu_plugin_x509, oderwat/nu_plugin_logfmt (commit-snapshot builds). |
 | 2026-08-07 | SuaveIV/nu_plugin_audio@0.2.10 (Nu >=0.114 <0.115): full-platform upstream assets including .tar.xz; Windows lifecycle-prove OK on Nu 0.114.1. Retain 0.2.8 for Nu 0.113. |

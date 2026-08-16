@@ -160,7 +160,7 @@ Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 
 ### 3. Credential-Bound Packages (P6 Provisional Evidence Tier)
 
-- [ ] `galuszkak/nu_plugin_bigquery` — BigQuery query plugin; ship with `evidence_tier: provisional` and deferral reason documenting GCP credentials requirement.
+- [x] `galuszkak/nu_plugin_bigquery` — BigQuery query plugin; ship with `evidence_tier: provisional` and deferral reason documenting GCP credentials requirement.
 
 ### 4. Multi-OS Expansions & Upstream `.tar.xz` Assets (P3)
 

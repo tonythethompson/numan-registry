@@ -387,6 +387,17 @@
       "note": "multi-OS upstream assets (.tar.xz)",
       "repo": "https://github.com/fennewald/nu_plugin_net",
       "spec": "specs/fennewald-nu_plugin_net-1.9.0.json"
+    },
+    {
+      "id": "galuszkak/nu_plugin_bigquery",
+      "name": "nu_plugin_bigquery",
+      "owner": "galuszkak",
+      "type": "plugin",
+      "version": "0.3.0",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/galuszkak/nu_plugin_bigquery",
+      "spec": "specs/galuszkak-nu_plugin_bigquery-0.3.0.json",
+      "note": "ci-built via numan-plugins; P6 provisional tier (GCP credential requirement)"
     }
   ],
   "mirror": [
@@ -778,12 +789,23 @@
     {
       "id": "galuszkak/nu_plugin_bigquery",
       "blocker": "requires GCP credentials; pending provisional evidence tier intake"
+    },
+    {
+      "id": "abusch/nu_plugin_semver",
+      "blocker": "Linux/macOS tar.xz assets; pending multi-platform intake"
+    },
+    {
+      "id": "fennewald/nu_plugin_net",
+      "blocker": "Linux/macOS tar.xz assets; pending multi-platform intake"
     }
   ],
   "changelog": [
     {
       "date": "2026-08-16",
       "change": "Wave 4 Lane 4 intake: abusch/nu_plugin_semver@0.11.17, Trivernis/nu-plugin-dialog@0.1.0, fennewald/nu_plugin_net@1.9.0 (multi-OS .tar.xz upstream assets)."
+    },
+    {
+      "change": "Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution)."
     },
     {
       "date": "2026-08-16",

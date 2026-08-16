@@ -46,6 +46,7 @@ Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.1
 | `FMotalleb/nu_plugin_image` | plugin | 0.112.2 | `>=0.112.0 <0.113.0` | 0.112 | mac,linux,win | ci-built | 1 |
 | `FMotalleb/nu_plugin_port_extension` | plugin | 0.114.1 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 2 |
 | `fnuttens/nu_plugin_hmac` | plugin | 0.27.0 | `>=0.113.0 <0.114.0` | 0.113 | mac,linux,win | ci-built | 1 |
+| `galuszkak/nu_plugin_bigquery` | plugin | 0.3.0 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
 | `hulthe/nu_plugin_msgpack` | plugin | 0.0.0-snapshot.20260816.38eb492 | `>=0.90.0 <0.91.0` | other | linux,win | ci-built | 1 |
 | `idanarye/nu_plugin_skim` | plugin | 0.29.1 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
 | `KamilKleina/git-aliases` | script | 0.1.0-109cc61 | `*` | * | — | mirror | 1 |
