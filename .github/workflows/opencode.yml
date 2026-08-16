@@ -41,7 +41,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
-            IS_FORK=$(gh pr view "${{ github.event.issue.number }}" --json isCrossRepository --jq .isCrossRepository)
+            IS_FORK=$(gh pr view "${{ github.event.issue.number }}" -R "${{ github.repository }}" --json isCrossRepository --jq .isCrossRepository)
             if [[ "$IS_FORK" == "true" ]]; then
               echo "::notice::Skipping /oc command on fork PR for security"
               echo "allowed=false" >> "$GITHUB_OUTPUT"
