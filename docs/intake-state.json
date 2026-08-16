@@ -751,7 +751,7 @@
   "blocked": [
     {
       "id": "FMotalleb/nu_plugin_clipboard",
-      "blocker": "evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin clip commands"
+      "blocker": "evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin `clip` commands"
     },
     {
       "id": "galuszkak/nu_plugin_bigquery",
