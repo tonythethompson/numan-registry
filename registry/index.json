@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-16T05:22:50Z",
+  "updated_at": "2026-08-16T09:23:54Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -2404,6 +2404,60 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "0d0f25d15b0b2176bb2ae72aae34b3b837671e9e4a72107a3344f36ca683c76b",
                 "executable_path": "nu_plugin_x509"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "oderwat",
+        "name": "nu_plugin_logfmt"
+      },
+      "description": "A simple from / to logfmt plugin for nushell. CI-built from oderwat/nu_plugin_logfmt@892c4f9 (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/oderwat/nu_plugin_logfmt",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "logfmt",
+        "logging",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.892c4f9",
+          "nu_version": ">=0.100.0 <0.101.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Snapshot build of Go plugin; awaiting live Nu test harness",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/oderwat/nu_plugin_logfmt",
+            "rev": "892c4f98a24c55d289febabf423a8cee9a8e5e1e",
+            "cargo_name": "nu_plugin_logfmt"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-aarch64-apple-darwin.tar.gz",
+                "sha256": "a6097bf0a9a375f877ad40e4eadd2e0e1bc36a480dcfc4d3c25e58d12caeda4a",
+                "executable_path": "nu_plugin_logfmt"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "839763c1fa7a4f3bc3bf37ba97ffbad5313b6b30d796a768b5e67286a6fcd3ca",
+                "executable_path": "nu_plugin_logfmt"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-x86_64-pc-windows-msvc.zip",
+                "sha256": "d36baa17546813b7db2e1be326dfdb5e34a7030b9bb0b0fc5ff8dcadf0be38c7",
+                "executable_path": "nu_plugin_logfmt.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "d0356b7b25f5463e5335bbcecaac851c7e6b4f2337a43ec24d216db3872fafb1",
+                "executable_path": "nu_plugin_logfmt"
               }
             }
           }
