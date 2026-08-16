@@ -1,5 +1,23 @@
 [
   {
+    "git": "https://github.com/ArmoredPony/nu-digital-rain",
+    "ref": "6602c6a2f7c6c576313c1dd8473d62740e2de17e",
+    "resolved_sha": "6602c6a2f7c6c576313c1dd8473d62740e2de17e",
+    "entry": "digital-rain.nu",
+    "name": "nu-digital-rain",
+    "owner": "ArmoredPony",
+    "type": "script"
+  },
+  {
+    "git": "https://github.com/Yethal/terraform-importer",
+    "ref": "47c3cb2ccb454d6acad5ce691b766a0f62f381d9",
+    "resolved_sha": "47c3cb2ccb454d6acad5ce691b766a0f62f381d9",
+    "entry": "terraform-importer.nu",
+    "name": "terraform-importer",
+    "owner": "Yethal",
+    "type": "module"
+  },
+  {
     "git": "https://github.com/fj0r/ai.nu",
     "ref": "2e710688e81fd23ecde5d9889069baab9922adc8",
     "resolved_sha": "2e710688e81fd23ecde5d9889069baab9922adc8",
@@ -33,6 +51,33 @@
     "entry": "kubernetes/mod.nu",
     "name": "kubernetes.nu",
     "owner": "fj0r",
+    "type": "module"
+  },
+  {
+    "git": "https://github.com/lassoColombo/conventional-commits",
+    "ref": "44dc459f53b6475da857a8691e75aa5d7f51ce47",
+    "resolved_sha": "44dc459f53b6475da857a8691e75aa5d7f51ce47",
+    "entry": "mod.nu",
+    "name": "conventional-commits",
+    "owner": "lassoColombo",
+    "type": "module"
+  },
+  {
+    "git": "https://github.com/nushell-prophet/nu-history-tools",
+    "ref": "59a97f142cc54d24afbcd726abdbd9caab769776",
+    "resolved_sha": "59a97f142cc54d24afbcd726abdbd9caab769776",
+    "entry": "nu-history-tools/mod.nu",
+    "name": "nu-history-tools",
+    "owner": "nushell-prophet",
+    "type": "module"
+  },
+  {
+    "git": "https://github.com/yh17549/nu-dir-bookmark",
+    "ref": "b1382d568004f5788c0318585c9ef8f7dae7e18f",
+    "resolved_sha": "b1382d568004f5788c0318585c9ef8f7dae7e18f",
+    "entry": "bookmark_for_dir.nu",
+    "name": "nu-dir-bookmark",
+    "owner": "yh17549",
     "type": "module"
   }
 ]
