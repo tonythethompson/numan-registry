@@ -76,6 +76,20 @@ def build_registry_indices(
     return by_name, by_repo
 
 
+def extract_repo_slug(url: str) -> str | None:
+    """Extract repository slug from GitHub, Codeberg, or GitLab URL, or return slug directly."""
+    low = url.lower().rstrip("/")
+    if "github.com/" in low:
+        return low.split("github.com/")[-1].split("/tree/")[0]
+    if "codeberg.org/" in low:
+        return low.split("codeberg.org/")[-1].split("/src/")[0]
+    if "gitlab.com/" in low:
+        return low.split("gitlab.com/")[-1]
+    if "/" in low and not low.startswith("http://") and not low.startswith("https://"):
+        return low
+    return None
+
+
 def build_manifest_indices(
     manifest_data: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -90,6 +104,9 @@ def build_manifest_indices(
             by_name[c_name] = entry
         if repo:
             by_repo[repo] = entry
+            slug = extract_repo_slug(repo)
+            if slug:
+                by_repo[slug] = entry
 
     return by_name, by_repo
 
@@ -105,21 +122,13 @@ def build_backlog_indices(
         if "name" in entry:
             by_name[normalize_name(entry["name"])] = entry
         if "repo" in entry:
-            by_repo[entry["repo"].lower().rstrip("/")] = entry
+            repo = entry["repo"].lower().rstrip("/")
+            by_repo[repo] = entry
+            slug = extract_repo_slug(repo)
+            if slug:
+                by_repo[slug] = entry
 
     return by_name, by_repo
-
-
-def extract_repo_slug(url: str) -> str | None:
-    """Extract repository slug from GitHub, Codeberg, or GitLab URL."""
-    low = url.lower().rstrip("/")
-    if "github.com/" in low:
-        return low.split("github.com/")[-1].split("/tree/")[0]
-    if "codeberg.org/" in low:
-        return low.split("codeberg.org/")[-1].split("/src/")[0]
-    if "gitlab.com/" in low:
-        return low.split("gitlab.com/")[-1]
-    return None
 
 
 def match_registry_package(
@@ -239,7 +248,7 @@ def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
     """Read awesome-nu README from local path or fetch via HTTP."""
     if path is not None:
         if not path.exists():
-            raise FileNotFoundError(f"awesome-nu README not found at {path}")
+            raise FileNotFoundError(f"README file not found: {path}")
         return path.read_text(encoding="utf-8")
 
     ensure_http_url(url)

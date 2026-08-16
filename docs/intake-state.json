@@ -288,6 +288,83 @@
       "repo": "https://github.com/rhino-linux/nu_plugin_nutext",
       "spec": "specs/rhino-linux-nu_plugin_nutext-0.6.2.json",
       "note": "ci-built via numan-plugins; wave2; Nu 0.114; run 30985049217"
+    },
+    {
+      "id": "Euphrasiologist/nu_plugin_plot",
+      "name": "nu_plugin_plot",
+      "owner": "Euphrasiologist",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.5a1ca2a",
+      "platforms": "linux x64/aarch64, Windows x64 (macOS excluded due to legacy libproc)",
+      "repo": "https://github.com/Euphrasiologist/nu_plugin_plot",
+      "spec": "specs/Euphrasiologist-nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "Euphrasiologist/nu_plugin_bio",
+      "name": "nu_plugin_bio",
+      "owner": "Euphrasiologist",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.49ab341",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/Euphrasiologist/nu_plugin_bio",
+      "spec": "specs/Euphrasiologist-nu_plugin_bio-0.0.0-snapshot.20260816.49ab341.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "WindSoilder/nu_plugin_mongo",
+      "name": "nu_plugin_mongo",
+      "owner": "WindSoilder",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.47854d9",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/WindSoilder/nu_plugin_mongo",
+      "spec": "specs/WindSoilder-nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "hulthe/nu_plugin_msgpack",
+      "name": "nu_plugin_msgpack",
+      "owner": "hulthe",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.38eb492",
+      "platforms": "linux x64/aarch64, Windows x64 (macOS excluded due to legacy libproc)",
+      "repo": "https://github.com/hulthe/nu_plugin_msgpack",
+      "spec": "specs/hulthe-nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "kik4444/nu_plugin_mime",
+      "name": "nu_plugin_mime",
+      "owner": "kik4444",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.8e5872a",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/kik4444/nu_plugin_mime",
+      "spec": "specs/kik4444-nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "yybit/nu_plugin_x509",
+      "name": "nu_plugin_x509",
+      "owner": "yybit",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.15518dd",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/yybit/nu_plugin_x509",
+      "spec": "specs/yybit-nu_plugin_x509-0.0.0-snapshot.20260816.15518dd.json",
+      "note": "ci-built commit-snapshot; Wave 4 Lane 1"
+    },
+    {
+      "id": "oderwat/nu_plugin_logfmt",
+      "name": "nu_plugin_logfmt",
+      "owner": "oderwat",
+      "type": "plugin",
+      "version": "0.0.0-snapshot.20260816.892c4f9",
+      "platforms": "linux x64/aarch64, macOS aarch64, Windows x64",
+      "repo": "https://github.com/oderwat/nu_plugin_logfmt",
+      "spec": "specs/oderwat-nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9.json",
+      "note": "ci-built commit-snapshot (Go); Wave 4 Lane 1"
     }
   ],
   "mirror": [
@@ -578,10 +655,6 @@
       "blocker": "legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release"
     },
     {
-      "id": "Euphrasiologist/nu_plugin_plot",
-      "blocker": "no release tags; pending commit-snapshot build"
-    },
-    {
       "id": "galuszkak/nu_plugin_bigquery",
       "blocker": "requires GCP credentials; pending provisional evidence tier intake"
     },
@@ -595,6 +668,10 @@
     }
   ],
   "changelog": [
+    {
+      "date": "2026-08-16",
+      "change": "Wave 4 Lane 1 intake: Euphrasiologist/nu_plugin_plot, Euphrasiologist/nu_plugin_bio, WindSoilder/nu_plugin_mongo, hulthe/nu_plugin_msgpack, kik4444/nu_plugin_mime, yybit/nu_plugin_x509, oderwat/nu_plugin_logfmt (commit-snapshot builds)."
+    },
     {
       "date": "2026-08-07",
       "change": "SuaveIV/nu_plugin_audio@0.2.10 (Nu >=0.114 <0.115): full-platform upstream assets including .tar.xz; Windows lifecycle-prove OK on Nu 0.114.1. Retain 0.2.8 for Nu 0.113."
