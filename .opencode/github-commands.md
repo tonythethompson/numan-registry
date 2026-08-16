@@ -112,7 +112,7 @@ Do NOT dump findings into your final response text. Instead:
 
 3. **Your final response text MUST ONLY be a concise overall summary:**
    - A high-level assessment of the changes and review outcome.
-   - An **"Out of diff"** section detailing any findings that have no specific diff location (e.g. missing test suites, cross-file architectural concerns, or files untouched by the PR).
+   - An **"Out of diff"** section detailing any findings that have no diff location (e.g. missing test suites, cross-file architectural concerns, or files untouched by the PR). For each out-of-diff finding, you must include: **file name**, **line number or range** (when applicable), **severity**, and **the issue description**.
    - Do NOT duplicate the inline finding bodies or list links to created comments in your final text—all inline findings and committable code suggestions live directly in the threads created in step 2.
 
 ### Committing behavior — suggestions only
