@@ -1,0 +1,24 @@
+{
+  "owner": "fj0r",
+  "name": "docker.nu",
+  "description": "Docker and container management helper functions and utilities for Nushell",
+  "repo": "https://github.com/fj0r/docker.nu",
+  "type": "module",
+  "tags": [
+    "module",
+    "docker",
+    "containers"
+  ],
+  "version": "0.1.0-7e2d26a",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-docker.nu-0.1.0-7e2d26a/fj0r-docker.nu-0.1.0-7e2d26a.tar.gz",
+    "entry": "docker/mod.nu",
+    "sha256": "285c648cc9618f288b69e456970bc3b3b016ba3fc0d4a6c154de16dfbe1d109e"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}
