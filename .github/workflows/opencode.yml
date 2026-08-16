@@ -28,7 +28,7 @@ jobs:
       contains(github.event.comment.body, ' /opencode ') ||
       endsWith(github.event.comment.body, ' /opencode')))
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 40
     permissions:
       id-token: write
       contents: write
@@ -262,7 +262,14 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           run_opencode() {
-            timeout 300 opencode github run
+            local args=()
+            if [[ -n "${MODEL:-}" ]]; then
+              args+=(--model "${MODEL}")
+            fi
+            if [[ -n "${VARIANT:-}" ]]; then
+              args+=(--variant "${VARIANT}")
+            fi
+            opencode github run "${args[@]}"
           }
 
           if run_opencode; then
