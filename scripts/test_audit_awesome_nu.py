@@ -175,6 +175,11 @@ class FetchReadmeAndMainTests(unittest.TestCase):
                 content = audit.fetch_readme(Path("dummy.md"))
                 self.assertIn("## Plugins", content)
 
+    def test_fetch_readme_missing_file_raises_filenotfound(self):
+        with mock.patch.object(Path, "exists", return_value=False):
+            with self.assertRaises(FileNotFoundError):
+                audit.fetch_readme(Path("nonexistent.md"))
+
     def test_load_json_file_remote_fallback(self):
         with mock.patch.object(Path, "exists", return_value=False):
             with mock.patch.object(audit, "fetch_readme", return_value='{"active": ["mock"]}'):

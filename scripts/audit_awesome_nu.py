@@ -246,7 +246,9 @@ def format_plugin_audit(audit_results: list[dict[str, Any]]) -> str:
 
 def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
     """Read awesome-nu README from local path or fetch via HTTP."""
-    if path and path.exists():
+    if path is not None:
+        if not path.exists():
+            raise FileNotFoundError(f"README file not found: {path}")
         return path.read_text(encoding="utf-8")
 
     ensure_http_url(url)
