@@ -2485,6 +2485,7 @@
           "nu_version": ">=0.114.0 <0.115.0",
           "evidence_tier": "provisional",
           "deferral_reason": "Requires active Google Cloud Platform credentials (ADC/service account) for live query execution",
+          "verified_with": ["0.114.1"],
           "source": {
             "git": "https://github.com/galuszkak/nu_plugin_bigquery",
             "rev": "5fff4d8d3e6e6e348a1bd999f55b0fb24bdd489e",
@@ -2514,6 +2515,12 @@
                 "executable_path": "nu_plugin_bigquery"
               }
             }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
         "owner": "fj0r",
         "name": "ai.nu"
       },

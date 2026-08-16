@@ -777,6 +777,9 @@
     {
       "date": "2026-08-16",
       "change": "Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution)."
+    },
+    {
+      "date": "2026-08-16",
       "change": "Wave 4 Lane 2 intake: fj0r/ai.nu, fj0r/docker.nu, fj0r/kubernetes.nu, fj0r/git.nu, lassoColombo/conventional-commits, nushell-prophet/nu-history-tools, ArmoredPony/nu-digital-rain, yh17549/nu-dir-bookmark, Yethal/terraform-importer (pure Nu module & script archive intake)."
     },
     {
