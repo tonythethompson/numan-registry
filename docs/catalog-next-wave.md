@@ -170,11 +170,11 @@ Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 
 ### 5. Maintained Forks for Abandoned Plugins (P4 Lane 3)
 
-Evaluate for `numan-maintained` distribution per ADR 0001 stewardship criteria:
+Evaluated for `numan-maintained` distribution per ADR 0001 stewardship criteria:
 
-- [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85, pinned to Nu 0.110)
-- [ ] `yybit/nu_plugin_compress` (⭐ 42, pinned to Nu 0.103)
-- [ ] `devyn/nu_plugin_dbus` (⭐ 34, pinned to Nu 0.101)
+- [x] `FMotalleb/nu_plugin_clipboard` (⭐ 85) — evaluated: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin `clip`
+- [x] `yybit/nu_plugin_compress` (⭐ 42) — evaluated: approved for `numan-maintained/nu_plugin_compress` (Nu 0.114 bump)
+- [x] `devyn/nu_plugin_dbus` (⭐ 34) — evaluated: conditionally approved for Linux-only `numan-maintained/nu_plugin_dbus` (Nu 0.114 bump)
 - [ ] `FMotalleb/nu_plugin_audio_hook` (⭐ 24, pinned to Nu 0.110)
 - [ ] `JosephTLyons/nu_plugin_units` (⭐ 18, pinned to Nu 0.106)
 
