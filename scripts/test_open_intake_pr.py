@@ -668,7 +668,7 @@ class TestMain(unittest.TestCase):
                 patch.object(open_intake_pr, "open_intake_pr") as delegate,
             ):
                 open_intake_pr.main()
-            delegate.assert_called_once_with(spec_path, evidence_path, push=False)
+            delegate.assert_called_once_with(spec_path, evidence_path, push=False, auto_merge=False)
 
     def test_main_push_flag_forwarded(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -678,14 +678,14 @@ class TestMain(unittest.TestCase):
             evidence_path.write_text("{}", encoding="utf-8")
             argv = [
                 "open_intake_pr.py", "--spec", str(spec_path),
-                "--evidence", str(evidence_path), "--push",
+                "--evidence", str(evidence_path), "--push", "--auto-merge",
             ]
             with (
                 patch.object(open_intake_pr.sys, "argv", argv),
                 patch.object(open_intake_pr, "open_intake_pr") as delegate,
             ):
                 open_intake_pr.main()
-            delegate.assert_called_once_with(spec_path, evidence_path, push=True)
+            delegate.assert_called_once_with(spec_path, evidence_path, push=True, auto_merge=True)
 
     def test_main_missing_spec_exits(self):
         argv = ["open_intake_pr.py", "--spec", "/nonexistent/s.json", "--evidence", "/nonexistent/e.json"]
