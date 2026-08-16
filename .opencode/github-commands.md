@@ -78,13 +78,13 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
    needed). Fall back down this ladder until the finding is posted:
 
    a. **Inline line comment** (preferred) — pins the finding to a line in the PR diff and
-      creates a resolvable thread. Use the PR head SHA (`Head: { Sha: ... }` in the
-      `<pull_request>` context) as `commit_id`, plus the file and line the finding is
-      about:
+      creates a resolvable thread. Query the current PR head SHA (e.g.
+      `gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid`) and use that value
+      as `commit_id`, plus the file and line the finding is about:
 
       ```bash
       gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
-        -f body=@finding.md \
+        -F body=@finding.md \
         -f path="src/example.ts" \
         -F line=42 \
         -f commit_id="$HEAD_SHA"
@@ -98,7 +98,7 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
 
       ```bash
       gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
-        -f body=@finding.md \
+        -F body=@finding.md \
         -f path="src/example.ts" \
         -f subject_type=file
       ```
@@ -113,12 +113,13 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
 
    Derive `owner`/`repo` from `baseRepository.nameWithOwner` in the `<pull_request>`
    context (split on `/`), `pr_number` from `Number:`, and `HEAD_SHA` from
-   `Head: { Sha: ... }`. Write the finding body to a temp file (`finding.md`) rather than
-   passing a giant `-f body=` string, so multiline Markdown and code blocks survive intact.
-   Post threads one at a time — this endpoint is secondary-rate-limited if you post too
-   fast — and keep a list of the posted comment IDs/URLs and of which findings fell back to
-   an issue comment. If a `gh` call fails at every level, do not stop the review — record
-   the finding in the "Out of diff" section of the summary instead.
+   `Head: { Sha: ... }` or `gh pr view`. Write the finding body to a temp file (`finding.md`)
+   and pass with `-F body=@finding.md` rather than passing a giant string, so multiline
+   Markdown and code blocks survive intact. Post threads one at a time — this endpoint is
+   secondary-rate-limited if you post too fast — and keep a list of the posted comment
+   IDs/URLs and of which findings fell back to an issue comment. If a `gh` call fails at
+   every level, do not stop the review — record the finding in the "Out of diff" section of
+   the summary instead.
 3. **Your final reply text** (what the action posts as the single reply comment) must be a
    **short summary index**: overall assessment; one line per threaded finding with its
    file:line, severity, and a link to that finding's comment (both endpoint responses
@@ -141,7 +142,7 @@ You are reviewing, not editing:
   fenced block so GitHub renders a one-click **Commit suggestion** button right in the
   comment:
 
-  ````
+  ````markdown
   ```suggestion
   <exact replacement lines — must match the current file content>
   ```
@@ -216,18 +217,19 @@ the current pull request.
 
    ```bash
    # 1. List threads, their resolved state, and the first comment's databaseId
+   # (For PRs with many comments, paginate reviewThreads and comments)
    gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{id isResolved comments(first:10){nodes{databaseId}}}}}}}' -F owner=... -F repo=... -F number=...
 
    # 2. Reply to the thread with the reason before resolving
    gh api graphql -f query='mutation($id:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id,body:$body}){comment{id}}}' -F id=THREAD_ID -f body=REASON
    #    REST equivalent (reply to the first comment in the thread):
-   #    gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -f body=REASON
+   #    gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -F body=@thread.md
 
    # 3. Resolve the thread
    gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}' -F id=THREAD_ID
    ```
 
-   Write the reason to a temp file (`thread.md`) and pass `-f body=@thread.md` when it is
+   Write the reason to a temp file (`thread.md`) and pass `-F body=@thread.md` when it is
    long, so multiline Markdown survives intact. Only leave open a thread you genuinely could
    not address — no fix and no justification — and say why in the summary.
 4. **Your final reply text IS the single summary comment** (the action posts it). Do NOT post
