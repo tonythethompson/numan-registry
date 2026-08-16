@@ -1,7 +1,7 @@
 # Registry intake candidates
 
 Running list of packages evaluated for the official Numan registry.
-_Auto-synced 2026-08-08 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
+_Auto-synced 2026-08-16 from `docs/intake-state.json`, `registry/index.json`, and GitHub (via `gh`). Edit `intake-state.json` to add candidates; run `python scripts/sync-intake-candidates.py` to refresh._
 
 **Intake rules:** artifact must be `.zip`, `.tar.gz`, `.tgz`, `.tar.xz`, `.txz`, or `.tar`; prefer upstream uploaded release assets over GitHub auto-generated `/archive/` zipballs; never hand-type `sha256` (use `scripts/add-package.py`); mirror packages via `scripts/build-mirror-zip.py` + registry release upload. After intake, the package **must be staged or published** in the configured registry before running Stage 1 lifecycle-prove (`scripts/lifecycle-prove.py --package owner/name`), unless a registry-target override is added. Run lifecycle-prove on a clean root against a real Nu matching the package constraint ([lifecycle-prove.md](lifecycle-prove.md)). For CI-built plugins from `numan-plugins` that have matching registry entries, keep known `nu_version` constraints in sync with `manifest.json` `active[]` (`scripts/lint-manifest-index.py` enforces this in repo-safety CI). See [upstream-release-outreach.md](upstream-release-outreach.md) for contacting maintainers to ship upstream assets.
 
@@ -73,11 +73,11 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Blocker |
 |---------|---------|
-| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | nupm git-only; no release binaries (and other FMotalleb plugins) |
-| [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | mac/linux targets now have supported tar.xz assets (registry remains Windows-only pending intake and lifecycle evidence) |
-| [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | tar.xz assets are supported; no Windows release asset |
-| fdncred/abusch cargo-dist plugins | Unix targets ship `.tar.xz`; Windows ships `.zip` |
-| MCP / AI agent tooling | Not a Numan package type; would need module/script packaging |
+| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release |
+| [`Euphrasiologist/nu_plugin_plot`](https://github.com/Euphrasiologist/nu_plugin_plot) | no release tags; pending commit-snapshot build |
+| [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | requires GCP credentials; pending provisional evidence tier intake |
+| [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | Linux/macOS tar.xz assets; pending multi-platform intake |
+| [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | Linux/macOS tar.xz assets; pending multi-platform intake |
 
 ---
 

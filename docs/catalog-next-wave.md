@@ -121,24 +121,62 @@ Intake steps per package: `scripts/discover.py` → `build-mirror-zip.py` → re
 - [ ] Consider adding one **install-only** starter path to `numan try` docs (or a follow-up `try` fallback) now that Wave 3A is live: e.g. wttr or nufetch on any Nu
 - [ ] Do **not** invent script/completion activation in the catalog wave (roadmap: still deferred)
 
-### Explicit non-goals for Wave 3
+### Explicit non-goals for Wave 3 (now unblocked for Wave 4+)
 
-- No commit-snapshot CI for `nu_plugin_plot` / other NO_RELEASE plugins
-- No PRE_0_112 rebuilds
-- No credentialed BigQuery promotion
-- No mixing source-build work into registry intake PRs
+- Commit-snapshot CI for `nu_plugin_plot` / other NO_RELEASE plugins (now unblocked via P1 commit-snapshot mode in numan-plugins)
+- Non-binary archive intake for standalone scripts & modules (now automated via P2 `intake-archive.py`)
+- Credentialed BigQuery promotion (now unblocked via P6 `evidence_tier: provisional`)
+- Transparent maintained forks for abandoned high-demand plugins (now governed via P4 ADR 0001)
 
-## Wave 4 (parallel track, plugins)
+## Wave 4 (Intake Reform Execution: Plugins, Modules & Expansions)
 
-Only if upstream moves, or maintainer time remains after Wave 3A/3B (mirrors shipped; Wave 3C client honesty still open):
+Following the August 2026 Intake Process Reform (governed by ADR 0001 and implemented in numan, numan-plugins, and numan-registry), the previous intake bottlenecks are resolved across five distinct workstreams:
 
-1. Outreach: clipboard, compress, plot (tag + nu-plugin 0.114)
-2. Multi-OS `semver` registry completion
-3. Research tag policy for high-star NO_RELEASE once Wave 3C client honesty lands
+### 1. High-Demand Tag-less Plugins (P1 Commit-Snapshot Mode)
 
-## Outreach (what to file vs mirror)
+- [ ] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
+- [ ] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics file format parser
+- [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection
+- [ ] `WindSoilder/nu_plugin_mongo` (⭐ 8) — MongoDB query client
+- [ ] `hulthe/nu_plugin_msgpack` (⭐ 7) — MessagePack data converter
+- [ ] `kik4444/nu_plugin_mime` (⭐ 6) — in-memory MIME inspection
+- [ ] `oderwat/nu_plugin_logfmt` (⭐ 5) — logfmt structured parser
+- [ ] `yybit/nu_plugin_x509` (⭐ 5) — X.509 certificate generator/parser
 
-Full tracker + weekly schedule: [`upstream-release-outreach.md`](upstream-release-outreach.md). Ready bodies: [`outreach-issues/`](outreach-issues/README.md).
+### 2. Standalone Script & Module Expansion (P2 Archive Intake Lane)
+
+Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
+
+- [ ] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
+- [ ] `fj0r/docker.nu` — Docker container management tools
+- [ ] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
+- [ ] `fj0r/git.nu` — Git toolset & helpers
+- [ ] `lassoColombo/conventional-commits` — conventional commits parser
+- [ ] `nushell-prophet/nu-history-tools` — shell history analytics & graphs
+- [ ] `ArmoredPony/nu-digital-rain` — terminal digital rain effect
+- [ ] `yh17549/nu-dir-bookmark` — directory bookmarking & jump
+- [ ] `freepicheep/nu-salesforce` & `freepicheep/nu-quickbooks` — enterprise data clients
+- [ ] `Yethal/terraform-importer` — Terraform state importer
+
+### 3. Credential-Bound Packages (P6 Provisional Evidence Tier)
+
+- [ ] `galuszkak/nu_plugin_bigquery` — BigQuery query plugin; ship with `evidence_tier: provisional` and deferral reason documenting GCP credentials requirement.
+
+### 4. Multi-OS Expansions & Upstream `.tar.xz` Assets (P3)
+
+- [ ] `abusch/nu_plugin_semver` — add Linux/macOS `.tar.xz` assets to complete multi-OS matrix
+- [ ] `Trivernis/nu-plugin-dialog` — add Linux/macOS `.tar.xz` assets
+- [ ] `fennewald/nu_plugin_net` — intake Linux/macOS `.tar.xz` assets
+
+### 5. Maintained Forks for Abandoned Plugins (P4 Lane 3)
+
+Evaluate for `numan-maintained` distribution per ADR 0001 stewardship criteria:
+
+- [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85, pinned to Nu 0.110)
+- [ ] `yybit/nu_plugin_compress` (⭐ 42, pinned to Nu 0.103)
+- [ ] `devyn/nu_plugin_dbus` (⭐ 34, pinned to Nu 0.101)
+- [ ] `FMotalleb/nu_plugin_audio_hook` (⭐ 24, pinned to Nu 0.110)
+- [ ] `JosephTLyons/nu_plugin_units` (⭐ 18, pinned to Nu 0.106)
 
 | Do now (low risk) | Courtesy zips (mirrors live) | Parallel plugin track | Do not |
 |-------------------|------------------------------|------------------------|--------|
