@@ -329,6 +329,12 @@ def _validate_activation(args: argparse.Namespace) -> int | None:
             file=sys.stderr,
         )
         return 1
+    if args.provisional and not (args.deferral_reason and args.deferral_reason.strip()):
+        print(
+            "FAIL: --provisional requires non-blank --deferral-reason",
+            file=sys.stderr,
+        )
+        return 1
     if args.activation_kind:
         add_package = _load_add_package()
         try:
@@ -396,15 +402,19 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
     """
     if args.write:
         add_package_script = REPO_ROOT / "scripts" / "add-package.py"
+        cmd = [
+            sys.executable,
+            str(add_package_script),
+            "--spec",
+            str(out_path),
+            "--write",
+        ]
+        if args.provisional:
+            cmd.append("--provisional")
+            if getattr(args, "deferral_reason", None):
+                cmd.extend(["--deferral-reason", args.deferral_reason])
         result = subprocess.run(
-            [
-                sys.executable,
-                str(add_package_script),
-                "--spec",
-                str(out_path),
-                "--write",
-                *(["--provisional"] if args.provisional else []),
-            ],
+            cmd,
             cwd=REPO_ROOT,
             check=False,
         )
@@ -434,14 +444,61 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
     return None
 
 
+def _extract_owner_name_from_url(url: str) -> tuple[str, str] | None:
+    """Extract (owner, name) from a git URL or repo slug, stripping any .git suffix."""
+    m = re.search(r"[:/]([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+?)(?:\.git)?$", url)
+    if m:
+        owner, name = m.group(1), m.group(2)
+        if "@" in owner:
+            owner = owner.split("@", 1)[1]
+        return owner, name
+    return None
+
+
+def _resolve_owner_name(args: argparse.Namespace) -> None:
+    """Infer owner and name from --git-url if not explicitly provided."""
+    if args.owner and args.name:
+        return
+    parsed = _extract_owner_name_from_url(args.git_url)
+    if parsed:
+        owner, name = parsed
+        args.owner = args.owner or owner
+        args.name = args.name or name
+
+
+def _normalize_cli_args(args: argparse.Namespace) -> int | None:
+    """Normalize and validate CLI arguments, resolving aliases and repo slugs."""
+    git_url = args.git_url or args.repo
+    if not git_url:
+        print("FAIL: either --git-url or --repo is required", file=sys.stderr)
+        return 1
+    if not any(git_url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
+        git_url = f"https://github.com/{git_url}"
+    args.git_url = git_url
+
+    ref = args.ref or args.commit
+    if not ref:
+        print("FAIL: either --ref or --commit is required", file=sys.stderr)
+        return 1
+    args.ref = ref
+
+    _resolve_owner_name(args)
+    if not args.owner or not args.name:
+        print("FAIL: --owner and --name are required", file=sys.stderr)
+        return 1
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     """Resolve, archive, publish, and emit a registry spec for a non-binary package."""
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--git-url", required=True)
-    ap.add_argument("--ref", required=True)
+    ap.add_argument("--git-url", default=None, help="Git clone URL")
+    ap.add_argument("--repo", default=None, help="Repository URL or owner/name slug")
+    ap.add_argument("--ref", default=None, help="Branch, tag, or commit ref")
+    ap.add_argument("--commit", default=None, help="Commit SHA or ref alias")
     ap.add_argument("--entry", required=True)
-    ap.add_argument("--name", required=True)
-    ap.add_argument("--owner", required=True)
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--owner", default=None)
     ap.add_argument("--type", required=True, choices=VALID_TYPES, dest="pkg_type")
     ap.add_argument("--description", required=True)
     ap.add_argument("--tags", required=True, help="JSON array of tag strings")
@@ -452,6 +509,11 @@ def main(argv: list[str] | None = None) -> int:
         "--provisional",
         action="store_true",
         help="Allow activation-bearing specs without lifecycle evidence",
+    )
+    ap.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Reason for provisional intake (passed to add-package.py)",
     )
     ap.add_argument(
         "--version",
@@ -465,7 +527,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument(
         "--release-repo",
-        required=True,
+        default="tonythethompson/numan-registry",
         help="owner/repo to publish the archive as a GitHub release asset on",
     )
     ap.add_argument(
@@ -476,6 +538,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--write", action="store_true", help="Chain into add-package.py --write")
     args = ap.parse_args(argv)
+
+    norm_err = _normalize_cli_args(args)
+    if norm_err is not None:
+        return norm_err
 
     activation_err = _validate_activation(args)
     if activation_err is not None:

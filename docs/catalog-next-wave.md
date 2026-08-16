@@ -147,16 +147,16 @@ Following the August 2026 Intake Process Reform (governed by ADR 0001 and implem
 
 Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 
-- [ ] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
-- [ ] `fj0r/docker.nu` — Docker container management tools
-- [ ] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
-- [ ] `fj0r/git.nu` — Git toolset & helpers
-- [ ] `lassoColombo/conventional-commits` — conventional commits parser
-- [ ] `nushell-prophet/nu-history-tools` — shell history analytics & graphs
-- [ ] `ArmoredPony/nu-digital-rain` — terminal digital rain effect
-- [ ] `yh17549/nu-dir-bookmark` — directory bookmarking & jump
+- [x] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
+- [x] `fj0r/docker.nu` — Docker container management tools
+- [x] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
+- [x] `fj0r/git.nu` — Git toolset & helpers
+- [x] `lassoColombo/conventional-commits` — conventional commits parser
+- [x] `nushell-prophet/nu-history-tools` — shell history analytics & graphs
+- [x] `ArmoredPony/nu-digital-rain` — terminal digital rain effect
+- [x] `yh17549/nu-dir-bookmark` — directory bookmarking & jump
 - [ ] `freepicheep/nu-salesforce` & `freepicheep/nu-quickbooks` — enterprise data clients
-- [ ] `Yethal/terraform-importer` — Terraform state importer
+- [x] `Yethal/terraform-importer` — Terraform state importer
 
 ### 3. Credential-Bound Packages (P6 Provisional Evidence Tier)
 

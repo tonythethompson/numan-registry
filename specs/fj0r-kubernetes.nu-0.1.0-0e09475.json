@@ -1,0 +1,25 @@
+{
+  "owner": "fj0r",
+  "name": "kubernetes.nu",
+  "description": "Kubernetes and kubectl helper functions, context management, and tools for Nushell",
+  "repo": "https://github.com/fj0r/kubernetes.nu",
+  "type": "module",
+  "tags": [
+    "module",
+    "kubernetes",
+    "k8s",
+    "kubectl"
+  ],
+  "version": "0.1.0-0e09475",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-kubernetes.nu-0.1.0-0e09475/fj0r-kubernetes.nu-0.1.0-0e09475.tar.gz",
+    "entry": "kubernetes/mod.nu",
+    "sha256": "77908dd5866897060531047f3a9bb1798aaead26b067dcba89b248f80682dff3"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}

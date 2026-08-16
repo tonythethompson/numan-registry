@@ -1,0 +1,26 @@
+{
+  "owner": "fj0r",
+  "name": "ai.nu",
+  "description": "AI client and CLI wrapper for OpenAI, Gemini, and Ollama in Nushell",
+  "repo": "https://github.com/fj0r/ai.nu",
+  "type": "module",
+  "tags": [
+    "module",
+    "ai",
+    "llm",
+    "openai",
+    "ollama"
+  ],
+  "version": "0.1.0-2e71068",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-ai.nu-0.1.0-2e71068/fj0r-ai.nu-0.1.0-2e71068.tar.gz",
+    "entry": "ai/mod.nu",
+    "sha256": "a64b18137e5a6dc415b050b95a8b511d7bcf08188f0bc054836bf79331888a10"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}

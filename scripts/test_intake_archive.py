@@ -455,6 +455,7 @@ class MainEndToEndTests(unittest.TestCase):
                         "--activation-kind", "nu-module",
                         "--activation-import", "all",
                         "--provisional",
+                        "--deferral-reason", "test deferral",
                         "--release-repo", "owner/repo",
                         "--out", str(out_path),
                         "--manifest-archives", str(manifest_path),
@@ -637,6 +638,96 @@ class MainEndToEndTests(unittest.TestCase):
             self.assertEqual(code, 3)
             mock_upload.assert_called_once()
             self.assertFalse(manifest_path.exists(), "manifest should not record a package the registry rejected")
+
+    def test_repo_and_commit_aliases_and_deferral_reason(self):
+        sha = "f" * 40
+        upload_url = "https://github.com/tonythethompson/numan-registry/releases/download/archive-someone-cool-mod-0.1.0-fffffff/someone-cool-mod-0.1.0-fffffff.tar.gz"
+        calls = []
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd)
+            if cmd[:2] == ["git", "ls-remote"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=f"{sha}\tHEAD\n", stderr="")
+            if len(cmd) > 1 and "add-package.py" in cmd[1]:
+                return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        def fake_clone(git_url, resolved_sha, dest):
+            dest.mkdir(parents=True)
+            (dest / "mod.nu").write_text("export def main [] {}\n", encoding="utf-8")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_path = Path(tmp) / "spec.json"
+            manifest_path = Path(tmp) / "manifest-archives.json"
+
+            with (
+                mock.patch.object(self.mod.subprocess, "run", side_effect=fake_run),
+                mock.patch.object(self.mod, "shallow_clone_at", side_effect=fake_clone),
+                mock.patch.object(self.mod, "upload_to_release", return_value=upload_url) as mock_upload,
+            ):
+                code = self.mod.main(
+                    [
+                        "--repo", "someone/cool-mod",
+                        "--commit", sha,
+                        "--entry", "mod.nu",
+                        "--type", "module",
+                        "--description", "A cool module",
+                        "--tags", '["module"]',
+                        "--nu-version", ">=0.114.0 <0.115.0",
+                        "--activation-kind", "nu-module",
+                        "--activation-import", "all",
+                        "--provisional",
+                        "--deferral-reason", "Wave 4 Lane 2 non-binary script archive intake",
+                        "--out", str(out_path),
+                        "--manifest-archives", str(manifest_path),
+                        "--write",
+                    ]
+                )
+
+            self.assertEqual(code, 0)
+            mock_upload.assert_called_once()
+            add_package_calls = [c for c in calls if len(c) > 1 and "add-package.py" in c[1]]
+            self.assertEqual(len(add_package_calls), 1)
+            self.assertIn("--provisional", add_package_calls[0])
+            self.assertIn("--deferral-reason", add_package_calls[0])
+            self.assertIn("Wave 4 Lane 2 non-binary script archive intake", add_package_calls[0])
+
+    def test_extract_owner_name_from_url(self):
+        cases = [
+            ("git@github.com:owner/repo.git", ("owner", "repo")),
+            ("https://github.com/owner/repo.git", ("owner", "repo")),
+            ("https://github.com/owner/repo", ("owner", "repo")),
+            ("git://github.com/owner/repo.git", ("owner", "repo")),
+            ("ssh://git@github.com/owner/repo.git", ("owner", "repo")),
+            ("owner/repo.git", ("owner", "repo")),
+            ("owner/repo", ("owner", "repo")),
+        ]
+        for url, expected in cases:
+            with self.subTest(url=url):
+                if not any(url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
+                    norm_url = f"https://github.com/{url}"
+                else:
+                    norm_url = url
+                self.assertEqual(self.mod._extract_owner_name_from_url(norm_url), expected)
+
+    def test_provisional_requires_deferral_reason_fails_fast(self):
+        mock_upload = mock.MagicMock()
+        with mock.patch.object(self.mod, "upload_to_release", mock_upload):
+            code = self.mod.main(
+                [
+                    "--repo", "someone/cool-mod",
+                    "--commit", "a" * 40,
+                    "--entry", "mod.nu",
+                    "--type", "module",
+                    "--description", "desc",
+                    "--tags", "[]",
+                    "--nu-version", ">=0.114.0",
+                    "--activation-kind", "nu-module",
+                    "--provisional",
+                ]
+            )
+        self.assertEqual(code, 1)
+        mock_upload.assert_not_called()
 
 
 if __name__ == "__main__":

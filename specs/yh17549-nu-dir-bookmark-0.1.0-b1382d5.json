@@ -1,0 +1,23 @@
+{
+  "owner": "yh17549",
+  "name": "nu-dir-bookmark",
+  "description": "Directory bookmarking and navigation helpers for Nushell",
+  "repo": "https://github.com/yh17549/nu-dir-bookmark",
+  "type": "module",
+  "tags": [
+    "module",
+    "bookmark",
+    "navigation"
+  ],
+  "version": "0.1.0-b1382d5",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-yh17549-nu-dir-bookmark-0.1.0-b1382d5/yh17549-nu-dir-bookmark-0.1.0-b1382d5.tar.gz",
+    "entry": "bookmark_for_dir.nu",
+    "sha256": "975c47eedb21aff35e150e5817afac1ec5f76db2ab58687241e733d592d71996"
+  },
+  "activation": {
+    "kind": "nu-module"
+  }
+}

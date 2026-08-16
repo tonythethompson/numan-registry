@@ -41,6 +41,12 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
         )
         self.assertEqual(
             self.sync.artifact_provenance(
+                "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-ai.nu-0.1.0-2e71068/fj0r-ai.nu-0.1.0-2e71068.tar.gz"
+            ),
+            "mirror",
+        )
+        self.assertEqual(
+            self.sync.artifact_provenance(
                 "https://github.com/tonythethompson/numan-plugins/releases/download/p-1.0.0/p.tar.gz"
             ),
             "ci-built",
