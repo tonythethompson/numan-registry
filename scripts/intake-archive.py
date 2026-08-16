@@ -438,6 +438,44 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
     return None
 
 
+def _resolve_owner_name(args: argparse.Namespace) -> None:
+    """Infer owner and name from --repo or --git-url if not explicitly provided."""
+    if args.owner and args.name:
+        return
+    if args.repo and "/" in args.repo and not args.repo.startswith("http"):
+        parts = args.repo.split("/", 1)
+        args.owner = args.owner or parts[0]
+        args.name = args.name or parts[1]
+    elif args.git_url:
+        match = re.search(r"github\.com[/:]([\w.-]+)/([\w.-]+?)(?:\.git)?$", args.git_url)
+        if match:
+            args.owner = args.owner or match.group(1)
+            args.name = args.name or match.group(2)
+
+
+def _normalize_cli_args(args: argparse.Namespace) -> int | None:
+    """Normalize and validate CLI arguments, resolving aliases and repo slugs."""
+    git_url = args.git_url or args.repo
+    if not git_url:
+        print("FAIL: either --git-url or --repo is required", file=sys.stderr)
+        return 1
+    if not any(git_url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
+        git_url = f"https://github.com/{git_url}"
+    args.git_url = git_url
+
+    ref = args.ref or args.commit
+    if not ref:
+        print("FAIL: either --ref or --commit is required", file=sys.stderr)
+        return 1
+    args.ref = ref
+
+    _resolve_owner_name(args)
+    if not args.owner or not args.name:
+        print("FAIL: --owner and --name are required", file=sys.stderr)
+        return 1
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     """Resolve, archive, publish, and emit a registry spec for a non-binary package."""
     ap = argparse.ArgumentParser(description=__doc__)
@@ -488,38 +526,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--write", action="store_true", help="Chain into add-package.py --write")
     args = ap.parse_args(argv)
 
-    git_url = args.git_url or args.repo
-    if not git_url:
-        print("FAIL: either --git-url or --repo is required", file=sys.stderr)
-        return 1
-    if not any(git_url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
-        git_url = f"https://github.com/{git_url}"
-    args.git_url = git_url
-
-    ref = args.ref or args.commit
-    if not ref:
-        print("FAIL: either --ref or --commit is required", file=sys.stderr)
-        return 1
-    args.ref = ref
-
-    if not args.owner or not args.name:
-        if args.repo and "/" in args.repo and not args.repo.startswith("http"):
-            parts = args.repo.split("/", 1)
-            if not args.owner:
-                args.owner = parts[0]
-            if not args.name:
-                args.name = parts[1]
-        elif args.git_url:
-            match = re.search(r"github\.com[/:]([\w.-]+)/([\w.-]+?)(?:\.git)?$", args.git_url)
-            if match:
-                if not args.owner:
-                    args.owner = match.group(1)
-                if not args.name:
-                    args.name = match.group(2)
-
-    if not args.owner or not args.name:
-        print("FAIL: --owner and --name are required", file=sys.stderr)
-        return 1
+    norm_err = _normalize_cli_args(args)
+    if norm_err is not None:
+        return norm_err
 
     activation_err = _validate_activation(args)
     if activation_err is not None:
