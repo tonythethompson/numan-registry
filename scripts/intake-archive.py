@@ -329,6 +329,12 @@ def _validate_activation(args: argparse.Namespace) -> int | None:
             file=sys.stderr,
         )
         return 1
+    if args.provisional and not (args.deferral_reason and args.deferral_reason.strip()):
+        print(
+            "FAIL: --provisional requires non-blank --deferral-reason",
+            file=sys.stderr,
+        )
+        return 1
     if args.activation_kind:
         add_package = _load_add_package()
         try:
@@ -438,19 +444,26 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
     return None
 
 
+def _extract_owner_name_from_url(url: str) -> tuple[str, str] | None:
+    """Extract (owner, name) from a git URL or repo slug, stripping any .git suffix."""
+    m = re.search(r"[:/]([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+?)(?:\.git)?$", url)
+    if m:
+        owner, name = m.group(1), m.group(2)
+        if "@" in owner:
+            owner = owner.split("@", 1)[1]
+        return owner, name
+    return None
+
+
 def _resolve_owner_name(args: argparse.Namespace) -> None:
-    """Infer owner and name from --repo or --git-url if not explicitly provided."""
+    """Infer owner and name from --git-url if not explicitly provided."""
     if args.owner and args.name:
         return
-    if args.repo and "/" in args.repo and not args.repo.startswith("http"):
-        parts = args.repo.split("/", 1)
-        args.owner = args.owner or parts[0]
-        args.name = args.name or parts[1]
-    elif args.git_url:
-        match = re.search(r"github\.com[/:]([\w.-]+)/([\w.-]+?)(?:\.git)?$", args.git_url)
-        if match:
-            args.owner = args.owner or match.group(1)
-            args.name = args.name or match.group(2)
+    parsed = _extract_owner_name_from_url(args.git_url)
+    if parsed:
+        owner, name = parsed
+        args.owner = args.owner or owner
+        args.name = args.name or name
 
 
 def _normalize_cli_args(args: argparse.Namespace) -> int | None:

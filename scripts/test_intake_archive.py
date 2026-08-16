@@ -455,6 +455,7 @@ class MainEndToEndTests(unittest.TestCase):
                         "--activation-kind", "nu-module",
                         "--activation-import", "all",
                         "--provisional",
+                        "--deferral-reason", "test deferral",
                         "--release-repo", "owner/repo",
                         "--out", str(out_path),
                         "--manifest-archives", str(manifest_path),
@@ -690,6 +691,43 @@ class MainEndToEndTests(unittest.TestCase):
             self.assertIn("--provisional", add_package_calls[0])
             self.assertIn("--deferral-reason", add_package_calls[0])
             self.assertIn("Wave 4 Lane 2 non-binary script archive intake", add_package_calls[0])
+
+    def test_extract_owner_name_from_url(self):
+        cases = [
+            ("git@github.com:owner/repo.git", ("owner", "repo")),
+            ("https://github.com/owner/repo.git", ("owner", "repo")),
+            ("https://github.com/owner/repo", ("owner", "repo")),
+            ("git://github.com/owner/repo.git", ("owner", "repo")),
+            ("ssh://git@github.com/owner/repo.git", ("owner", "repo")),
+            ("owner/repo.git", ("owner", "repo")),
+            ("owner/repo", ("owner", "repo")),
+        ]
+        for url, expected in cases:
+            with self.subTest(url=url):
+                if not any(url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
+                    norm_url = f"https://github.com/{url}"
+                else:
+                    norm_url = url
+                self.assertEqual(self.mod._extract_owner_name_from_url(norm_url), expected)
+
+    def test_provisional_requires_deferral_reason_fails_fast(self):
+        mock_upload = mock.MagicMock()
+        with mock.patch.object(self.mod, "upload_to_release", mock_upload):
+            code = self.mod.main(
+                [
+                    "--repo", "someone/cool-mod",
+                    "--commit", "a" * 40,
+                    "--entry", "mod.nu",
+                    "--type", "module",
+                    "--description", "desc",
+                    "--tags", "[]",
+                    "--nu-version", ">=0.114.0",
+                    "--activation-kind", "nu-module",
+                    "--provisional",
+                ]
+            )
+        self.assertEqual(code, 1)
+        mock_upload.assert_not_called()
 
 
 if __name__ == "__main__":

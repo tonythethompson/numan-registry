@@ -39,7 +39,7 @@ def load_json(path: Path) -> Any:
 
 def artifact_provenance(url: str) -> str:
     """Classify a pinned artifact URL as mirror, ci-built, upstream, or other."""
-    if "numan-registry/releases/download/mirror-" in url:
+    if "numan-registry/releases/download/" in url or "tonythethompson/numan-registry/releases/" in url:
         return "mirror"
     if "tonythethompson/numan-plugins/releases/" in url:
         return "ci-built"
