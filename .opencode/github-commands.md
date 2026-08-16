@@ -69,67 +69,51 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
 
 ### Posting behavior
 
-**One comment per actionable finding.** Do NOT write one big review. Instead:
+**CRITICAL REQUIREMENT: YOU MUST POST EACH FINDING VIA THE `bash` TOOL BEFORE RETURNING.**
+Do NOT dump findings into your final response text. Instead:
 
-1. Identify the actionable findings. An actionable finding is one where you can point at a
-   concrete problem in the code and, when feasible, propose a specific change.
-2. Post each actionable finding as its **own resolvable review thread** via the `gh` CLI
-   (preinstalled in GitHub Actions; the workflow sets `GH_TOKEN` from `secrets.GITHUB_TOKEN`, so no login is needed).
-   needed). Fall back down this ladder until the finding is posted:
+1. **Identify the actionable findings in the PR diff.**
+2. **For EVERY finding located in the PR diff, you MUST execute a `bash` tool call** to post it as an **individual inline resolvable review thread** via `gh api`:
 
-   a. **Inline line comment** (preferred) — pins the finding to a line in the PR diff and
-      creates a resolvable thread. Query the current PR head SHA (e.g.
-      `gh pr view "$PR_NUMBER" --json headRefOid --jq .headRefOid`) and use that value
-      as `commit_id`, plus the file and line the finding is about:
+   a. **Inline line comment with committable suggestion** (REQUIRED for diff lines):
+      Pins the finding to a line in the PR diff and creates a resolvable thread with a one-click commit button. Query the current PR head SHA and use that as `commit_id`:
 
       ```bash
-      gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
+      HEAD_SHA=$(gh pr view "$PR_NUMBER" -R "$REPO" --json headRefOid --jq .headRefOid)
+      cat <<'EOF' > finding.md
+      **[P1] Bug title** — explanation of the issue.
+
+      ```suggestion
+      <exact replacement lines matching the current file content>
+      ```
+      EOF
+
+      gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
         -F body=@finding.md \
-        -f path="src/example.ts" \
-        -F line=42 \
+        -f path="registry/index.json" \
+        -F line=2469 \
         -f commit_id="$HEAD_SHA"
       ```
 
-      For a finding spanning a line range, add `-F start_line=<first line>` (and, for a
-      deletion, `-f start_side=LEFT`).
+      For line ranges, add `-F start_line=<first line>` (and `-f start_side=LEFT` for deletions).
 
-   b. **File-level comment** — if the line is not part of the diff (the call above returns a
-      422), retry against the file without a line number:
-
+   b. **File-level comment** (fallback if line is not in the diff):
       ```bash
-      gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
+      gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
         -F body=@finding.md \
-        -f path="src/example.ts" \
+        -f path="registry/index.json" \
         -f subject_type=file
       ```
 
-   c. **Issue comment** (last resort) — if the file is not in the PR diff either, post to
-      the timeline (not a resolvable thread) and flag it in the "Out of diff" section of
-      the summary:
-
+   c. **Issue comment** (last resort only for findings with NO file in the diff):
       ```bash
-      gh api repos/{owner}/{repo}/issues/{pr_number}/comments -F body=@finding.md
+      gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" -F body=@finding.md
       ```
 
-   Derive `owner`/`repo` from `baseRepository.nameWithOwner` in the `<pull_request>`
-   context (split on `/`), `pr_number` from `Number:`, and `HEAD_SHA` from
-   `Head: { Sha: ... }` or `gh pr view`. Write the finding body to a temp file (`finding.md`)
-   and pass with `-F body=@finding.md` rather than passing a giant string, so multiline
-   Markdown and code blocks survive intact. Post threads one at a time — this endpoint is
-   secondary-rate-limited if you post too fast — and keep a list of the posted comment
-   IDs/URLs and of which findings fell back to an issue comment. If a `gh` call fails at
-   every level, do not stop the review — record the finding in the "Out of diff" section of
-   the summary instead.
-3. **Your final reply text** (what the action posts as the single reply comment) must be a
-   **short summary index**: overall assessment; one line per threaded finding with its
-   file:line, severity, and a link to that finding's comment (both endpoint responses
-   include the `html_url`); and an **"Out of diff"** section listing every finding that
-   could not be posted as a review thread — fallback issue comments and any finding with no
-   diff location (e.g. missing tests, missing docs, cross-file concerns) — with its
-   severity, the file name(s) and line(s) it covers, and the issue found. Keep the rest
-   tight — the detail lives in the per-finding comments.
-4. Group low-severity nits and non-actionable observations into the final summary comment
-   instead of posting more comments.
+3. **Your final response text MUST ONLY be a concise overall summary:**
+   - A high-level assessment of the changes and review outcome.
+   - An **"Out of diff"** section detailing any findings that have no diff location (e.g. missing test suites, cross-file architectural concerns, or files untouched by the PR). For each out-of-diff finding, you must include: **file name**, **line number or range** (when applicable), **severity**, and **the issue description**.
+   - Do NOT duplicate the inline finding bodies or list links to created comments in your final text—all inline findings and committable code suggestions live directly in the threads created in step 2.
 
 ### Committing behavior — suggestions only
 
