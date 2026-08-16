@@ -125,6 +125,27 @@ class FetchReadmeAndMainTests(unittest.TestCase):
                 content = audit.fetch_readme(Path("dummy.md"))
                 self.assertIn("## Plugins", content)
 
+    def test_load_json_file_remote_fallback(self):
+        with mock.patch.object(Path, "exists", return_value=False):
+            with mock.patch.object(audit, "fetch_readme", return_value='{"active": ["mock"]}'):
+                data = audit.load_json_file(
+                    Path("missing.json"),
+                    {"active": []},
+                    fallback_url="https://example.com/manifest.json",
+                )
+                self.assertEqual(data, {"active": ["mock"]})
+
+    def test_load_json_file_missing_warning(self):
+        with mock.patch.object(Path, "exists", return_value=False):
+            with mock.patch("sys.stderr.write") as mock_err:
+                data = audit.load_json_file(
+                    Path("missing.json"),
+                    {"fallback": True},
+                    dataset_name="test dataset",
+                )
+                self.assertEqual(data, {"fallback": True})
+                self.assertTrue(mock_err.called)
+
     def test_main_cli(self):
         with mock.patch.object(audit, "fetch_readme", return_value="## Plugins\n- [nu_plugin_audio](https://github.com/SuaveIV/nu_plugin_audio): Audio"):
             with mock.patch.object(audit, "load_json_file", return_value={"packages": []}):

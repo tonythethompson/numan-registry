@@ -245,10 +245,37 @@ def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
         return resp.read().decode("utf-8")
 
 
-def load_json_file(path: Path | None, fallback: dict[str, Any]) -> dict[str, Any]:
-    """Safely load JSON file or return fallback dict."""
+DEFAULT_MANIFEST_URL = (
+    "https://raw.githubusercontent.com/tonythethompson/numan-plugins/main/manifest.json"
+)
+DEFAULT_BACKLOG_URL = (
+    "https://raw.githubusercontent.com/tonythethompson/numan-plugins/main/docs/backlog.json"
+)
+
+
+def load_json_file(
+    path: Path | None,
+    fallback: dict[str, Any],
+    fallback_url: str | None = None,
+    dataset_name: str = "",
+) -> dict[str, Any]:
+    """Load JSON from local path, fallback URL, or return default with warning."""
     if path and path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
+
+    if fallback_url:
+        try:
+            content = fetch_readme(None, url=fallback_url)
+            return json.loads(content)
+        except Exception:
+            pass
+
+    if dataset_name:
+        print(
+            f"Warning: {dataset_name} dataset not found at {path}; continuing with empty dataset",
+            file=sys.stderr,
+        )
+
     return fallback
 
 
@@ -264,9 +291,19 @@ def main(argv: list[str] | None = None) -> int:
     readme_content = fetch_readme(args.readme)
     sections = parse_awesome_nu_markdown(readme_content)
 
-    reg_data = load_json_file(args.index, {"packages": []})
-    man_data = load_json_file(args.manifest, {"active": []})
-    bl_data = load_json_file(args.backlog, {"plugins": []})
+    reg_data = load_json_file(args.index, {"packages": []}, dataset_name="registry index")
+    man_data = load_json_file(
+        args.manifest,
+        {"active": []},
+        fallback_url=DEFAULT_MANIFEST_URL,
+        dataset_name="numan-plugins manifest",
+    )
+    bl_data = load_json_file(
+        args.backlog,
+        {"plugins": []},
+        fallback_url=DEFAULT_BACKLOG_URL,
+        dataset_name="numan-plugins backlog",
+    )
 
     reg_by_name, reg_by_repo = build_registry_indices(reg_data)
     man_by_name, man_by_repo = build_manifest_indices(man_data)
