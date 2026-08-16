@@ -1,0 +1,28 @@
+{
+  "owner": "fennewald",
+  "name": "nu_plugin_net",
+  "description": "A Nushell plugin for enumerating network interfaces in a platform-agnostic way.",
+  "repo": "https://github.com/fennewald/nu_plugin_net",
+  "type": "plugin",
+  "tags": ["plugin", "net", "network", "interfaces"],
+  "version": "1.9.0",
+  "nu_version": ">=0.103.0 <0.104.0",
+  "verified_with": ["0.103.0"],
+  "artifact": {
+    "kind": "binary",
+    "targets": {
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/fennewald/nu_plugin_net/releases/download/1.9.0/nu_plugin_net-x86_64-unknown-linux-gnu.tar.xz",
+        "executable_path": "nu_plugin_net-x86_64-unknown-linux-gnu/nu_plugin_net"
+      },
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/fennewald/nu_plugin_net/releases/download/1.9.0/nu_plugin_net-aarch64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_net-aarch64-apple-darwin/nu_plugin_net"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/fennewald/nu_plugin_net/releases/download/1.9.0/nu_plugin_net-x86_64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_net-x86_64-apple-darwin/nu_plugin_net"
+      }
+    }
+  }
+}
