@@ -134,6 +134,39 @@ class AuditPluginsTests(unittest.TestCase):
         self.assertEqual(results[1]["status"], "IN_BACKLOG")
         self.assertEqual(results[2]["status"], "UNTRACKED")
 
+    def test_manifest_and_backlog_repo_slug_matching(self):
+        man_data = {
+            "active": [
+                {
+                    "name": "nu_plugin_custom",
+                    "repo": "https://github.com/org/custom-plugin-repo",
+                }
+            ]
+        }
+        man_by_name, man_by_repo = audit.build_manifest_indices(man_data)
+        self.assertIn("org/custom-plugin-repo", man_by_repo)
+
+        bl_data = {
+            "plugins": [
+                {
+                    "name": "nu_plugin_future",
+                    "repo": "https://github.com/org/future-plugin-repo",
+                }
+            ]
+        }
+        bl_by_name, bl_by_repo = audit.build_backlog_indices(bl_data)
+        self.assertIn("org/future-plugin-repo", bl_by_repo)
+
+        items = [
+            {"name": "different_display_name", "url": "https://github.com/org/custom-plugin-repo", "desc": "Custom"},
+            {"name": "another_display_name", "url": "https://github.com/org/future-plugin-repo", "desc": "Future"},
+        ]
+        results = audit.audit_plugins(
+            items, {}, {}, man_by_name, man_by_repo, bl_by_name, bl_by_repo
+        )
+        self.assertEqual(results[0]["status"], "IN_MANIFEST")
+        self.assertEqual(results[1]["status"], "IN_BACKLOG")
+
 
 class FetchReadmeAndMainTests(unittest.TestCase):
     def test_fetch_readme_local(self):
