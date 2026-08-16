@@ -74,7 +74,7 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
 1. Identify the actionable findings. An actionable finding is one where you can point at a
    concrete problem in the code and, when feasible, propose a specific change.
 2. Post each actionable finding as its **own resolvable review thread** via the `gh` CLI
-   (preinstalled in GitHub Actions; the `GITHUB_TOKEN` env var is available, no login
+   (preinstalled in GitHub Actions; the workflow sets `GH_TOKEN` from `secrets.GITHUB_TOKEN`, so no login is needed).
    needed). Fall back down this ladder until the finding is posted:
 
    a. **Inline line comment** (preferred) — pins the finding to a line in the PR diff and
