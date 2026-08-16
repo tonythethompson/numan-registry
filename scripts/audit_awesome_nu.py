@@ -146,8 +146,12 @@ def match_registry_package(
                     candidates.append(p)
 
     for p in candidates:
+        if clean_name == normalize_name(p["id"]["name"]):
+            return p
+
+    for p in candidates:
         p_norm = normalize_name(p["id"]["name"])
-        if clean_name == p_norm or clean_name in p_norm or p_norm in clean_name:
+        if clean_name in p_norm or p_norm in clean_name:
             return p
 
     if len(candidates) == 1:
@@ -255,11 +259,10 @@ DEFAULT_BACKLOG_URL = (
 
 def load_json_file(
     path: Path | None,
-    fallback: dict[str, Any],
     fallback_url: str | None = None,
-    dataset_name: str = "",
+    dataset_name: str = "dataset",
 ) -> dict[str, Any]:
-    """Load JSON from local path, fallback URL, or return default with warning."""
+    """Load JSON from local path or fallback URL; fail fast on error."""
     if path and path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
 
@@ -267,16 +270,15 @@ def load_json_file(
         try:
             content = fetch_readme(None, url=fallback_url)
             return json.loads(content)
-        except Exception:
-            pass
+        except Exception as err:
+            raise RuntimeError(
+                f"Failed to load {dataset_name} from local path {path} or fallback URL {fallback_url}: {err}"
+            ) from err
 
-    if dataset_name:
-        print(
-            f"Warning: {dataset_name} dataset not found at {path}; continuing with empty dataset",
-            file=sys.stderr,
-        )
+    if path:
+        raise FileNotFoundError(f"{dataset_name} not found at {path}")
 
-    return fallback
+    raise ValueError(f"No path or fallback URL provided for {dataset_name}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -291,16 +293,14 @@ def main(argv: list[str] | None = None) -> int:
     readme_content = fetch_readme(args.readme)
     sections = parse_awesome_nu_markdown(readme_content)
 
-    reg_data = load_json_file(args.index, {"packages": []}, dataset_name="registry index")
+    reg_data = load_json_file(args.index, dataset_name="registry index")
     man_data = load_json_file(
         args.manifest,
-        {"active": []},
         fallback_url=DEFAULT_MANIFEST_URL,
         dataset_name="numan-plugins manifest",
     )
     bl_data = load_json_file(
         args.backlog,
-        {"plugins": []},
         fallback_url=DEFAULT_BACKLOG_URL,
         dataset_name="numan-plugins backlog",
     )

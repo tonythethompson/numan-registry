@@ -94,6 +94,23 @@ class RegistryIndicesAndMatchingTests(unittest.TestCase):
         self.assertIsNotNone(pkg_cargo)
         self.assertEqual(pkg_cargo["id"]["name"], "cargo-completions")
 
+    def test_exact_name_preferred_over_substring(self):
+        reg_data = {
+            "packages": [
+                {"id": {"owner": "a", "name": "nu-git-manager"}, "repo": "https://github.com/a/tools"},
+                {"id": {"owner": "a", "name": "nu-git-manager-sugar"}, "repo": "https://github.com/a/tools"},
+            ]
+        }
+        by_name, by_repo = audit.build_registry_indices(reg_data)
+        pkg = audit.match_registry_package(
+            "nu_git_manager_sugar",
+            "https://github.com/a/tools",
+            by_name,
+            by_repo,
+        )
+        self.assertIsNotNone(pkg)
+        self.assertEqual(pkg["id"]["name"], "nu-git-manager-sugar")
+
 
 class AuditPluginsTests(unittest.TestCase):
     def test_audit_plugins_categorization(self):
@@ -130,21 +147,19 @@ class FetchReadmeAndMainTests(unittest.TestCase):
             with mock.patch.object(audit, "fetch_readme", return_value='{"active": ["mock"]}'):
                 data = audit.load_json_file(
                     Path("missing.json"),
-                    {"active": []},
                     fallback_url="https://example.com/manifest.json",
                 )
                 self.assertEqual(data, {"active": ["mock"]})
 
-    def test_load_json_file_missing_warning(self):
+    def test_load_json_file_fallback_failure_raises(self):
         with mock.patch.object(Path, "exists", return_value=False):
-            with mock.patch("sys.stderr.write") as mock_err:
-                data = audit.load_json_file(
-                    Path("missing.json"),
-                    {"fallback": True},
-                    dataset_name="test dataset",
-                )
-                self.assertEqual(data, {"fallback": True})
-                self.assertTrue(mock_err.called)
+            with mock.patch.object(audit, "fetch_readme", side_effect=RuntimeError("connection error")):
+                with self.assertRaises(RuntimeError):
+                    audit.load_json_file(
+                        Path("missing.json"),
+                        fallback_url="https://example.com/manifest.json",
+                        dataset_name="test manifest",
+                    )
 
     def test_main_cli(self):
         with mock.patch.object(audit, "fetch_readme", return_value="## Plugins\n- [nu_plugin_audio](https://github.com/SuaveIV/nu_plugin_audio): Audio"):
