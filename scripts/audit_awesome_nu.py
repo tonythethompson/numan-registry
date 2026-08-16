@@ -1,269 +1,287 @@
+#!/usr/bin/env python3
+"""Audit awesome-nu inventory against numan-registry and numan-plugins."""
+
+from __future__ import annotations
+
+import argparse
 import json
 import re
 import sys
+import urllib.request
+from pathlib import Path
+from typing import Any
 
-def normalize_name(raw_name):
-    # Strip (cargo-generate template), (String and HTML templating), (ccommit), by <author>, etc.
-    clean = re.sub(r'\s+by\s+.*$', '', raw_name, flags=re.IGNORECASE).strip()
-    clean = re.sub(r'\s*\(.*\)$', '', clean).strip()
-    clean = clean.lower().replace('-', '_')
-    if clean.endswith('.nu'):
+AWESOME_NU_DEFAULT_URL = (
+    "https://raw.githubusercontent.com/nushell/awesome-nu/main/README.md"
+)
+
+
+def normalize_name(raw_name: str) -> str:
+    """Normalize a package or tool name for fuzzy comparison."""
+    clean = re.sub(r"\s+by\s+.*$", "", raw_name, flags=re.IGNORECASE).strip()
+    clean = re.sub(r"\s*\(.*\)$", "", clean).strip()
+    clean = clean.lower().replace("-", "_")
+    if clean.endswith(".nu"):
         clean = clean[:-3]
     return clean
 
-def main():
-    with open('awesome_nu_readme.md', 'r', encoding='utf-8') as f:
-        readme_lines = f.readlines()
 
-    with open('d:/Dev/numan_workspace/numan-registry/registry/index.json', 'r', encoding='utf-8') as f:
-        registry = json.load(f)
+def parse_awesome_nu_markdown(content: str) -> dict[str, list[dict[str, str]]]:
+    """Parse sections and items from awesome-nu markdown content."""
+    item_re = re.compile(r"^- \[([^\]]+)\]\(([^)]+)\):\s*(.*)$")
+    sections: dict[str, list[dict[str, str]]] = {}
+    curr_sec: str | None = None
 
-    with open('d:/Dev/numan_workspace/numan-plugins/manifest.json', 'r', encoding='utf-8') as f:
-        manifest = json.load(f)
-
-    with open('d:/Dev/numan_workspace/numan-plugins/docs/backlog.json', 'r', encoding='utf-8') as f:
-        backlog = json.load(f)
-
-    with open('d:/Dev/numan_workspace/numan-registry/docs/intake-state.json', 'r', encoding='utf-8') as f:
-        intake_state = json.load(f)
-
-    item_re = re.compile(r'^- \[([^\]]+)\]\(([^)]+)\):\s*(.*)$')
-    sections = {}
-    curr_sec = None
-    for line in readme_lines:
-        m = re.match(r'^##\s+(.*)', line)
-        if m:
-            curr_sec = m.group(1).strip()
+    for line in content.splitlines():
+        heading_match = re.match(r"^##\s+(.*)", line)
+        if heading_match:
+            curr_sec = heading_match.group(1).strip()
             sections[curr_sec] = []
-        elif curr_sec and line.strip().startswith('- ['):
-            m_item = item_re.match(line.strip())
-            if m_item:
-                name, url, desc = m_item.groups()
-                sections[curr_sec].append({
-                    'name': name.strip(),
-                    'url': url.strip(),
-                    'desc': desc.strip(),
-                })
+        elif curr_sec and line.strip().startswith("- ["):
+            item_match = item_re.match(line.strip())
+            if item_match:
+                name, url, desc = item_match.groups()
+                sections[curr_sec].append(
+                    {
+                        "name": name.strip(),
+                        "url": url.strip(),
+                        "desc": desc.strip(),
+                    }
+                )
 
-    reg_pkgs = registry.get('packages', [])
-    reg_by_name = {}
-    reg_by_repo = {}
-    for p in reg_pkgs:
-        name = p['id']['name'].lower()
-        owner = p['id']['owner'].lower()
-        repo = p.get('repo', '').lower().rstrip('/')
-        reg_by_name[name] = p
-        reg_by_name[f'{owner}/{name}'] = p
+    return sections
+
+
+def build_registry_indices(
+    registry_data: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, list[Any]]]:
+    """Build name-based and repo-based lookup indices for registry packages."""
+    by_name: dict[str, Any] = {}
+    by_repo: dict[str, list[Any]] = {}
+
+    for pkg in registry_data.get("packages", []):
+        name = pkg["id"]["name"].lower()
+        owner = pkg["id"]["owner"].lower()
+        repo = pkg.get("repo", "").lower().rstrip("/")
+
+        by_name[name] = pkg
+        by_name[f"{owner}/{name}"] = pkg
+
         if repo:
-            reg_by_repo[repo] = p
+            by_repo.setdefault(repo, []).append(pkg)
 
-    manifest_active = manifest.get('active', [])
-    manifest_by_name = {m['name'].lower().replace('-', '_'): m for m in manifest_active}
-    manifest_by_repo = {m['repo'].lower(): m for m in manifest_active}
+    return by_name, by_repo
 
-    backlog_plugins = backlog.get('plugins', [])
-    backlog_by_name = {}
-    backlog_by_repo = {}
-    for b in backlog_plugins:
-        if 'name' in b:
-            backlog_by_name[normalize_name(b['name'])] = b
-        if 'repo' in b:
-            backlog_by_repo[b['repo'].lower().rstrip('/')] = b
 
-    print("=================================================================")
-    print("1. SUMMARY STATS")
-    print("=================================================================")
-    print("Awesome-Nu Inventory by Category:")
-    for s, items in sections.items():
-        print(f"  - {s}: {len(items)}")
+def build_manifest_indices(
+    manifest_data: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build name-based and repo-based lookup indices for manifest plugins."""
+    by_name: dict[str, Any] = {}
+    by_repo: dict[str, Any] = {}
 
-    print(f"\nNuman Catalog State:")
-    print(f"  - Total Packages in registry/index.json: {len(reg_pkgs)}")
-    t_counts = {}
-    for p in reg_pkgs:
-        t_counts[p.get('type')] = t_counts.get(p.get('type'), 0) + 1
-    for t, c in sorted(t_counts.items()):
-        print(f"      * {t}: {c}")
-    print(f"  - numan-plugins active (CI build matrix): {len(manifest_active)}")
-    print(f"  - numan-plugins backlog tracking entries: {len(backlog_plugins)}")
+    for entry in manifest_data.get("active", []):
+        c_name = entry.get("name", "").lower().replace("-", "_")
+        repo = entry.get("repo", "").lower().rstrip("/")
+        if c_name:
+            by_name[c_name] = entry
+        if repo:
+            by_repo[repo] = entry
 
-    print("\n=================================================================")
-    print("2. AWESOME-NU PLUGINS vs NUMAN (PLUGINS)")
-    print("=================================================================")
-    plugins_items = sections.get('Plugins', [])
-    in_registry = []
-    in_manifest_not_reg = []
-    in_backlog_only = []
-    untracked = []
+    return by_name, by_repo
 
-    for item in plugins_items:
-        raw_name = item['name']
+
+def build_backlog_indices(
+    backlog_data: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build name-based and repo-based lookup indices for backlog plugins."""
+    by_name: dict[str, Any] = {}
+    by_repo: dict[str, Any] = {}
+
+    for entry in backlog_data.get("plugins", []):
+        if "name" in entry:
+            by_name[normalize_name(entry["name"])] = entry
+        if "repo" in entry:
+            by_repo[entry["repo"].lower().rstrip("/")] = entry
+
+    return by_name, by_repo
+
+
+def extract_repo_slug(url: str) -> str | None:
+    """Extract repository slug from GitHub, Codeberg, or GitLab URL."""
+    low = url.lower().rstrip("/")
+    if "github.com/" in low:
+        return low.split("github.com/")[-1].split("/tree/")[0]
+    if "codeberg.org/" in low:
+        return low.split("codeberg.org/")[-1].split("/src/")[0]
+    if "gitlab.com/" in low:
+        return low.split("gitlab.com/")[-1]
+    return None
+
+
+def match_registry_package(
+    clean_name: str,
+    url: str,
+    by_name: dict[str, Any],
+    by_repo: dict[str, list[Any]],
+) -> Any | None:
+    """Match an awesome-nu item to a registry package, disambiguating multi-package repos."""
+    if clean_name in by_name:
+        return by_name[clean_name]
+
+    url_clean = url.lower().rstrip("/")
+    candidates: list[Any] = []
+
+    if url_clean in by_repo:
+        candidates.extend(by_repo[url_clean])
+
+    repo_slug = extract_repo_slug(url)
+    for r_url, pkgs in by_repo.items():
+        if (repo_slug and repo_slug in r_url) or (r_url and r_url in url_clean):
+            for p in pkgs:
+                if p not in candidates:
+                    candidates.append(p)
+
+    for p in candidates:
+        p_norm = normalize_name(p["id"]["name"])
+        if clean_name == p_norm or clean_name in p_norm or p_norm in clean_name:
+            return p
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    return None
+
+
+def audit_plugins(
+    items: list[dict[str, str]],
+    reg_by_name: dict[str, Any],
+    reg_by_repo: dict[str, list[Any]],
+    man_by_name: dict[str, Any],
+    man_by_repo: dict[str, Any],
+    backlog_by_name: dict[str, Any],
+    backlog_by_repo: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Audit plugins from awesome-nu against catalog and backlog."""
+    results: list[dict[str, Any]] = []
+
+    for item in items:
+        raw_name = item["name"]
         c_name = normalize_name(raw_name)
-        url = item['url'].lower().rstrip('/')
-        repo_slug = None
-        if 'github.com/' in url:
-            repo_slug = url.split('github.com/')[-1].split('/tree/')[0]
-        elif 'codeberg.org/' in url:
-            repo_slug = url.split('codeberg.org/')[-1].split('/src/')[0]
-        elif 'gitlab.com/' in url:
-            repo_slug = url.split('gitlab.com/')[-1]
+        url = item["url"]
+        repo_slug = extract_repo_slug(url)
 
-        # Check match in registry
-        match_reg = None
-        if c_name in reg_by_name:
-            match_reg = reg_by_name[c_name]
-        elif url in reg_by_repo:
-            match_reg = reg_by_repo[url]
-        else:
-            for r_url, p in reg_by_repo.items():
-                if repo_slug and repo_slug in r_url:
-                    match_reg = p
-                    break
-                if r_url and (r_url in url or url in r_url):
-                    match_reg = p
-                    break
-
+        match_reg = match_registry_package(c_name, url, reg_by_name, reg_by_repo)
         if match_reg:
-            in_registry.append((item, match_reg))
+            results.append({"item": item, "status": "IN_REGISTRY", "match": match_reg})
             continue
 
-        # Check match in manifest
-        match_man = None
-        if c_name in manifest_by_name:
-            match_man = manifest_by_name[c_name]
-        elif repo_slug and repo_slug in manifest_by_repo:
-            match_man = manifest_by_repo[repo_slug]
-
+        match_man = man_by_name.get(c_name)
+        if not match_man and repo_slug:
+            match_man = man_by_repo.get(repo_slug)
         if match_man:
-            in_manifest_not_reg.append((item, match_man))
+            results.append({"item": item, "status": "IN_MANIFEST", "match": match_man})
             continue
 
-        # Check backlog
-        match_bl = None
-        if c_name in backlog_by_name:
-            match_bl = backlog_by_name[c_name]
-        elif repo_slug and repo_slug in backlog_by_repo:
-            match_bl = backlog_by_repo[repo_slug]
-
+        match_bl = backlog_by_name.get(c_name)
+        if not match_bl and repo_slug:
+            match_bl = backlog_by_repo.get(repo_slug)
         if match_bl:
-            in_backlog_only.append((item, match_bl))
+            results.append({"item": item, "status": "IN_BACKLOG", "match": match_bl})
             continue
 
-        untracked.append(item)
+        results.append({"item": item, "status": "UNTRACKED", "match": None})
 
-    print(f"Awesome-Nu Plugins Total: {len(plugins_items)}")
-    print(f"  [+] In Numan Registry (Available for install): {len(in_registry)}")
-    print(f"  [~] In numan-plugins CI Manifest but not yet in index: {len(in_manifest_not_reg)}")
-    print(f"  [.] In numan-plugins backlog with tracked status: {len(in_backlog_only)}")
-    print(f"  [-] Not tracked in numan-plugins / numan-registry: {len(untracked)}")
+    return results
 
-    print("\n[+] IN REGISTRY (Available to `numan install <plugin>`):")
-    for item, reg in sorted(in_registry, key=lambda x: x[1]['id']['name']):
-        v_list = [f"{v['version']} (Nu: {v.get('nu_version', '*')})" for v in reg.get('versions', [])]
-        targets_count = 0
-        if reg.get('versions') and 'artifact' in reg['versions'][-1] and 'targets' in reg['versions'][-1]['artifact']:
-            targets_count = len(reg['versions'][-1]['artifact']['targets'])
-        print(f"  * {reg['id']['owner']}/{reg['id']['name']} (awesome-nu: '{item['name']}')")
-        print(f"      Versions: {', '.join(v_list)} | Latest targets: {targets_count}")
 
-    print("\n[.] IN BACKLOG (Tracked with reasons):")
-    bl_by_status = {}
-    for item, bl in in_backlog_only:
-        st = bl.get('status', 'UNKNOWN')
-        bl_by_status.setdefault(st, []).append((item, bl))
+def format_plugin_audit(audit_results: list[dict[str, Any]]) -> str:
+    """Format plugin audit results into report string."""
+    in_reg = [r for r in audit_results if r["status"] == "IN_REGISTRY"]
+    in_man = [r for r in audit_results if r["status"] == "IN_MANIFEST"]
+    in_bl = [r for r in audit_results if r["status"] == "IN_BACKLOG"]
+    untracked = [r for r in audit_results if r["status"] == "UNTRACKED"]
 
-    for st, entries in sorted(bl_by_status.items()):
-        print(f"\n  Status: {st} ({len(entries)} items)")
-        for item, bl in entries:
-            note = bl.get('c1_note') or bl.get('note') or bl.get('versions', [{}])[-1].get('note', '')
-            print(f"    - {bl.get('repo', item['name'])}: {note}")
+    lines = [
+        "=================================================================",
+        "PLUGINS AUDIT",
+        "=================================================================",
+        f"Awesome-Nu Plugins Total: {len(audit_results)}",
+        f"  [+] In Numan Registry: {len(in_reg)}",
+        f"  [~] In numan-plugins CI Manifest: {len(in_man)}",
+        f"  [.] In numan-plugins Backlog: {len(in_bl)}",
+        f"  [-] Untracked / Missing: {len(untracked)}",
+        "",
+        "[+] IN REGISTRY:",
+    ]
 
-    print("\n[-] UNTRACKED PLUGINS (In awesome-nu, not in backlog/registry):")
-    for item in untracked:
-        print(f"  * {item['name']} ({item['url']}) - {item['desc']}")
+    for r in sorted(in_reg, key=lambda x: x["match"]["id"]["name"]):
+        pkg = r["match"]
+        versions = [f"{v['version']} (Nu: {v.get('nu_version', '*')})" for v in pkg.get("versions", [])]
+        lines.append(f"  * {pkg['id']['owner']}/{pkg['id']['name']} (awesome-nu: '{r['item']['name']}')")
+        lines.append(f"      Versions: {', '.join(versions)}")
 
-    print("\n=================================================================")
-    print("3. AWESOME-NU SCRIPTS / MODULES vs NUMAN")
-    print("=================================================================")
-    scripts_items = sections.get('Scripts', [])
-    scripts_in_reg = []
-    scripts_not_in_reg = []
-    for item in scripts_items:
-        raw_name = item['name']
-        c_name = normalize_name(raw_name)
-        url = item['url'].lower().rstrip('/')
+    lines.extend(["", "[-] UNTRACKED CANDIDATES:"])
+    for r in untracked:
+        lines.append(f"  * {r['item']['name']} ({r['item']['url']}) - {r['item']['desc']}")
 
-        match = None
-        if c_name in reg_by_name:
-            match = reg_by_name[c_name]
-        else:
-            for r_url, p in reg_by_repo.items():
-                if r_url in url or url in r_url:
-                    match = p
-                    break
-        if match:
-            scripts_in_reg.append((item, match))
-        else:
-            scripts_not_in_reg.append(item)
+    return "\n".join(lines)
 
-    print(f"Awesome-Nu Scripts Total: {len(scripts_items)}")
-    print(f"  [+] In Numan Registry: {len(scripts_in_reg)}")
-    print(f"  [-] Not in Registry: {len(scripts_not_in_reg)}")
-    print("\n[+] In Registry:")
-    for item, reg in scripts_in_reg:
-        print(f"  * {reg['id']['owner']}/{reg['id']['name']} ({reg.get('type')}) - matched from awesome-nu '{item['name']}'")
 
-    print("\n[-] Sample Not in Registry (Top 10):")
-    for item in scripts_not_in_reg[:10]:
-        print(f"  * {item['name']} ({item['url']}) - {item['desc']}")
+def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
+    """Read awesome-nu README from local path or fetch via HTTP."""
+    if path and path.exists():
+        return path.read_text(encoding="utf-8")
 
-    print("\n=================================================================")
-    print("4. AWESOME-NU CUSTOM COMPLETIONS vs NUMAN")
-    print("=================================================================")
-    completions_items = sections.get('Custom Completions', [])
-    for item in completions_items:
-        raw_name = item['name']
-        c_name = normalize_name(raw_name)
-        matched = []
-        for p in reg_pkgs:
-            if p.get('type') == 'completion':
-                p_name = p['id']['name'].lower()
-                if c_name in p_name or p_name in c_name:
-                    matched.append(f"{p['id']['owner']}/{p['id']['name']}")
-        if matched:
-            print(f"  * {raw_name}: In Registry as {', '.join(matched)}")
-        else:
-            print(f"  * {raw_name}: Not individually packaged in registry (or bundled in custom-completions)")
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "numan-catalog-audit/1.0"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return resp.read().decode("utf-8")
 
-    print("\n=================================================================")
-    print("5. NUMAN PACKAGES NOT LISTED IN AWESOME-NU")
-    print("=================================================================")
-    all_awesome_urls = set()
-    for s_items in sections.values():
-        for item in s_items:
-            all_awesome_urls.add(item['url'].lower().rstrip('/'))
-            all_awesome_urls.add(normalize_name(item['name']))
 
-    numan_only = []
-    for p in reg_pkgs:
-        repo = p.get('repo', '').lower().rstrip('/')
-        p_name = p['id']['name'].lower().replace('-', '_')
-        matched = False
-        if p_name in all_awesome_urls:
-            matched = True
-        elif repo in all_awesome_urls:
-            matched = True
-        else:
-            for a_u in all_awesome_urls:
-                if (repo and repo in a_u) or (repo and a_u in repo):
-                    matched = True
-                    break
-        if not matched:
-            numan_only.append(p)
+def load_json_file(path: Path | None, fallback: dict[str, Any]) -> dict[str, Any]:
+    """Safely load JSON file or return fallback dict."""
+    if path and path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return fallback
 
-    print(f"Packages in Numan Registry that are NOT in awesome-nu ({len(numan_only)}):")
-    for p in sorted(numan_only, key=lambda x: (x.get('type'), x['id']['name'])):
-        print(f"  * [{p.get('type')}] {p['id']['owner']}/{p['id']['name']} - {p.get('description', '')[:80]}")
 
-if __name__ == '__main__':
-    main()
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point for audit_awesome_nu."""
+    parser = argparse.ArgumentParser(description="Audit awesome-nu catalog coverage")
+    parser.add_argument("--readme", type=Path, default=None, help="Path to awesome-nu README.md")
+    parser.add_argument("--index", type=Path, default=Path(__file__).resolve().parent.parent / "registry" / "index.json")
+    parser.add_argument("--manifest", type=Path, default=Path(__file__).resolve().parent.parent.parent / "numan-plugins" / "manifest.json")
+    parser.add_argument("--backlog", type=Path, default=Path(__file__).resolve().parent.parent.parent / "numan-plugins" / "docs" / "backlog.json")
+    args = parser.parse_args(argv)
+
+    readme_content = fetch_readme(args.readme)
+    sections = parse_awesome_nu_markdown(readme_content)
+
+    reg_data = load_json_file(args.index, {"packages": []})
+    man_data = load_json_file(args.manifest, {"active": []})
+    bl_data = load_json_file(args.backlog, {"plugins": []})
+
+    reg_by_name, reg_by_repo = build_registry_indices(reg_data)
+    man_by_name, man_by_repo = build_manifest_indices(man_data)
+    bl_by_name, bl_by_repo = build_backlog_indices(bl_data)
+
+    plugin_results = audit_plugins(
+        sections.get("Plugins", []),
+        reg_by_name,
+        reg_by_repo,
+        man_by_name,
+        man_by_repo,
+        bl_by_name,
+        bl_by_repo,
+    )
+
+    report = format_plugin_audit(plugin_results)
+    print(report)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

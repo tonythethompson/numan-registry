@@ -130,9 +130,10 @@ Intake steps per package: `scripts/discover.py` → `build-mirror-zip.py` → re
 
 ## Wave 4 (Intake Reform Execution: Plugins, Modules & Expansions)
 
-Following the August 2026 Intake Process Reform (governed by ADR 0001 and implemented in numan, numan-plugins, and numan-registry), the previous intake bottlenecks are resolved across four distinct lanes:
+Following the August 2026 Intake Process Reform (governed by ADR 0001 and implemented in numan, numan-plugins, and numan-registry), the previous intake bottlenecks are resolved across five distinct workstreams:
 
 ### 1. High-Demand Tag-less Plugins (P1 Commit-Snapshot Mode)
+
 - [ ] `Euphrasiologist/nu_plugin_plot` (⭐ 71) — terminal plotting
 - [ ] `Euphrasiologist/nu_plugin_bio` (⭐ 31) — bioinformatics file format parser
 - [ ] `fdncred/nu_plugin_pnet` (⭐ 9) — network interface inspection
@@ -143,7 +144,9 @@ Following the August 2026 Intake Process Reform (governed by ADR 0001 and implem
 - [ ] `yybit/nu_plugin_x509` (⭐ 5) — X.509 certificate generator/parser
 
 ### 2. Standalone Script & Module Expansion (P2 Archive Intake Lane)
+
 Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
+
 - [ ] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
 - [ ] `fj0r/docker.nu` — Docker container management tools
 - [ ] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
@@ -156,15 +159,19 @@ Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 - [ ] `Yethal/terraform-importer` — Terraform state importer
 
 ### 3. Credential-Bound Packages (P6 Provisional Evidence Tier)
+
 - [ ] `galuszkak/nu_plugin_bigquery` — BigQuery query plugin; ship with `evidence_tier: provisional` and deferral reason documenting GCP credentials requirement.
 
 ### 4. Multi-OS Expansions & Upstream `.tar.xz` Assets (P3)
+
 - [ ] `abusch/nu_plugin_semver` — add Linux/macOS `.tar.xz` assets to complete multi-OS matrix
 - [ ] `Trivernis/nu-plugin-dialog` — add Linux/macOS `.tar.xz` assets
 - [ ] `fennewald/nu_plugin_net` — intake Linux/macOS `.tar.xz` assets
 
 ### 5. Maintained Forks for Abandoned Plugins (P4 Lane 3)
+
 Evaluate for `numan-maintained` distribution per ADR 0001 stewardship criteria:
+
 - [ ] `FMotalleb/nu_plugin_clipboard` (⭐ 85, pinned to Nu 0.110)
 - [ ] `yybit/nu_plugin_compress` (⭐ 42, pinned to Nu 0.103)
 - [ ] `devyn/nu_plugin_dbus` (⭐ 34, pinned to Nu 0.101)
