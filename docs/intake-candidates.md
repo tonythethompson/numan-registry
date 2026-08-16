@@ -48,6 +48,7 @@ Upstream ships byte-stable release assets in Numan-supported formats.
 | [`kik4444/nu_plugin_mime`](https://github.com/kik4444/nu_plugin_mime) | plugin | v0.0.0-snapshot.20260816.8e5872a | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built commit-snapshot; Wave 4 Lane 1 |
 | [`yybit/nu_plugin_x509`](https://github.com/yybit/nu_plugin_x509) | plugin | v0.0.0-snapshot.20260816.15518dd | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built commit-snapshot; Wave 4 Lane 1 |
 | [`oderwat/nu_plugin_logfmt`](https://github.com/oderwat/nu_plugin_logfmt) | plugin | v0.0.0-snapshot.20260816.892c4f9 | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built commit-snapshot (Go); Wave 4 Lane 1 |
+| [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | plugin | v0.3.0 | linux x64/aarch64, macOS aarch64, Windows x64 | live (ci-built asset) — ci-built via numan-plugins; P6 provisional tier (GCP credential requirement) |
 
 ---
 
@@ -101,6 +102,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 | Date | Change |
 |------|--------|
 | 2026-08-16 | ADR 0001 Lane 3 Maintained Fork Stewardship evaluations: FMotalleb/nu_plugin_clipboard (rejected, superseded by Nu core clip), yybit/nu_plugin_compress (approved for numan-maintained fork), devyn/nu_plugin_dbus (conditionally approved for Linux-only numan-maintained fork). |
+| 2026-08-16 | Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution). |
 | 2026-08-16 | Wave 4 Lane 2 intake: fj0r/ai.nu, fj0r/docker.nu, fj0r/kubernetes.nu, fj0r/git.nu, lassoColombo/conventional-commits, nushell-prophet/nu-history-tools, ArmoredPony/nu-digital-rain, yh17549/nu-dir-bookmark, Yethal/terraform-importer (pure Nu module & script archive intake). |
 | 2026-08-16 | Wave 4 Lane 1 intake: Euphrasiologist/nu_plugin_plot, Euphrasiologist/nu_plugin_bio, WindSoilder/nu_plugin_mongo, hulthe/nu_plugin_msgpack, kik4444/nu_plugin_mime, yybit/nu_plugin_x509, oderwat/nu_plugin_logfmt (commit-snapshot builds). |
 | 2026-08-07 | SuaveIV/nu_plugin_audio@0.2.10 (Nu >=0.114 <0.115): full-platform upstream assets including .tar.xz; Windows lifecycle-prove OK on Nu 0.114.1. Retain 0.2.8 for Nu 0.113. |

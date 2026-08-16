@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-16T11:27:14Z",
+  "updated_at": "2026-08-16T14:33:58Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -2458,6 +2458,61 @@
                 "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-x86_64-unknown-linux-gnu.tar.gz",
                 "sha256": "d0356b7b25f5463e5335bbcecaac851c7e6b4f2337a43ec24d216db3872fafb1",
                 "executable_path": "nu_plugin_logfmt"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "galuszkak",
+        "name": "nu_plugin_bigquery"
+      },
+      "description": "A Nushell plugin for querying Google BigQuery. CI-built from galuszkak/nu_plugin_bigquery@v0.3.0 and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/galuszkak/nu_plugin_bigquery",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "bigquery",
+        "gcp",
+        "database",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.3.0",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Requires active Google Cloud Platform credentials (ADC/service account) for live query execution",
+          "verified_with": ["0.114.1"],
+          "source": {
+            "git": "https://github.com/galuszkak/nu_plugin_bigquery",
+            "rev": "5fff4d8d3e6e6e348a1bd999f55b0fb24bdd489e",
+            "cargo_name": "nu_plugin_bigquery"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bigquery-0.3.0/nu_plugin_bigquery-0.3.0-aarch64-apple-darwin.tar.gz",
+                "sha256": "e522429c652e87c1610cd812db3c448078527766e7f9170ed2bc2068bbd2f751",
+                "executable_path": "nu_plugin_bigquery"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bigquery-0.3.0/nu_plugin_bigquery-0.3.0-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "01d9bf9bf7b862e9b083055ee347a6cb1f504c56bf045712c8931a0f798e0c00",
+                "executable_path": "nu_plugin_bigquery"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bigquery-0.3.0/nu_plugin_bigquery-0.3.0-x86_64-pc-windows-msvc.zip",
+                "sha256": "b782ddf3d6b628dab2d5e8b975ca1f617505e0e8426c119f7f41684cc6ecdf69",
+                "executable_path": "nu_plugin_bigquery.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bigquery-0.3.0/nu_plugin_bigquery-0.3.0-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "364a5032e1441ebbf8ba40132f941e1042d8d615605547dde7624908e9792063",
+                "executable_path": "nu_plugin_bigquery"
               }
             }
           }
