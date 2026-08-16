@@ -28,7 +28,7 @@ jobs:
       contains(github.event.comment.body, ' /opencode ') ||
       endsWith(github.event.comment.body, ' /opencode')))
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     permissions:
       id-token: write
       contents: write
@@ -101,9 +101,9 @@ jobs:
           MODEL="opencode/big-pickle"
           VARIANT=""
           if [[ "${TRIGGERED_BY_PR_OPEN}" == "true" ]] || [[ "${COMMENT}" =~ (^|[[:space:]])/(oc|opencode)[[:space:]]+review ]]; then
-            echo "::notice::Review requested (PR opened or /oc review) - using review model (opencode/gpt-5.6-luna, max reasoning)"
+            echo "::notice::Review requested (PR opened or /oc review) - using review model (opencode/gpt-5.6-luna)"
             MODEL="opencode/gpt-5.6-luna"
-            VARIANT="max"
+            VARIANT=""
             if probe_zen gpt-5.6-luna; then
               {
                 echo "model=${MODEL}"
@@ -262,7 +262,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           run_opencode() {
-            opencode github run
+            timeout 300 opencode github run
           }
 
           if run_opencode; then
