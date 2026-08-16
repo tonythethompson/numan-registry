@@ -762,7 +762,7 @@
   "blocked": [
     {
       "id": "FMotalleb/nu_plugin_clipboard",
-      "blocker": "legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release"
+      "blocker": "evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin `clip` commands"
     },
     {
       "id": "abusch/nu_plugin_semver",
@@ -776,6 +776,10 @@
   "changelog": [
     {
       "date": "2026-08-16",
+      "change": "ADR 0001 Lane 3 Maintained Fork Stewardship evaluations: FMotalleb/nu_plugin_clipboard (rejected, superseded by Nu core clip), yybit/nu_plugin_compress (approved for numan-maintained fork), devyn/nu_plugin_dbus (conditionally approved for Linux-only numan-maintained fork)."
+    },
+    {
+      "date": "2026-08-16",     
       "change": "Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution)."
     },
     {

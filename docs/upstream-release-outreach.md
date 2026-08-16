@@ -219,7 +219,7 @@ Prior schedule (amtoine / bash-env / prophet / nu_scripts) is largely done or bl
 | 2 | File SuaveIV suite courtesy issue ([05](outreach-issues/05-suaveiv-script-suite.md)); mirrors already live (`wttr`, `gh_status`, `hnews`) |
 | 3 | File nufetch ([06](outreach-issues/06-sanceilaks-nufetch.md)); mirror already live |
 | 4 | File git-aliases ([07](outreach-issues/07-kamilkleina-git-aliases.md)); mirror already live |
-| 5 | File clipboard Nu-bump ask ([08](outreach-issues/08-fmotalleb-clipboard-nu114.md)) |
+| 5 | ~~File clipboard Nu-bump ask ([08](outreach-issues/08-fmotalleb-clipboard-nu114.md))~~ (Obsolete: Nushell 0.111+ core includes builtin `clip` commands; evaluated & rejected under ADR 0001) |
 | 6 | File plot tag ask ([09](outreach-issues/09-euphrasiologist-plot-tag.md)) |
 | 7 | File compress Nu-bump ask ([10](outreach-issues/10-yybit-compress-nu-bump.md)) |
 | Ongoing | PR workflows only when invited; update `docs/intake-state.json` + run sync script; **one new contact per week** |

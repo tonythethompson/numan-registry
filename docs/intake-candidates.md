@@ -90,7 +90,8 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Blocker |
 |---------|---------|
-| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release |
+| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin `clip` commands |
+| [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | requires GCP credentials; pending provisional evidence tier intake |
 | [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | Linux/macOS tar.xz assets; pending multi-platform intake |
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | Linux/macOS tar.xz assets; pending multi-platform intake |
 
@@ -100,6 +101,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Date | Change |
 |------|--------|
+| 2026-08-16 | ADR 0001 Lane 3 Maintained Fork Stewardship evaluations: FMotalleb/nu_plugin_clipboard (rejected, superseded by Nu core clip), yybit/nu_plugin_compress (approved for numan-maintained fork), devyn/nu_plugin_dbus (conditionally approved for Linux-only numan-maintained fork). |
 | 2026-08-16 | Wave 4 Lane 3 intake: galuszkak/nu_plugin_bigquery@0.3.0 under P6 provisional evidence tier (GCP credentials required for live query execution). |
 | 2026-08-16 | Wave 4 Lane 2 intake: fj0r/ai.nu, fj0r/docker.nu, fj0r/kubernetes.nu, fj0r/git.nu, lassoColombo/conventional-commits, nushell-prophet/nu-history-tools, ArmoredPony/nu-digital-rain, yh17549/nu-dir-bookmark, Yethal/terraform-importer (pure Nu module & script archive intake). |
 | 2026-08-16 | Wave 4 Lane 1 intake: Euphrasiologist/nu_plugin_plot, Euphrasiologist/nu_plugin_bio, WindSoilder/nu_plugin_mongo, hulthe/nu_plugin_msgpack, kik4444/nu_plugin_mime, yybit/nu_plugin_x509, oderwat/nu_plugin_logfmt (commit-snapshot builds). |
