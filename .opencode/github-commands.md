@@ -110,10 +110,10 @@ Do NOT dump findings into your final response text. Instead:
       gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" -F body=@finding.md
       ```
 
-3. **Your final response text MUST ONLY be the summary index:**
-   - A brief summary table/list of the threaded findings with links to the created comments (`html_url`).
-   - An **"Out of diff"** section reserved exclusively for findings that have no diff location (e.g. missing tests, cross-repository concerns, or files completely untouched by the PR).
-   - Do NOT duplicate the full finding bodies in your final text. All finding bodies and code suggestions belong in the individual comments posted via step 2.
+3. **Your final response text MUST ONLY be a concise overall summary:**
+   - A high-level assessment of the changes and review outcome.
+   - An **"Out of diff"** section detailing any findings that have no specific diff location (e.g. missing test suites, cross-file architectural concerns, or files untouched by the PR).
+   - Do NOT duplicate the inline finding bodies or list links to created comments in your final text—all inline findings and committable code suggestions live directly in the threads created in step 2.
 
 ### Committing behavior — suggestions only
 
