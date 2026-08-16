@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-07T07:35:48Z",
+  "updated_at": "2026-08-16T09:23:54Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -2091,6 +2091,375 @@
             "sha256": "c812277ecbee3a4ce2c1007e52a060b7b3017a93aa9c6f411b53a7212d5b83fe",
             "entry": "git-aliases.nu",
             "archive_root": "git-aliases-109cc61"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "Euphrasiologist",
+        "name": "nu_plugin_bio"
+      },
+      "description": "Parse and manipulate common bioinformatic formats in nushell. CI-built from Euphrasiologist/nu_plugin_bio@49ab341 (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/Euphrasiologist/nu_plugin_bio",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "bio",
+        "bioinformatics",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.49ab341",
+          "nu_version": ">=0.104.0 <0.105.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/Euphrasiologist/nu_plugin_bio",
+            "rev": "49ab34152f2a8e42eeae0fb9f762e2f695339f5c",
+            "cargo_name": "nu_plugin_bio"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341-aarch64-apple-darwin.tar.gz",
+                "sha256": "cacc6e8a69ad0144ce82e3eb96f4d91ad16c5481f17e44ba3705b99aa0e290b8",
+                "executable_path": "nu_plugin_bio"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "e25e95e94161df684b708b62d5810a383439bbb28833c3acae7c2bcf483237c6",
+                "executable_path": "nu_plugin_bio"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341-x86_64-pc-windows-msvc.zip",
+                "sha256": "e7b30dc9424363cbedc40de7c08a04bc73c2e23702ba8feaa2d299dd73f96a20",
+                "executable_path": "nu_plugin_bio.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341/nu_plugin_bio-0.0.0-snapshot.20260816.49ab341-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "93f50f8da5206771917e14a9cb42ced8a7874e56a33afdae167d08c3ce9debb1",
+                "executable_path": "nu_plugin_bio"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "kik4444",
+        "name": "nu_plugin_mime"
+      },
+      "description": "A simple plugin for working with mime types without performing disk access. CI-built from kik4444/nu_plugin_mime@8e5872a (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/kik4444/nu_plugin_mime",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "mime",
+        "media",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.8e5872a",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/kik4444/nu_plugin_mime",
+            "rev": "8e5872a5c94573d0ede3127b5ab8628b8d7f4a4c",
+            "cargo_name": "nu_plugin_mime"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a-aarch64-apple-darwin.tar.gz",
+                "sha256": "651c6f0763509e74d4f2fc3c95e5366879097fc3e55d97be8c4911be3be56b29",
+                "executable_path": "nu_plugin_mime"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "914edbcc4fb65a2398675cc84889cf6db9729c483c9ca75b4da259fdcf042569",
+                "executable_path": "nu_plugin_mime"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a-x86_64-pc-windows-msvc.zip",
+                "sha256": "4150851fc21ef0b6e5ff64c8763c0306b19b7da27013ac2157d63a52e6fb92be",
+                "executable_path": "nu_plugin_mime.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a/nu_plugin_mime-0.0.0-snapshot.20260816.8e5872a-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "212753240db6ec956b520d08498dccd3951b0c58cf5756f1487fc4cf5b7c252e",
+                "executable_path": "nu_plugin_mime"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "WindSoilder",
+        "name": "nu_plugin_mongo"
+      },
+      "description": "A nushell plugin to interact with mongodb. CI-built from WindSoilder/nu_plugin_mongo@47854d9 (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/WindSoilder/nu_plugin_mongo",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "mongo",
+        "database",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.47854d9",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/WindSoilder/nu_plugin_mongo",
+            "rev": "47854d9904775291a8aad12987b88176c3df3188",
+            "cargo_name": "nu_plugin_mongo"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9-aarch64-apple-darwin.tar.gz",
+                "sha256": "3e91f237663a2800a3064037d5c1f9b91f7a733b1f2fb97b418b7359050594ab",
+                "executable_path": "nu_plugin_mongo"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "1a5160016c5a12c4049f49200b9c76557f8934f9e0d6adca1643be5c0904af2b",
+                "executable_path": "nu_plugin_mongo"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9-x86_64-pc-windows-msvc.zip",
+                "sha256": "b0ca3b44ed91f00925b82229447dc9914fb95e61cc269e1e20fef94e6baf0bba",
+                "executable_path": "nu_plugin_mongo.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9/nu_plugin_mongo-0.0.0-snapshot.20260816.47854d9-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "b4ae78203b4a50a14f72fcb654eafba55d70f266847f95ab63f2ea603c6fd58a",
+                "executable_path": "nu_plugin_mongo"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "hulthe",
+        "name": "nu_plugin_msgpack"
+      },
+      "description": "Commands to convert nushell data to and from MsgPack. CI-built from hulthe/nu_plugin_msgpack@38eb492 (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/hulthe/nu_plugin_msgpack",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "msgpack",
+        "serialization",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.38eb492",
+          "nu_version": ">=0.90.0 <0.91.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/hulthe/nu_plugin_msgpack",
+            "rev": "38eb4924ca1500ef52274eacbf1b59a9e7d4493c",
+            "cargo_name": "nu_plugin_msgpack"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "16b136560b56eed8dfbe546f84a8f533b77e6180e70c883626a90fb3802fdac3",
+                "executable_path": "nu_plugin_msgpack"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492-x86_64-pc-windows-msvc.zip",
+                "sha256": "ca3252c161df6efbca6d644e6dc4409d9d87c9bd7f6941f0bd334df9fb0c8d71",
+                "executable_path": "nu_plugin_msgpack.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492/nu_plugin_msgpack-0.0.0-snapshot.20260816.38eb492-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "d04d1cd218ddcb2df30a609d7c37095fccbd05133ece53abd49bfbbad956f60b",
+                "executable_path": "nu_plugin_msgpack"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "Euphrasiologist",
+        "name": "nu_plugin_plot"
+      },
+      "description": "Plot graphs in nushell using numerical lists. CI-built from Euphrasiologist/nu_plugin_plot@5a1ca2a (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/Euphrasiologist/nu_plugin_plot",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "plot",
+        "terminal",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.5a1ca2a",
+          "nu_version": ">=0.105.0 <0.106.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/Euphrasiologist/nu_plugin_plot",
+            "rev": "5a1ca2a5ceba60108a4ca6d45ec18d213abb5227",
+            "cargo_name": "nu_plugin_plot"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "e62fa2fbad5b69cb26202f15632c136179aface6ef1b775f69f38ae3274ee2e1",
+                "executable_path": "nu_plugin_plot"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a-x86_64-pc-windows-msvc.zip",
+                "sha256": "882f9824cda14efd71eb171d9cf3f6f98be4d7f25ea5e96e664b520f7b28a600",
+                "executable_path": "nu_plugin_plot.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a/nu_plugin_plot-0.0.0-snapshot.20260816.5a1ca2a-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "a5e27bb2fe6d91fc05592404844d78ed5c2187891f27dbd19b5afed76ece3232",
+                "executable_path": "nu_plugin_plot"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "yybit",
+        "name": "nu_plugin_x509"
+      },
+      "description": "A nushell plugin for working with x509 certificates. CI-built from yybit/nu_plugin_x509@15518dd (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/yybit/nu_plugin_x509",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "x509",
+        "crypto",
+        "certificates",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.15518dd",
+          "nu_version": ">=0.109.0 <0.110.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Commit snapshot awaiting lifecycle proof on target Nu minor",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/yybit/nu_plugin_x509",
+            "rev": "15518ddd1f466f18a444ea506d6bb91d0c7906d5",
+            "cargo_name": "nu_plugin_x509"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd-aarch64-apple-darwin.tar.gz",
+                "sha256": "48dc47888f37ad23633dd044cb941c9f5c30504d88ee7af290e11caf3c6b26e4",
+                "executable_path": "nu_plugin_x509"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "862f5a8b593ea4f526ce8fe68d18ddd8e0b39cc7b3ac827710ec92c0fd46bf51",
+                "executable_path": "nu_plugin_x509"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd-x86_64-pc-windows-msvc.zip",
+                "sha256": "fdc9ad410d9f37f2103d71b5e067476dda6bca9426c3e99463bf0a455577d50e",
+                "executable_path": "nu_plugin_x509.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd/nu_plugin_x509-0.0.0-snapshot.20260816.15518dd-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "0d0f25d15b0b2176bb2ae72aae34b3b837671e9e4a72107a3344f36ca683c76b",
+                "executable_path": "nu_plugin_x509"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "oderwat",
+        "name": "nu_plugin_logfmt"
+      },
+      "description": "A simple from / to logfmt plugin for nushell. CI-built from oderwat/nu_plugin_logfmt@892c4f9 (commit snapshot, no tagged release) and pinned + hash-verified + signed downstream in numan-registry.",
+      "repo": "https://github.com/oderwat/nu_plugin_logfmt",
+      "type": "plugin",
+      "tags": [
+        "plugin",
+        "logfmt",
+        "logging",
+        "ci-built"
+      ],
+      "versions": [
+        {
+          "version": "0.0.0-snapshot.20260816.892c4f9",
+          "nu_version": ">=0.100.0 <0.101.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Snapshot build of Go plugin; awaiting live Nu test harness",
+          "provenance": "commit-snapshot",
+          "source": {
+            "git": "https://github.com/oderwat/nu_plugin_logfmt",
+            "rev": "892c4f98a24c55d289febabf423a8cee9a8e5e1e",
+            "cargo_name": "nu_plugin_logfmt"
+          },
+          "artifact": {
+            "kind": "binary",
+            "targets": {
+              "aarch64-apple-darwin": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-aarch64-apple-darwin.tar.gz",
+                "sha256": "a6097bf0a9a375f877ad40e4eadd2e0e1bc36a480dcfc4d3c25e58d12caeda4a",
+                "executable_path": "nu_plugin_logfmt"
+              },
+              "aarch64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-aarch64-unknown-linux-gnu.tar.gz",
+                "sha256": "839763c1fa7a4f3bc3bf37ba97ffbad5313b6b30d796a768b5e67286a6fcd3ca",
+                "executable_path": "nu_plugin_logfmt"
+              },
+              "x86_64-pc-windows-msvc": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-x86_64-pc-windows-msvc.zip",
+                "sha256": "d36baa17546813b7db2e1be326dfdb5e34a7030b9bb0b0fc5ff8dcadf0be38c7",
+                "executable_path": "nu_plugin_logfmt.exe"
+              },
+              "x86_64-unknown-linux-gnu": {
+                "url": "https://github.com/tonythethompson/numan-plugins/releases/download/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9/nu_plugin_logfmt-0.0.0-snapshot.20260816.892c4f9-x86_64-unknown-linux-gnu.tar.gz",
+                "sha256": "d0356b7b25f5463e5335bbcecaac851c7e6b4f2337a43ec24d216db3872fafb1",
+                "executable_path": "nu_plugin_logfmt"
+              }
+            }
           }
         }
       ]
