@@ -1,0 +1,23 @@
+{
+  "owner": "fj0r",
+  "name": "git.nu",
+  "description": "Git workflow helpers, statistics, and shortcuts for Nushell",
+  "repo": "https://github.com/fj0r/git.nu",
+  "type": "module",
+  "tags": [
+    "module",
+    "git"
+  ],
+  "version": "0.1.0-2241050",
+  "nu_version": ">=0.114.0 <0.115.0",
+  "artifact": {
+    "kind": "archive",
+    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-git.nu-0.1.0-2241050/fj0r-git.nu-0.1.0-2241050.tar.gz",
+    "entry": "git/mod.nu",
+    "sha256": "2b2afc2d5ab9f1391a5f091d7ec6b8c0e730ec3ae4790390b897489f292c1ce7"
+  },
+  "activation": {
+    "kind": "nu-module",
+    "import": "all"
+  }
+}

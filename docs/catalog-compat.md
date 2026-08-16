@@ -2,15 +2,15 @@
 
 _Auto-generated from `registry/index.json`. Do not hand-edit._
 
-Generated: `2026-08-16T09:23:54Z` · Index `updated_at`: `2026-08-16T09:23:54Z` · `registry_revision`: `seed-2026-07-02`
+Generated: `2026-08-16T11:12:18Z` · Index `updated_at`: `2026-08-16T11:12:18Z` · `registry_revision`: `seed-2026-07-02`
 
 This is the **master list** of packages in the committed `registry/index.json` (in-tree; the public CDN updates after production signing/publish) and the Nu constraint on each package's **latest** version. For demand-ranked *plugin candidates* not yet in the registry, see [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json). For intake workflow status, see [`intake-candidates.md`](intake-candidates.md).
 
 ## Summary
 
-- **51** packages total
-- By type: `completion` 6, `module` 7, `plugin` 33, `script` 5
-- Latest version Nu band: `0.114` 21, `0.113` 3, `0.112` 1, `other` 12, `*` 14
+- **55** packages total
+- By type: `completion` 6, `module` 11, `plugin` 33, `script` 5
+- Latest version Nu band: `0.114` 25, `0.113` 3, `0.112` 1, `other` 12, `*` 14
 
 Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.113` → `0.114` / `0.113`, etc.; else `*` or `other`). Exact constraints are in the table and in the signed index.
 
@@ -36,6 +36,10 @@ Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.1
 | `fdncred/nu_plugin_query_git` | plugin | 0.24.0 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
 | `fdncred/nu_plugin_regex` | plugin | 0.23.0 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 2 |
 | `fdncred/nu_plugin_strutils` | plugin | 0.22.0 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
+| `fj0r/ai.nu` | module | 0.1.0-2e71068 | `>=0.114.0 <0.115.0` | 0.114 | — | upstream | 1 |
+| `fj0r/docker.nu` | module | 0.1.0-7e2d26a | `>=0.114.0 <0.115.0` | 0.114 | — | upstream | 1 |
+| `fj0r/git.nu` | module | 0.1.0-2241050 | `>=0.114.0 <0.115.0` | 0.114 | — | upstream | 1 |
+| `fj0r/kubernetes.nu` | module | 0.1.0-0e09475 | `>=0.114.0 <0.115.0` | 0.114 | — | upstream | 1 |
 | `FMotalleb/nu_plugin_desktop_notifications` | plugin | 0.114.1 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 1 |
 | `FMotalleb/nu_plugin_image` | plugin | 0.112.2 | `>=0.112.0 <0.113.0` | 0.112 | mac,linux,win | ci-built | 1 |
 | `FMotalleb/nu_plugin_port_extension` | plugin | 0.114.1 | `>=0.114.0 <0.115.0` | 0.114 | mac,linux,win | ci-built | 2 |

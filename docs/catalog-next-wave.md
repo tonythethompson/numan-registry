@@ -147,10 +147,10 @@ Following the August 2026 Intake Process Reform (governed by ADR 0001 and implem
 
 Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 
-- [ ] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
-- [ ] `fj0r/docker.nu` — Docker container management tools
-- [ ] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
-- [ ] `fj0r/git.nu` — Git toolset & helpers
+- [x] `fj0r/ai.nu` — OpenAI & Ollama LLM integration client
+- [x] `fj0r/docker.nu` — Docker container management tools
+- [x] `fj0r/kubernetes.nu` — Kubernetes kubectl client toolset
+- [x] `fj0r/git.nu` — Git toolset & helpers
 - [ ] `lassoColombo/conventional-commits` — conventional commits parser
 - [ ] `nushell-prophet/nu-history-tools` — shell history analytics & graphs
 - [ ] `ArmoredPony/nu-digital-rain` — terminal digital rain effect

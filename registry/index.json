@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-16T09:23:54Z",
+  "updated_at": "2026-08-16T11:12:18Z",
   "registry_revision": "seed-2026-07-02",
   "packages": [
     {
@@ -2460,6 +2460,136 @@
                 "executable_path": "nu_plugin_logfmt"
               }
             }
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fj0r",
+        "name": "ai.nu"
+      },
+      "description": "AI client and CLI wrapper for OpenAI, Gemini, and Ollama in Nushell",
+      "repo": "https://github.com/fj0r/ai.nu",
+      "type": "module",
+      "tags": [
+        "module",
+        "ai",
+        "llm",
+        "openai",
+        "ollama"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-2e71068",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Wave 4 Lane 2 non-binary script archive intake",
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-ai.nu-0.1.0-2e71068/fj0r-ai.nu-0.1.0-2e71068.tar.gz",
+            "sha256": "a64b18137e5a6dc415b050b95a8b511d7bcf08188f0bc054836bf79331888a10",
+            "entry": "ai/mod.nu"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fj0r",
+        "name": "docker.nu"
+      },
+      "description": "Docker and container management helper functions and utilities for Nushell",
+      "repo": "https://github.com/fj0r/docker.nu",
+      "type": "module",
+      "tags": [
+        "module",
+        "docker",
+        "containers"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-7e2d26a",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Wave 4 Lane 2 non-binary script archive intake",
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-docker.nu-0.1.0-7e2d26a/fj0r-docker.nu-0.1.0-7e2d26a.tar.gz",
+            "sha256": "285c648cc9618f288b69e456970bc3b3b016ba3fc0d4a6c154de16dfbe1d109e",
+            "entry": "docker/mod.nu"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fj0r",
+        "name": "kubernetes.nu"
+      },
+      "description": "Kubernetes and kubectl helper functions, context management, and tools for Nushell",
+      "repo": "https://github.com/fj0r/kubernetes.nu",
+      "type": "module",
+      "tags": [
+        "module",
+        "kubernetes",
+        "k8s",
+        "kubectl"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-0e09475",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Wave 4 Lane 2 non-binary script archive intake",
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-kubernetes.nu-0.1.0-0e09475/fj0r-kubernetes.nu-0.1.0-0e09475.tar.gz",
+            "sha256": "77908dd5866897060531047f3a9bb1798aaead26b067dcba89b248f80682dff3",
+            "entry": "kubernetes/mod.nu"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
+          }
+        }
+      ]
+    },
+    {
+      "id": {
+        "owner": "fj0r",
+        "name": "git.nu"
+      },
+      "description": "Git workflow helpers, statistics, and shortcuts for Nushell",
+      "repo": "https://github.com/fj0r/git.nu",
+      "type": "module",
+      "tags": [
+        "module",
+        "git"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0-2241050",
+          "nu_version": ">=0.114.0 <0.115.0",
+          "evidence_tier": "provisional",
+          "deferral_reason": "Wave 4 Lane 2 non-binary script archive intake",
+          "artifact": {
+            "kind": "archive",
+            "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-git.nu-0.1.0-2241050/fj0r-git.nu-0.1.0-2241050.tar.gz",
+            "sha256": "2b2afc2d5ab9f1391a5f091d7ec6b8c0e730ec3ae4790390b897489f292c1ce7",
+            "entry": "git/mod.nu"
+          },
+          "activation": {
+            "kind": "nu-module",
+            "import": "all"
           }
         }
       ]

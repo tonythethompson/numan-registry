@@ -396,15 +396,19 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
     """
     if args.write:
         add_package_script = REPO_ROOT / "scripts" / "add-package.py"
+        cmd = [
+            sys.executable,
+            str(add_package_script),
+            "--spec",
+            str(out_path),
+            "--write",
+        ]
+        if args.provisional:
+            cmd.append("--provisional")
+            if getattr(args, "deferral_reason", None):
+                cmd.extend(["--deferral-reason", args.deferral_reason])
         result = subprocess.run(
-            [
-                sys.executable,
-                str(add_package_script),
-                "--spec",
-                str(out_path),
-                "--write",
-                *(["--provisional"] if args.provisional else []),
-            ],
+            cmd,
             cwd=REPO_ROOT,
             check=False,
         )
@@ -437,11 +441,13 @@ def _write_registry_and_manifest(args: argparse.Namespace, out_path: Path, resol
 def main(argv: list[str] | None = None) -> int:
     """Resolve, archive, publish, and emit a registry spec for a non-binary package."""
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--git-url", required=True)
-    ap.add_argument("--ref", required=True)
+    ap.add_argument("--git-url", default=None, help="Git clone URL")
+    ap.add_argument("--repo", default=None, help="Repository URL or owner/name slug")
+    ap.add_argument("--ref", default=None, help="Branch, tag, or commit ref")
+    ap.add_argument("--commit", default=None, help="Commit SHA or ref alias")
     ap.add_argument("--entry", required=True)
-    ap.add_argument("--name", required=True)
-    ap.add_argument("--owner", required=True)
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--owner", default=None)
     ap.add_argument("--type", required=True, choices=VALID_TYPES, dest="pkg_type")
     ap.add_argument("--description", required=True)
     ap.add_argument("--tags", required=True, help="JSON array of tag strings")
@@ -452,6 +458,11 @@ def main(argv: list[str] | None = None) -> int:
         "--provisional",
         action="store_true",
         help="Allow activation-bearing specs without lifecycle evidence",
+    )
+    ap.add_argument(
+        "--deferral-reason",
+        default=None,
+        help="Reason for provisional intake (passed to add-package.py)",
     )
     ap.add_argument(
         "--version",
@@ -465,7 +476,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument(
         "--release-repo",
-        required=True,
+        default="tonythethompson/numan-registry",
         help="owner/repo to publish the archive as a GitHub release asset on",
     )
     ap.add_argument(
@@ -476,6 +487,39 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--write", action="store_true", help="Chain into add-package.py --write")
     args = ap.parse_args(argv)
+
+    git_url = args.git_url or args.repo
+    if not git_url:
+        print("FAIL: either --git-url or --repo is required", file=sys.stderr)
+        return 1
+    if not any(git_url.startswith(p) for p in ("http://", "https://", "git://", "ssh://", "git@")):
+        git_url = f"https://github.com/{git_url}"
+    args.git_url = git_url
+
+    ref = args.ref or args.commit
+    if not ref:
+        print("FAIL: either --ref or --commit is required", file=sys.stderr)
+        return 1
+    args.ref = ref
+
+    if not args.owner or not args.name:
+        if args.repo and "/" in args.repo and not args.repo.startswith("http"):
+            parts = args.repo.split("/", 1)
+            if not args.owner:
+                args.owner = parts[0]
+            if not args.name:
+                args.name = parts[1]
+        elif args.git_url:
+            match = re.search(r"github\.com[/:]([\w.-]+)/([\w.-]+?)(?:\.git)?$", args.git_url)
+            if match:
+                if not args.owner:
+                    args.owner = match.group(1)
+                if not args.name:
+                    args.name = match.group(2)
+
+    if not args.owner or not args.name:
+        print("FAIL: --owner and --name are required", file=sys.stderr)
+        return 1
 
     activation_err = _validate_activation(args)
     if activation_err is not None:
