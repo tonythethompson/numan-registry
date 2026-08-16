@@ -76,6 +76,32 @@ class RenderCatalogCompatTests(unittest.TestCase):
         self.assertIn("win,linux", text)
         self.assertIn("upstream", text)
 
+    def test_provenance_hint(self):
+        self.assertEqual(
+            self.mod.provenance_hint(
+                {"url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/x.zip"}
+            ),
+            "mirror",
+        )
+        self.assertEqual(
+            self.mod.provenance_hint(
+                {"url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-x/x.tar.gz"}
+            ),
+            "mirror",
+        )
+        self.assertEqual(
+            self.mod.provenance_hint(
+                {"url": "https://github.com/tonythethompson/numan-plugins/releases/download/p-1.0.0/p.tar.gz"}
+            ),
+            "ci-built",
+        )
+        self.assertEqual(
+            self.mod.provenance_hint(
+                {"url": "https://github.com/someone/mod/releases/download/v1.0.0/mod.zip"}
+            ),
+            "upstream",
+        )
+
     def test_nu_band_uses_lower_bound_not_upper(self):
         self.assertEqual(self.mod.nu_band(">=0.113.0 <0.114.0"), "0.113")
         self.assertEqual(self.mod.nu_band(">=0.112.0 <0.113.0"), "0.112")

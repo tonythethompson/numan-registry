@@ -98,7 +98,7 @@ def provenance_hint(artifact: dict[str, Any]) -> str:
         return "other"
     kinds: set[str] = set()
     for url in urls:
-        if "numan-registry/releases/download/mirror-" in url:
+        if "numan-registry/releases/download/" in url or "tonythethompson/numan-registry/releases/" in url:
             kinds.add("mirror")
         elif "tonythethompson/numan-plugins/releases/" in url:
             kinds.add("ci-built")
