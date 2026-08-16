@@ -34,13 +34,32 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+      - name: Check same-repository origin
+        id: guard
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            IS_FORK=$(gh pr view "${{ github.event.issue.number }}" --json isCrossRepository --jq .isCrossRepository)
+            if [[ "$IS_FORK" == "true" ]]; then
+              echo "::notice::Skipping /oc command on fork PR for security"
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+
       - name: Checkout repository
+        if: steps.guard.outputs.allowed == 'true'
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: refs/pull/${{ github.event.pull_request.number || github.event.issue.number }}/head
           fetch-depth: 0
           persist-credentials: false
+
       - name: Probe model availability
+        if: steps.guard.outputs.allowed == 'true'
         id: probe
         shell: bash
         env:
@@ -169,6 +188,7 @@ jobs:
           exit 1
 
       - name: Get opencode version and asset
+        if: steps.guard.outputs.allowed == 'true'
         id: version
         shell: bash
         run: |
@@ -187,6 +207,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Cache opencode
+        if: steps.guard.outputs.allowed == 'true'
         id: cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
@@ -194,7 +215,7 @@ jobs:
           key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
 
       - name: Install opencode
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.guard.outputs.allowed == 'true' && steps.cache.outputs.cache-hit != 'true'
         shell: bash
         env:
           OPENCODE_URL: ${{ steps.version.outputs.url }}
@@ -211,6 +232,7 @@ jobs:
           rm -f "${TAR_FILE}"
 
       - name: Run opencode
+        if: steps.guard.outputs.allowed == 'true'
         id: run_opencode
         shell: bash
         env:
