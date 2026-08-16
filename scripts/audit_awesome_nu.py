@@ -11,6 +11,9 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from url_safety import ensure_http_url, http_opener  # noqa: E402
+
 AWESOME_NU_DEFAULT_URL = (
     "https://raw.githubusercontent.com/nushell/awesome-nu/main/README.md"
 )
@@ -233,11 +236,12 @@ def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
     if path and path.exists():
         return path.read_text(encoding="utf-8")
 
+    ensure_http_url(url)
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "numan-catalog-audit/1.0"},
     )
-    with urllib.request.urlopen(req, timeout=15) as resp:
+    with http_opener().open(req, timeout=15) as resp:
         return resp.read().decode("utf-8")
 
 
