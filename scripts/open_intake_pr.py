@@ -445,11 +445,13 @@ def _reconcile_failed_pr_create(owner: str, name: str, version: str) -> None:
 
 
 def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
-                   evidence: dict, *, dry_run: bool) -> None:
+                   evidence: dict, *, dry_run: bool, auto_merge: bool = False) -> None:
     """Open the intake PR with a generated body (or print a preview)."""
     pr_body = _generate_pr_body(spec, evidence)
     if dry_run:
         print(f"  [dry-run] would: gh pr create --title 'Intake: {owner}/{name} v{version}'", file=sys.stderr)
+        if auto_merge:
+            print("  [dry-run] would: gh pr merge --auto --squash", file=sys.stderr)
         print("\n--- PR body preview ---", file=sys.stderr)
         print(pr_body, file=sys.stderr)
     else:
@@ -468,8 +470,13 @@ def _stage_open_pr(owner: str, name: str, version: str, spec: dict,
                 print(result.stderr, file=sys.stderr)
             sys.exit(1)
 
+        if auto_merge:
+            merge_result = gh_run(["pr", "merge", "--auto", "--squash"])
+            if merge_result is not None and merge_result.returncode != 0:
+                print("warning: failed to enable auto-merge on PR", file=sys.stderr)
 
-def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) -> None:
+
+def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False, auto_merge: bool = False) -> None:
     """Main orchestration: assemble and optionally open the PR."""
     dry_run = not push
 
@@ -513,7 +520,7 @@ def open_intake_pr(spec_path: Path, evidence_path: Path, *, push: bool = False) 
         )
         _stage_refresh_docs(dry_run=dry_run)
         _stage_commit_and_push(owner, name, version, branch, dest_spec, dry_run=dry_run)
-        _stage_open_pr(owner, name, version, spec, evidence, dry_run=dry_run)
+        _stage_open_pr(owner, name, version, spec, evidence, dry_run=dry_run, auto_merge=auto_merge)
     except BaseException:
         if push and original_branch is not None:
             _cleanup_intake_branch(branch, original_branch, mutated_paths)
@@ -533,6 +540,8 @@ def main() -> None:
     parser.add_argument("--evidence", required=True, help="Path to evidence JSON (Stage 5 output)")
     parser.add_argument("--push", action="store_true",
                         help="Actually create branch + PR (default is dry-run)")
+    parser.add_argument("--auto-merge", action="store_true",
+                        help="Enable GitHub auto-merge on the created PR")
     args = parser.parse_args()
 
     spec_path = Path(args.spec)
@@ -545,7 +554,7 @@ def main() -> None:
         print(f"error: evidence not found: {evidence_path}", file=sys.stderr)
         sys.exit(1)
 
-    open_intake_pr(spec_path, evidence_path, push=args.push)
+    open_intake_pr(spec_path, evidence_path, push=args.push, auto_merge=args.auto_merge)
 
 
 if __name__ == "__main__":
