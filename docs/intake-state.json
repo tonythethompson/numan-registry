@@ -575,23 +575,23 @@
   "blocked": [
     {
       "id": "FMotalleb/nu_plugin_clipboard",
-      "blocker": "legacy Nu 0.110 pin; unblocked for intake via P4 maintained fork evaluation (ADR 0001)"
+      "blocker": "legacy Nu 0.110 pin; requires maintained fork bump or upstream Nu 0.114+ release"
     },
     {
       "id": "Euphrasiologist/nu_plugin_plot",
-      "blocker": "no release tags; unblocked for intake via P1 commit-snapshot mode in numan-plugins"
+      "blocker": "no release tags; pending commit-snapshot build"
     },
     {
       "id": "galuszkak/nu_plugin_bigquery",
-      "blocker": "requires GCP credentials for live lifecycle; unblocked for intake via P6 provisional tier"
+      "blocker": "requires GCP credentials; pending provisional evidence tier intake"
     },
     {
       "id": "abusch/nu_plugin_semver",
-      "blocker": "mac/linux targets have supported tar.xz assets (ready for multi-platform expansion)"
+      "blocker": "Linux/macOS tar.xz assets; pending multi-platform intake"
     },
     {
       "id": "fennewald/nu_plugin_net",
-      "blocker": "tar.xz assets supported for Linux/macOS; ready for intake"
+      "blocker": "Linux/macOS tar.xz assets; pending multi-platform intake"
     }
   ],
   "changelog": [
