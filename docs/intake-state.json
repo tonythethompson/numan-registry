@@ -575,23 +575,23 @@
   "blocked": [
     {
       "id": "FMotalleb/nu_plugin_clipboard",
-      "blocker": "nupm git-only; no release binaries (and other FMotalleb plugins)"
+      "blocker": "legacy Nu 0.110 pin; unblocked for intake via P4 maintained fork evaluation (ADR 0001)"
+    },
+    {
+      "id": "Euphrasiologist/nu_plugin_plot",
+      "blocker": "no release tags; unblocked for intake via P1 commit-snapshot mode in numan-plugins"
+    },
+    {
+      "id": "galuszkak/nu_plugin_bigquery",
+      "blocker": "requires GCP credentials for live lifecycle; unblocked for intake via P6 provisional tier"
     },
     {
       "id": "abusch/nu_plugin_semver",
-      "blocker": "mac/linux targets now have supported tar.xz assets (registry remains Windows-only pending intake and lifecycle evidence)"
+      "blocker": "mac/linux targets have supported tar.xz assets (ready for multi-platform expansion)"
     },
     {
       "id": "fennewald/nu_plugin_net",
-      "blocker": "tar.xz assets are supported; no Windows release asset"
-    },
-    {
-      "id": "fdncred/abusch cargo-dist plugins",
-      "blocker": "Unix targets ship `.tar.xz`; Windows ships `.zip`"
-    },
-    {
-      "id": "MCP / AI agent tooling",
-      "blocker": "Not a Numan package type; would need module/script packaging"
+      "blocker": "tar.xz assets supported for Linux/macOS; ready for intake"
     }
   ],
   "changelog": [
