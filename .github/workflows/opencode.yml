@@ -28,7 +28,7 @@ jobs:
       contains(github.event.comment.body, ' /opencode ') ||
       endsWith(github.event.comment.body, ' /opencode')))
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     permissions:
       id-token: write
       contents: write
