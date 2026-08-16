@@ -89,7 +89,7 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 
 | Package | Blocker |
 |---------|---------|
-| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin clip commands |
+| [`FMotalleb/nu_plugin_clipboard`](https://github.com/FMotalleb/nu_plugin_clipboard) | evaluated under ADR 0001: rejected for fork stewardship; superseded by Nushell 0.111+ core builtin `clip` commands |
 | [`galuszkak/nu_plugin_bigquery`](https://github.com/galuszkak/nu_plugin_bigquery) | requires GCP credentials; pending provisional evidence tier intake |
 | [`abusch/nu_plugin_semver`](https://github.com/abusch/nu_plugin_semver) | Linux/macOS tar.xz assets; pending multi-platform intake |
 | [`fennewald/nu_plugin_net`](https://github.com/fennewald/nu_plugin_net) | Linux/macOS tar.xz assets; pending multi-platform intake |
