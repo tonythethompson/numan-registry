@@ -11,18 +11,22 @@ The workflow probes and selects the agent model per command (see `.github/workfl
 
 | Command      | Primary model                          | Fallback chain                                                                                |
 | ------------ | -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `/oc review` | `opencode/gpt-5.6-luna`                | `opencode/big-pickle` → `opencode/nemotron-3-ultra-free` → `opencode/nemotron-3.5-lightning-free` → `opencode/deepseek-v4-flash` → `alibaba-token-plan/qwen3.8-max` → `alibaba/qwen3.8-max` → `opencode/nemotron-3-ultra` |
-| `/oc fix`    | `opencode/big-pickle`                  | `opencode/nemotron-3-ultra-free` → `opencode/nemotron-3.5-lightning-free` → `opencode/deepseek-v4-flash` → `alibaba-token-plan/qwen3.8-max` → `alibaba/qwen3.8-max` → `opencode/nemotron-3-ultra` |
+| `/oc review` | `cloudflare-workers-ai/@cf/zai-org/glm-5.2` (CF-first) | `opencode/gpt-5.6-luna` (`variant: max`) → `opencode/big-pickle` → `opencode/nemotron-3-ultra-free` → `opencode/nemotron-3.5-lightning-free` → `opencode/deepseek-v4-flash` → `alibaba-token-plan/qwen3.8-max` → `alibaba/qwen3.8-max` → `opencode/nemotron-3-ultra` |
+| `/oc fix`    | `cloudflare-workers-ai/@cf/deepseek-ai/deepseek-v4-flash-0731` (CF-first) | `opencode/big-pickle` → `opencode/nemotron-3-ultra-free` → `opencode/nemotron-3.5-lightning-free` → `opencode/deepseek-v4-flash` → `alibaba-token-plan/qwen3.8-max` → `alibaba/qwen3.8-max` → `opencode/nemotron-3-ultra` |
 
 Each model is probed with a minimal request before the run; a disabled or unavailable model
 falls through to the next in the chain. The `opencode/*` models are probed through the
 opencode.ai `/zen` gateway; the two `alibaba/*` models are probed through their direct
 compatible-mode endpoints (`token-plan.ap-southeast-1.maas.aliyuncs.com` and
 `dashscope.aliyuncs.com`) behind the `ALIBABA_TOKEN_PLAN_API_KEY` / `DASHSCOPE_API_KEY`
-secrets. `/oc review` uses `gpt-5.6-luna` for fast and accurate finding quality; `/oc fix` runs
-use `big-pickle` for multi-turn editing loops. Review runs send code snippets to an
-OpenAI-hosted model — acceptable for public repos; keep in mind OpenAI may retain requests
-for evaluation purposes.
+secrets. `/oc review` runs are short and judgment-heavy, so the cost-efficient
+`gpt-5.6-luna` runs with `max` reasoning effort to maximize finding quality while keeping
+per-run cost in the tens of cents; `/oc fix` runs are long agentic edit loops, where the
+free big-pickle keeps cost at $0. Note that `big-pickle` advertises no reasoning-effort
+variants, so `variant: max` is only applied when `gpt-5.6-luna` is actually selected — the
+probe clears it on any fallback. Review runs send code snippets to an OpenAI-hosted model —
+acceptable for public repos; keep in mind OpenAI may retain requests for evaluation
+purposes.
 
 ## Using context7
 
@@ -65,51 +69,89 @@ behavior below applies whether the review is triggered by `/oc review` or by PR 
 
 ### Posting behavior
 
-**CRITICAL REQUIREMENT: YOU MUST POST EACH FINDING VIA THE `bash` TOOL BEFORE RETURNING.**
-Do NOT dump findings into your final response text. Instead:
+**One comment per actionable finding.** Do NOT write one big review. Instead:
 
-1. **Identify the actionable findings in the PR diff.**
-2. **For EVERY finding located in the PR diff, you MUST execute a `bash` tool call** to post it as an **individual inline resolvable review thread** via `gh api`:
+1. Identify the actionable findings. An actionable finding is one where you can point at a
+   concrete problem in the code and, when feasible, propose a specific change.
+2. Post each actionable finding as its **own resolvable review thread** via the `gh` CLI
+   (preinstalled in GitHub Actions; the `GITHUB_TOKEN` env var is available, no login
+   needed). Fall back down this ladder until the finding is posted:
 
-   a. **Inline line comment with committable suggestion** (REQUIRED for diff lines):
-      Pins the finding to a line in the PR diff and creates a resolvable thread with a one-click commit button. Query the current PR head SHA and use that as `commit_id`:
+   **Hard rule:** one `gh` comment per actionable finding, at the highest resolution
+   available. Never put more than one finding in a single comment, and never restate a
+   finding's body in the final summary — the summary is only an index of links.
 
-      ```bash
-      HEAD_SHA=$(gh pr view "$PR_NUMBER" -R "$REPO" --json headRefOid --jq .headRefOid)
-      cat <<'EOF' > finding.md
-      **[P1] Bug title** — explanation of the issue.
+    > **CRITICAL — the comment body must be the finding CONTENT, never a file path.**
+    > Do NOT post the literal string `@…/finding.md` (or any `@path` token) as the body.
+    > The `@file` shorthand only works when the `gh` CLI itself expands it; opencode's
+    > review posting path does not, so an `@path` value leaks the path into the comment.
+     > Always ground the comment in the actual finding text.
 
-      ```suggestion
-      <exact replacement lines matching the current file content>
-      ```
-      EOF
+     The `gh` calls you make run under the GitHub Actions token, so the review threads you
+     create appear as `github-actions[bot]`. Your final reply (step 3) is posted separately
+     as `opencode-agent[bot]`. That split is the intended design: individual threads as
+     `github-actions[bot]`, summary as `opencode-agent[bot]`.
 
-      gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
-        -F body=@finding.md \
-        -f path="registry/index.json" \
-        -F line=2469 \
-        -f commit_id="$HEAD_SHA"
-      ```
+     a. **Inline line comment** (preferred) — pins the finding to a line in the PR diff and
+       creates a resolvable thread. Use the PR head SHA (`Head: { Sha: ... }` in the
+       `<pull_request>` context) as `commit_id`, plus the file and line the finding is
+       about. Use `gh` CLI with the `@` form ONLY when you are directly invoking `gh` in a
+       shell (the `@` must immediately follow `=`, with no surrounding quotes/spaces, so gh
+       reads the file):
 
-      For line ranges, add `-F start_line=<first line>` (and `-f start_side=LEFT` for deletions).
+       ```bash
+       gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
+         -f body=@finding.md \
+         -f path="src/example.ts" \
+         -F line=42 \
+         -f commit_id="$HEAD_SHA"
+       ```
 
-   b. **File-level comment** (fallback if line is not in the diff):
-      ```bash
-      gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
-        -F body=@finding.md \
-        -f path="registry/index.json" \
-        -f subject_type=file
-      ```
+       If you are posting through opencode's built-in review tooling instead, READ the
+       `finding.md` file and pass its full contents as the `body` value — never the path.
+      **Never** pass `@path` as the body through opencode's built-in tooling.
 
-   c. **Issue comment** (last resort only for findings with NO file in the diff):
-      ```bash
-      gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" -F body=@finding.md
-      ```
+       For a finding spanning a line range, add `-F start_line=<first line>` (and, for a
+       deletion, `-f start_side=LEFT`).
 
-3. **Your final response text MUST ONLY be a concise overall summary:**
-   - A high-level assessment of the changes and review outcome.
-   - An **"Out of diff"** section detailing any findings that have no diff location (e.g. missing test suites, cross-file architectural concerns, or files untouched by the PR). For each out-of-diff finding, you must include: **file name**, **line number or range** (when applicable), **severity**, and **the issue description**.
-   - Do NOT duplicate the inline finding bodies or list links to created comments in your final text—all inline findings and committable code suggestions live directly in the threads created in step 2.
+   b. **File-level comment** — if the exact line is unknown, or the line-comment call
+      returns a 422, post a **file-level** review comment (`subject_type=file`). This still
+      creates a resolvable thread and is the recommended fallback whenever you know the file
+      but not the precise line (same `body` rule applies):
+
+       ```bash
+       gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
+         -f body=@finding.md \
+         -f path="src/example.ts" \
+         -f subject_type=file
+       ```
+
+   c. **Issue comment** (last resort, non-resolvable) — only if the file is not part of
+      the PR diff at all. Post **one issue comment per finding**:
+
+       ```bash
+       gh api repos/{owner}/{repo}/issues/{pr_number}/comments -f body=@finding.md
+       ```
+
+    Derive `owner`/`repo` from `baseRepository.nameWithOwner` in the `<pull_request>`
+    context (split on `/`), `pr_number` from `Number:`, and `HEAD_SHA` from
+    `Head: { Sha: ... }`. Writing the finding body to a temp file (`finding.md`) is a useful
+    drafting aid, but the posted `body` must be that file's **contents**, not its name. Post
+    threads one at a time — this endpoint is secondary-rate-limited if you post too
+    fast — and keep a list of the posted comment IDs/URLs and of which findings fell back to
+      an issue comment. If a `gh` call fails at every level for a finding, move on to
+      the next finding's comment; for any finding you truly cannot post, reference it (not
+      its body) in the summary's "Out of diff" section.
+ 3. **Your final reply text** (what the action posts as the single `opencode-agent[bot]`
+   summary comment) must be a **short summary index only — it must NOT contain finding
+   bodies**. It is: overall assessment; one line per threaded finding with its file:line,
+   severity, and a link to that finding's comment (both endpoint responses include the
+   `html_url`); and an **"Out of diff"** section listing only the *links* to any fallback
+   issue comments (from step 2c) plus any finding with no diff location (e.g. missing
+   tests, missing docs, cross-file concerns), each with severity and the file(s)/line(s) it
+   covers. All finding detail lives in the per-finding comments posted in step 2.
+ 4. Only trivial, non-actionable nits may be grouped — at most one small extra comment — and
+   never mixed with actionable findings. Every actionable finding is its own thread.
 
 ### Committing behavior — suggestions only
 
@@ -122,7 +164,7 @@ You are reviewing, not editing:
   fenced block so GitHub renders a one-click **Commit suggestion** button right in the
   comment:
 
-  ````markdown
+  ````
   ```suggestion
   <exact replacement lines — must match the current file content>
   ```
@@ -156,6 +198,42 @@ When a user message is exactly `/oc fix` or begins with `/oc fix`, fix the revie
 the current pull request.
 
 ### Behavior
+
+0. **If the request mentions CI, tests, checks, build, lint, "failing", "red", or a workflow,
+   check the ACTUAL GitHub Actions run — do not guess from the diff or from a local test run.**
+   The `<pull_request>` context contains review comments only; it does NOT contain CI results, so
+   "no review comments" is NOT "no failures". `gh` is preinstalled and `GITHUB_TOKEN` is set, so
+   query the run directly:
+
+   - Derive `owner`/`repo` from `baseRepository.nameWithOwner` (split on `/`), `HEAD_SHA` from
+     `Head: { Sha: ... }`, and the PR branch from `Head: { ref }` / `headRefName`.
+   - List every check on the head commit and surface the ones that are not green:
+
+     ```bash
+     gh api repos/{owner}/{repo}/commits/{HEAD_SHA}/check-runs \
+       --jq '.check_runs[] | select(.status!="completed" or .conclusion!="success") |
+             "\(.name) status=\(.status) conclusion=\(.conclusion) app=\(.app.slug)"'
+     ```
+
+   - Find the failing workflow run(s) and read the failed-step logs:
+
+     ```bash
+     gh run list --repo {owner}/{repo} --branch {branch} --limit 5
+     gh run view {run_id} --repo {owner}/{repo} --log-failed
+     ```
+
+     If `--log-failed` is empty, use `gh run view {run_id} --repo {owner}/{repo} --log` (or
+     `gh api repos/{owner}/{repo}/actions/runs/{run_id}/jobs` → failed job → its steps) to locate
+     the error.
+   - **Do NOT report "there are no failing tests" / "nothing to do" unless the commands above show
+     every check green.** Local `pnpm test` can pass while CI still fails (lint, tsc typecheck,
+     build, integration, component suites all run in CI and may not run locally). Treat the CI log
+     as the source of truth: it gives the exact `file:line` and error message. Reproduce with the
+     project script if helpful (`pnpm lint`, `pnpm test`, etc.), fix the real failure, then re-check
+     with `gh run view --log-failed` that the check is now green.
+   - When the request is purely about CI (not review comments), you may skip the review-thread
+     enumeration in step 1 and go straight to fixing the CI failures — but still enumerate ALL
+     failing checks, not just one.
 
 1. **Collect ALL review feedback** — do not rely on the `<pull_request>` context alone; it may
    be partial, out of order, or missing threads you'd otherwise need to resolve. You MUST
@@ -197,21 +275,24 @@ the current pull request.
 
    ```bash
    # 1. List threads, their resolved state, and the first comment's databaseId
-   # (For PRs with many comments, paginate reviewThreads and comments)
    gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{id isResolved comments(first:10){nodes{databaseId}}}}}}}' -F owner=... -F repo=... -F number=...
 
    # 2. Reply to the thread with the reason before resolving
    gh api graphql -f query='mutation($id:ID!,$body:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$id,body:$body}){comment{id}}}' -F id=THREAD_ID -f body=REASON
    #    REST equivalent (reply to the first comment in the thread):
-   #    gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -F body=@thread.md
+   #    gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -f body=REASON
 
    # 3. Resolve the thread
    gh api graphql -f query='mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{isResolved}}}' -F id=THREAD_ID
    ```
 
-   Write the reason to a temp file (`thread.md`) and pass `-F body=@thread.md` when it is
-   long, so multiline Markdown survives intact. Only leave open a thread you genuinely could
-   not address — no fix and no justification — and say why in the summary.
+    Write the reason to a temp file (`thread.md`) and pass `-f body=@thread.md` when it is
+    long, so multiline Markdown survives intact. **The `@` form is only valid when you invoke
+    the `gh` CLI directly in a shell** (the `@` must immediately follow `=` with no
+    surrounding quotes/spaces). If you post through opencode's built-in review tooling, READ
+    the file and pass its contents as the `body` — never the literal `@path` string, which
+    would leak the path into the reply. Only leave open a thread you genuinely could
+    not address — no fix and no justification — and say why in the summary.
 4. **Your final reply text IS the single summary comment** (the action posts it). Do NOT post
    extra per-finding comments. The summary must cover **everything**:
    - **Fixed** — for each addressed item: the change made (file:line) and whether its thread
