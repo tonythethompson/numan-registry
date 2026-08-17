@@ -8,9 +8,9 @@ This is the **master list** of packages in the committed `registry/index.json` (
 
 ## Summary
 
-- **61** packages total
-- By type: `completion` 6, `module` 15, `plugin` 34, `script` 6
-- Latest version Nu band: `0.114` 30, `0.113` 3, `0.112` 1, `other` 13, `*` 14
+- **62** packages total
+- By type: `completion` 6, `module` 15, `plugin` 35, `script` 6
+- Latest version Nu band: `0.114` 31, `0.113` 3, `0.112` 1, `other` 13, `*` 14
 
 Nu band is a coarse label from the constraint **lower bound** (`>=0.114` / `>0.113` → `0.114` / `0.113`, etc.; else `*` or `other`). Exact constraints are in the table and in the signed index.
 
