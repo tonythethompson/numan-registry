@@ -164,9 +164,9 @@ Automated via `scripts/intake-archive.py` with commit-level SHA256 pinning:
 
 ### 4. Multi-OS Expansions & Upstream `.tar.xz` Assets (P3)
 
-- [ ] `abusch/nu_plugin_semver` — add Linux/macOS `.tar.xz` assets to complete multi-OS matrix
-- [ ] `Trivernis/nu-plugin-dialog` — add Linux/macOS `.tar.xz` assets
-- [ ] `fennewald/nu_plugin_net` — intake Linux/macOS `.tar.xz` assets
+- [x] `abusch/nu_plugin_semver` — add Linux/macOS `.tar.xz` assets to complete multi-OS matrix
+- [x] `Trivernis/nu-plugin-dialog` — add Linux/macOS `.tar.xz` assets
+- [x] `fennewald/nu_plugin_net` — intake Linux/macOS `.tar.xz` assets
 
 ### 5. Maintained Forks for Abandoned Plugins (P4 Lane 3)
 

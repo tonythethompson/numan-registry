@@ -1,10 +1,10 @@
 {
   "owner": "Trivernis",
   "name": "nu-plugin-dialog",
-  "description": "Nushell plugin for user interaction dialogs. Windows-only for now: upstream ships .tar.xz archives for Linux/macOS, and Numan's installer does not support that format yet.",
+  "description": "Nushell plugin for user interaction dialogs.",
   "repo": "https://github.com/Trivernis/nu-plugin-dialog",
   "type": "plugin",
-  "tags": ["plugin", "dialog", "windows-only"],
+  "tags": ["plugin", "dialog", "ui"],
   "version": "0.1.0",
   "nu_version": ">=0.107.0 <0.108.0",
   "verified_with": ["0.107.0"],
@@ -14,6 +14,18 @@
       "x86_64-pc-windows-msvc": {
         "url": "https://github.com/Trivernis/nu-plugin-dialog/releases/download/v0.1.0/nu_plugin_dialog-v0.1.0-x86_64-pc-windows-msvc.zip",
         "executable_path": "nu_plugin_dialog.exe"
+      },
+      "x86_64-unknown-linux-gnu": {
+        "url": "https://github.com/Trivernis/nu-plugin-dialog/releases/download/v0.1.0/nu_plugin_dialog-v0.1.0-x86_64-unknown-linux-gnu.tar.xz",
+        "executable_path": "nu_plugin_dialog-v0.1.0-x86_64-unknown-linux-gnu/nu_plugin_dialog"
+      },
+      "aarch64-apple-darwin": {
+        "url": "https://github.com/Trivernis/nu-plugin-dialog/releases/download/v0.1.0/nu_plugin_dialog-v0.1.0-aarch64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_dialog-v0.1.0-aarch64-apple-darwin/nu_plugin_dialog"
+      },
+      "x86_64-apple-darwin": {
+        "url": "https://github.com/Trivernis/nu-plugin-dialog/releases/download/v0.1.0/nu_plugin_dialog-v0.1.0-x86_64-apple-darwin.tar.xz",
+        "executable_path": "nu_plugin_dialog-v0.1.0-x86_64-apple-darwin/nu_plugin_dialog"
       }
     }
   }
