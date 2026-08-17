@@ -289,11 +289,24 @@ class TestStageHelpers(unittest.TestCase):
         self.assertIn("## Intake: acme/pkg v1.0.0", out)
         run.assert_not_called()
 
+    def test_stage_open_pr_dry_run_auto_merge_prints_preview(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        with patch.object(open_intake_pr, "_run") as run:
+            out = self._stderr_of(
+                lambda: open_intake_pr._stage_open_pr(
+                    "acme", "pkg", "1.0.0", spec, evidence, dry_run=True, auto_merge=True
+                )
+            )
+        self.assertIn("[dry-run] would: gh pr create --title 'Intake: acme/pkg v1.0.0'", out)
+        self.assertIn("[dry-run] would: gh pr merge intake/acme-pkg-1.0.0 --auto --squash", out)
+        run.assert_not_called()
+
     def test_stage_open_pr_real_runs_gh(self):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
         evidence = {"overall": "pass", "human_summary": "ok"}
         success = subprocess.CompletedProcess(
-            args=["gh", "pr", "create"], returncode=0, stdout="", stderr=""
+            args=["gh", "pr", "create"], returncode=0, stdout="https://github.com/tonythethompson/numan-registry/pull/99\n", stderr=""
         )
         with patch.object(open_intake_pr, "gh_run", return_value=success) as run:
             open_intake_pr._stage_open_pr(
@@ -303,6 +316,28 @@ class TestStageHelpers(unittest.TestCase):
         self.assertEqual(args[0][:2], ["pr", "create"])
         self.assertIn("--body", args[0])
         self.assertIn("--base", args[0])
+
+    def test_stage_open_pr_real_auto_merge_passes_pr_target(self):
+        spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
+        evidence = {"overall": "pass", "human_summary": "ok"}
+        create_success = subprocess.CompletedProcess(
+            args=["gh", "pr", "create"],
+            returncode=0,
+            stdout="https://github.com/tonythethompson/numan-registry/pull/99\n",
+            stderr="",
+        )
+        merge_success = subprocess.CompletedProcess(
+            args=["gh", "pr", "merge"], returncode=0, stdout="", stderr=""
+        )
+        with patch.object(open_intake_pr, "gh_run", side_effect=[create_success, merge_success]) as run:
+            open_intake_pr._stage_open_pr(
+                "acme", "pkg", "1.0.0", spec, evidence, dry_run=False, auto_merge=True
+            )
+        self.assertEqual(run.call_count, 2)
+        create_args = run.call_args_list[0].args[0]
+        merge_args = run.call_args_list[1].args[0]
+        self.assertEqual(create_args[:2], ["pr", "create"])
+        self.assertEqual(merge_args, ["pr", "merge", "https://github.com/tonythethompson/numan-registry/pull/99", "--auto", "--squash"])
 
     def test_stage_open_pr_real_exits_when_gh_fails(self):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
