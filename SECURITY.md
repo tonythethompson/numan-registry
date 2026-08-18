@@ -11,7 +11,7 @@ Do not publish exploit details, suspected private keys, or unverified artifact
 content in a public issue.
 
 Preferred: open a private GitHub security advisory at
-<https://github.com/tonythethompson/numan-registry/security/advisories/new>.
+<https://github.com/numan-cli/numan-registry/security/advisories/new>.
 
 Fallback: open a public issue titled **Security contact request** with no
 technical details. The maintainer will establish a private channel before
@@ -39,10 +39,10 @@ Helpful report contents:
 
 - Bugs in the Numan CLI client (verification logic, path handling, install,
   activate, self-update):
-  [tonythethompson/numan](https://github.com/tonythethompson/numan)
+  [numan-cli/numan](https://github.com/numan-cli/numan)
 - Plugin / module build and release pipeline issues that never reached a signed
   index:
-  [tonythethompson/numan-plugins](https://github.com/tonythethompson/numan-plugins)
+  [numan-cli/numan-plugins](https://github.com/numan-cli/numan-plugins)
 - Vulnerabilities in upstream third-party packages themselves (report to the
   upstream project; tell us if a catalog entry needs yank or replacement)
 - Social engineering, denial of service against GitHub Pages, or issues that

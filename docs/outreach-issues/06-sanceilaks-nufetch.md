@@ -1,6 +1,6 @@
 `nufetch` is a great first-use demo for Nushell (and for package managers that want something that "just looks alive" without a plugin ABI pin).
 
-I'm adding packages to the [Numan registry](https://github.com/tonythethompson/numan-registry) focused on scripts and everyday modules. **`Sanceilaks/nufetch@0.1.0-15e0645`** is already listed as an **install-only** script (hash-verified download; user runs it themselves; I'm not auto-wiring config yet).
+I'm adding packages to the [Numan registry](https://github.com/numan-cli/numan-registry) focused on scripts and everyday modules. **`Sanceilaks/nufetch@0.1.0-15e0645`** is already listed as an **install-only** script (hash-verified download; user runs it themselves; I'm not auto-wiring config yet).
 
 Today that uses a registry mirror of a pinned commit. If you're open to it, an uploaded release zip would let me pin **your** artifact instead:
 

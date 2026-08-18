@@ -98,9 +98,9 @@ def provenance_hint(artifact: dict[str, Any]) -> str:
         return "other"
     kinds: set[str] = set()
     for url in urls:
-        if "numan-registry/releases/download/" in url or "tonythethompson/numan-registry/releases/" in url:
+        if "numan-registry/releases/download/" in url or "numan-cli/numan-registry/releases/" in url:
             kinds.add("mirror")
-        elif "tonythethompson/numan-plugins/releases/" in url:
+        elif "numan-cli/numan-plugins/releases/" in url:
             kinds.add("ci-built")
         elif url.startswith("http"):
             kinds.add("upstream")
@@ -155,7 +155,7 @@ def render(index: dict[str, Any], generated_at: str) -> str:
         "(in-tree; the public CDN updates after production signing/publish) "
         "and the Nu constraint on each package's **latest** version. For demand-"
         "ranked *plugin candidates* not yet in the registry, see "
-        "[`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json). "
+        "[`numan-plugins/docs/backlog.json`](https://github.com/numan-cli/numan-plugins/blob/main/docs/backlog.json). "
         "For intake workflow status, see [`intake-candidates.md`](intake-candidates.md).",
         "",
         "## Summary",

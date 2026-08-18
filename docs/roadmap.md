@@ -3,7 +3,7 @@
 **Status date:** 2026-08-07
 
 **Consolidated plan:** Cross-repo priorities and the 1.0 gate live in
-[`numan/docs/plans/consolidated-multi-repo-roadmap.md`](https://github.com/tonythethompson/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md).
+[`numan/docs/plans/consolidated-multi-repo-roadmap.md`](https://github.com/numan-cli/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md).
 This file keeps registry-local operational detail.
 
 This repository is the source of truth for the signed official Numan registry.
@@ -27,9 +27,9 @@ JSON edits.
   `numan-plugins/manifest.json`.
 - Stage 1 lifecycle evidence is mandatory for activatable package promotion.
 - Stage 2 package lint + PR evidence checklist landed in
-  [PR #31](https://github.com/tonythethompson/numan-registry/pull/31).
+  [PR #31](https://github.com/numan-cli/numan-registry/pull/31).
 - Intake Stages 3–6 landed in
-  [PR #37](https://github.com/tonythethompson/numan-registry/pull/37).
+  [PR #37](https://github.com/numan-cli/numan-registry/pull/37).
 - Wave 1 and Wave 2 CI-built Nu 0.114 plugins are in production.
 - Wave 3A install-only script mirrors and Wave 3B completion mirrors are in
   the committed index (2026-08-06/07): `SuaveIV/nu_script_gh_status`,
@@ -42,7 +42,7 @@ JSON edits.
 ## Highest Priority: Grow Catalog Depth For 1.0
 
 Continue promoting demand-ranked plugins from
-[`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json)
+[`numan-plugins/docs/backlog.json`](https://github.com/numan-cli/numan-plugins/blob/main/docs/backlog.json)
 through build → spec → intake → lifecycle-prove → production.
 
 Keep growing non-plugin install-only mirrors (scripts / completions / modules)

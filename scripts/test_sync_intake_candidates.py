@@ -35,19 +35,19 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
     def test_artifact_provenance_classes(self):
         self.assertEqual(
             self.sync.artifact_provenance(
-                "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/x.zip"
+                "https://github.com/numan-cli/numan-registry/releases/download/mirror-x/x.zip"
             ),
             "mirror",
         )
         self.assertEqual(
             self.sync.artifact_provenance(
-                "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-ai.nu-0.1.0-2e71068/fj0r-ai.nu-0.1.0-2e71068.tar.gz"
+                "https://github.com/numan-cli/numan-registry/releases/download/archive-fj0r-ai.nu-0.1.0-2e71068/fj0r-ai.nu-0.1.0-2e71068.tar.gz"
             ),
             "mirror",
         )
         self.assertEqual(
             self.sync.artifact_provenance(
-                "https://github.com/tonythethompson/numan-plugins/releases/download/p-1.0.0/p.tar.gz"
+                "https://github.com/numan-cli/numan-plugins/releases/download/p-1.0.0/p.tar.gz"
             ),
             "ci-built",
         )
@@ -72,7 +72,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
                                 "targets": {
                                     "x86_64-unknown-linux-gnu": {
                                         "url": (
-                                            "https://github.com/tonythethompson/"
+                                            "https://github.com/numan-cli/"
                                             "numan-plugins/releases/download/"
                                             "nu_plugin_image-0.112.2/"
                                             "nu_plugin_image-0.112.2-x86_64-unknown-linux-gnu.tar.gz"
@@ -106,7 +106,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
                                 "targets": {
                                     "x86_64-pc-windows-msvc": {
                                         "url": (
-                                            "https://github.com/tonythethompson/"
+                                            "https://github.com/numan-cli/"
                                             "numan-registry/releases/download/"
                                             "mirror-partial/win.zip"
                                         ),
@@ -205,7 +205,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
 
     def test_pr_status_all_states(self):
         pr_map = {1: "merged", 2: "open", 3: "closed", 4: None}
-        base = "https://github.com/tonythethompson/numan-registry/pull"
+        base = "https://github.com/numan-cli/numan-registry/pull"
         self.assertEqual(
             self.sync._pr_status({"id": "acme/x", "pr": 1}, pr_map),
             [f"merged in [#1]({base}/1) — publish pending?"],
@@ -259,7 +259,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
                 {
                     "id": {"owner": "vyadh", "name": "nutest"},
                     "versions": [
-                        {"version": "1.1.0", "artifact": {"url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/a.zip"}},
+                        {"version": "1.1.0", "artifact": {"url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-x/a.zip"}},
                         {"version": "1.2.0", "artifact": {"url": "https://github.com/acme/nutest/releases/download/v1.2.0/a.zip"}},
                     ],
                 },
@@ -285,7 +285,7 @@ class SyncIntakeCandidatesTests(unittest.TestCase):
                                 "kind": "binary",
                                 "targets": {
                                     "x86_64-pc-windows-msvc": {
-                                        "url": "https://github.com/tonythethompson/numan-plugins/releases/download/x/win.zip"
+                                        "url": "https://github.com/numan-cli/numan-plugins/releases/download/x/win.zip"
                                     },
                                     "x86_64-unknown-linux-gnu": {
                                         "url": "https://github.com/acme/plugin/releases/download/v1.0.0/linux.zip"

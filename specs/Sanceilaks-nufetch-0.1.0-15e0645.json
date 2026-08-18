@@ -10,7 +10,7 @@
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-Sanceilaks-nufetch-15e0645/nufetch-15e0645.zip",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-Sanceilaks-nufetch-15e0645/nufetch-15e0645.zip",
     "entry": "nufetch.nu",
     "archive_root": "nufetch-15e0645"
   }

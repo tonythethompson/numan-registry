@@ -29,7 +29,7 @@ Usage:
     --entry mod.nu --name cool-module --owner someone --type module \\
     --description "..." --tags '["module"]' --nu-version ">=0.114.0" \\
     --activation-kind nu-module --activation-import all \\
-    --release-repo tonythethompson/numan-registry \\
+    --release-repo numan-cli/numan-registry \\
     --out spec-someone-cool-module.json --write
 """
 
@@ -527,7 +527,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument(
         "--release-repo",
-        default="tonythethompson/numan-registry",
+        default="numan-cli/numan-registry",
         help="owner/repo to publish the archive as a GitHub release asset on",
     )
     ap.add_argument(

@@ -1187,7 +1187,7 @@ checksum = "521739c6d2bac4aa25192232afe6841231376b2b26d4d9fae5ecf8ca5772e441"
 [[package]]
 name = "numan-cli"
 version = "0.1.4"
-source = "git+https://github.com/tonythethompson/numan.git?rev=6e93c27307a5a256fa6e6dcab602edf1707ed7d1#6e93c27307a5a256fa6e6dcab602edf1707ed7d1"
+source = "git+https://github.com/numan-cli/numan.git?rev=6e93c27307a5a256fa6e6dcab602edf1707ed7d1#6e93c27307a5a256fa6e6dcab602edf1707ed7d1"
 dependencies = [
  "anyhow",
  "base64",

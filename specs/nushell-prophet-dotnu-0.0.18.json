@@ -10,7 +10,7 @@
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-prophet-dotnu-0.0.18/dotnu-0.0.18.zip",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-nushell-prophet-dotnu-0.0.18/dotnu-0.0.18.zip",
     "entry": "dotnu/mod.nu",
     "archive_root": "dotnu-0.0.18"
   },

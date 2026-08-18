@@ -641,7 +641,7 @@ class MainEndToEndTests(unittest.TestCase):
 
     def test_repo_and_commit_aliases_and_deferral_reason(self):
         sha = "f" * 40
-        upload_url = "https://github.com/tonythethompson/numan-registry/releases/download/archive-someone-cool-mod-0.1.0-fffffff/someone-cool-mod-0.1.0-fffffff.tar.gz"
+        upload_url = "https://github.com/numan-cli/numan-registry/releases/download/archive-someone-cool-mod-0.1.0-fffffff/someone-cool-mod-0.1.0-fffffff.tar.gz"
         calls = []
 
         def fake_run(cmd, **kwargs):

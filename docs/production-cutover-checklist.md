@@ -13,13 +13,13 @@ GitHub Settings path, and the expected outcome before you move on.
 
 - [ ] WSL with Python 3.9+, `pip`, and `git` available.
 - [ ] `cryptography` installed: `python3 -m pip install --user cryptography`.
-- [ ] Owner access to `tonythethompson/numan-registry` and
-      `tonythethompson/numan`.
+- [ ] Owner access to `numan-cli/numan-registry` and
+      `numan-cli/numan`.
 - [ ] A password manager or encrypted vault ready to receive one secret
       note.
 - [ ] `docs/key-provisioning.md` read in full, including the "Never do
       these things" section.
-- [ ] Numan PR #23 (`tonythethompson/numan`) is open, in draft, and its
+- [ ] Numan PR #23 (`numan-cli/numan`) is open, in draft, and its
       merge-gate checklist is otherwise satisfied except for the real key
       and URL.
 
@@ -28,7 +28,7 @@ GitHub Settings path, and the expected outcome before you move on.
 **WSL commands:** none (GitHub web UI only).
 
 **GitHub Settings path:**
-`tonythethompson/numan-registry` → **Settings** → **Environments** → **New
+`numan-cli/numan-registry` → **Settings** → **Environments** → **New
 environment** → name it `production` → add required reviewers → restrict
 **Deployment branches** to `main`.
 
@@ -80,7 +80,7 @@ confirms the key is well-formed and no longer a placeholder); after merge,
 so you can copy its contents without retyping.
 
 **GitHub Settings path:**
-`tonythethompson/numan-registry` → **Settings** → **Environments** →
+`numan-cli/numan-registry` → **Settings** → **Environments** →
 **production** → **Environment secrets** → **Add secret** → name
 `NUMAN_REGISTRY_PRIVATE_KEY`, value = contents of the `.key` file.
 
@@ -104,7 +104,7 @@ material) or be deleted too — your choice.
 
 ## Step F — Update the Numan client's built-in trust root
 
-**WSL commands:** in a checkout of `tonythethompson/numan`. Use
+**WSL commands:** in a checkout of `numan-cli/numan`. Use
 `scripts/update-official-trust-root.sh` (in that repo) instead of hand-editing
 `src/core/official_registry.rs` — it points straight at this repo's
 `keys/official.pub` so you never retype the public key, validates it decodes
@@ -160,11 +160,11 @@ correctly inverted once a real key is set (see how
 the CLI):
 
 ```bash
-gh workflow run "Production registry" --repo tonythethompson/numan-registry \
+gh workflow run "Production registry" --repo numan-cli/numan-registry \
   -f reason="Initial production cutover"
 ```
 
-**GitHub Settings path:** `tonythethompson/numan-registry` → **Actions** →
+**GitHub Settings path:** `numan-cli/numan-registry` → **Actions** →
 **Production registry** → **Run workflow**, then approve the pending
 deployment when prompted for the `production` environment reviewer.
 

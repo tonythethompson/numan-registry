@@ -97,7 +97,7 @@ beyond "has it been long enough."
 2. Update the `production` environment secret `NUMAN_REGISTRY_PRIVATE_KEY`
    to the new private key (Step D there). Delete the old secret value when
    replacing it.
-3. In `tonythethompson/numan`, run:
+3. In `numan-cli/numan`, run:
 
    ```bash
    ./scripts/update-official-trust-root.sh \

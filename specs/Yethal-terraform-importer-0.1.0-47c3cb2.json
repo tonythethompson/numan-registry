@@ -13,7 +13,7 @@
   "nu_version": ">=0.114.0 <0.115.0",
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-Yethal-terraform-importer-0.1.0-47c3cb2/Yethal-terraform-importer-0.1.0-47c3cb2.tar.gz",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/archive-Yethal-terraform-importer-0.1.0-47c3cb2/Yethal-terraform-importer-0.1.0-47c3cb2.tar.gz",
     "entry": "terraform-importer.nu",
     "sha256": "604d549359d6cf2127066b4a596fdd319e73c7cbb3e0ea264eba3de041578dfb"
   },

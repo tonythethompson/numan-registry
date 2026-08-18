@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/tonythethompson/numan-registry/schemas/index-v1.json",
+  "$id": "https://github.com/numan-cli/numan-registry/schemas/index-v1.json",
   "title": "Numan Registry Index v1",
   "description": "Schema for the signed Numan registry index.",
   "type": "object",

@@ -10,7 +10,7 @@ anything — that stays a separate, reviewed step.
 This exists so a maintainer never hand-types a sha256: a typo there
 silently ships a broken or unverifiable install. See the mechanical
 equivalent on the client side: scripts/update-official-trust-root.sh in
-tonythethompson/numan does the same "script computes, human reviews" shape
+numan-cli/numan does the same "script computes, human reviews" shape
 for the trust root.
 
 Spec format (binary artifact, e.g. a plugin):
