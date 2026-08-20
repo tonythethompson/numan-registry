@@ -229,13 +229,13 @@ summary = {
     "created_at": created_at,
     "next_steps": [
         "Commit keys/official.pub with this key_id and public_key_b64.",
-        "Open a PR in tonythethompson/numan-registry with only that change.",
+        "Open a PR in numan-cli/numan-registry with only that change.",
         "After it merges, add NUMAN_REGISTRY_PRIVATE_KEY as an environment "
         "secret on the 'production' GitHub Environment, using the private "
         "key file's contents (never this summary file).",
         "Copy the private key into a password manager / encrypted vault "
         "exactly once, then delete the local private key file.",
-        "Update tonythethompson/numan's src/core/official_registry.rs with "
+        "Update numan-cli/numan's src/core/official_registry.rs with "
         "the same key_id and public_key_b64.",
         "Follow docs/production-cutover-checklist.md before dispatching "
         "the Production registry workflow.",
@@ -263,7 +263,7 @@ echo "  safe summary : ${SUMMARY_FILE}  (no private key material; safe to share)
 echo
 echo "Next steps (see docs/key-provisioning.md for full detail):"
 echo "  1. Commit keys/official.pub with the key_id and public_key_b64 above"
-echo "     via GitHub's web UI or a PR, in tonythethompson/numan-registry."
+echo "     via GitHub's web UI or a PR, in numan-cli/numan-registry."
 echo "  2. GitHub UI: Settings > Environments > production > Environment"
 echo "     secrets > New secret, name NUMAN_REGISTRY_PRIVATE_KEY, value ="
 echo "     the contents of: ${KEY_FILE}"

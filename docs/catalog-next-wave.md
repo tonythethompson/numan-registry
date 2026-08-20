@@ -202,5 +202,5 @@ Wave 3 is done when:
 
 - [`catalog-compat.md`](catalog-compat.md): live package list
 - [`intake-candidates.md`](intake-candidates.md): intake status
-- [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json): plugin candidates only
-- [`numan/docs/plans/consolidated-multi-repo-roadmap.md`](https://github.com/tonythethompson/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md): install-only package types
+- [`numan-plugins/docs/backlog.json`](https://github.com/numan-cli/numan-plugins/blob/main/docs/backlog.json): plugin candidates only
+- [`numan/docs/plans/consolidated-multi-repo-roadmap.md`](https://github.com/numan-cli/numan/blob/master/docs/plans/consolidated-multi-repo-roadmap.md): install-only package types

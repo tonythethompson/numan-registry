@@ -10,7 +10,7 @@
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-nushell-winget-completions-f04cb44/winget-completions-f04cb44.zip",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-nushell-winget-completions-f04cb44/winget-completions-f04cb44.zip",
     "archive_root": "winget-completions-f04cb44"
   }
 }

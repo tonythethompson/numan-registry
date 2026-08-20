@@ -2,7 +2,7 @@
 
 How to contact mirrored-package maintainers and help them ship **byte-stable release assets**, so the official registry can pin upstream URLs instead of registry-hosted mirrors.
 
-**Precedent:** [vyadh/nutest#29](https://github.com/vyadh/nutest/issues/29) — packaging suggestion (not a bug). Maintainer added `nutest-X.Y.Z.zip` in v1.2.0 and a release workflow in [vyadh/nutest#31](https://github.com/vyadh/nutest/pull/31). Registry switched from mirror to upstream asset in [numan-registry#9](https://github.com/tonythethompson/numan-registry/pull/9).
+**Precedent:** [vyadh/nutest#29](https://github.com/vyadh/nutest/issues/29) — packaging suggestion (not a bug). Maintainer added `nutest-X.Y.Z.zip` in v1.2.0 and a release workflow in [vyadh/nutest#31](https://github.com/vyadh/nutest/pull/31). Registry switched from mirror to upstream asset in [numan-registry#9](https://github.com/numan-cli/numan-registry/pull/9).
 
 ---
 

@@ -13,7 +13,7 @@
   "nu_version": ">=0.114.0 <0.115.0",
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-ArmoredPony-nu-digital-rain-0.1.0-6602c6a/ArmoredPony-nu-digital-rain-0.1.0-6602c6a.tar.gz",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/archive-ArmoredPony-nu-digital-rain-0.1.0-6602c6a/ArmoredPony-nu-digital-rain-0.1.0-6602c6a.tar.gz",
     "entry": "digital-rain.nu",
     "sha256": "841139fc009611e2ec49869bed4946035df1924dcc95da9862d21eda88f77efa"
   }

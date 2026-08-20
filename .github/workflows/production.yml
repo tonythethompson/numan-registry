@@ -38,7 +38,7 @@ jobs:
         run: cargo run --locked --manifest-path tools/numan-parser-check/Cargo.toml -- registry/index.json
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          repository: tonythethompson/numan-plugins
+          repository: numan-cli/numan-plugins
           ref: eb435983cfd8bed568a3c275ba6518607e904e89 # merged numan-plugins PR #3
           path: numan-plugins
           persist-credentials: false

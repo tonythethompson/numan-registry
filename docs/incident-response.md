@@ -1,7 +1,7 @@
 # Registry incident response and user remediation
 
 This policy covers the public official registry at
-`https://tonythethompson.github.io/numan-registry/`. It does not weaken Numan's
+`https://numan-cli.github.io/numan-registry/`. It does not weaken Numan's
 signature, digest, or immutable-lockfile guarantees.
 
 ## Report a security concern
@@ -9,7 +9,7 @@ signature, digest, or immutable-lockfile guarantees.
 Do not publish exploit details, suspected private keys, or unverified artifact
 content in a public issue. If GitHub offers private reporting for your account,
 start a report at
-<https://github.com/tonythethompson/numan-registry/security/advisories/new>.
+<https://github.com/numan-cli/numan-registry/security/advisories/new>.
 Otherwise, open a public issue titled **Security contact request** with no
 technical details; the maintainer will establish a private channel before
 collecting the report.

@@ -1,7 +1,7 @@
 name: Windows lifecycle-prove (Nu 0.114.1)
 
 # One-shot / reusable Stage 1 prove on windows-latest against production.
-# Builds numan from tonythethompson/numan@master so activate matches current
+# Builds numan from numan-cli/numan@master so activate matches current
 # non-TTY auto-confirm (published v0.1.5 still requires activate --yes).
 # First registration: open a PR (main is protected for bare dispatch).
 # Later: workflow_dispatch with a package list.
@@ -50,7 +50,7 @@ jobs:
       - name: Check out numan (client CLI)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: tonythethompson/numan
+          repository: numan-cli/numan
           path: _numan
           persist-credentials: false
 

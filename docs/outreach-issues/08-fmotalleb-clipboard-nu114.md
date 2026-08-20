@@ -1,4 +1,4 @@
-Hi. Demand-side note from the [Numan](https://github.com/tonythethompson/numan) / [numan-plugins](https://github.com/tonythethompson/numan-plugins) catalog work.
+Hi. Demand-side note from the [Numan](https://github.com/numan-cli/numan) / [numan-plugins](https://github.com/numan-cli/numan-plugins) catalog work.
 
 `nu_plugin_clipboard` is one of the highest-starred community plugins I still cannot promote into the official registry: latest release I see pins **nu-plugin ~0.110**, while the catalog's current CI-built / demo lane is centered on **Nu 0.114** (plugin ABI is minor-scoped).
 

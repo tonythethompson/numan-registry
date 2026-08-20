@@ -1,6 +1,6 @@
 Hi. Small packaging heads-up / ask.
 
-I've been building out the [Numan](https://github.com/tonythethompson/numan) official registry (hash-verified installs for Nu plugins, modules, scripts, and completions). Your scripts are already listed as install-only packages via registry-hosted mirrors:
+I've been building out the [Numan](https://github.com/numan-cli/numan) official registry (hash-verified installs for Nu plugins, modules, scripts, and completions). Your scripts are already listed as install-only packages via registry-hosted mirrors:
 
 | Live registry id | Repo |
 |------------------|------|

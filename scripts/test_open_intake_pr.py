@@ -306,7 +306,7 @@ class TestStageHelpers(unittest.TestCase):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}
         evidence = {"overall": "pass", "human_summary": "ok"}
         success = subprocess.CompletedProcess(
-            args=["gh", "pr", "create"], returncode=0, stdout="https://github.com/tonythethompson/numan-registry/pull/99\n", stderr=""
+            args=["gh", "pr", "create"], returncode=0, stdout="https://github.com/numan-cli/numan-registry/pull/99\n", stderr=""
         )
         with patch.object(open_intake_pr, "gh_run", return_value=success) as run:
             open_intake_pr._stage_open_pr(
@@ -323,7 +323,7 @@ class TestStageHelpers(unittest.TestCase):
         create_success = subprocess.CompletedProcess(
             args=["gh", "pr", "create"],
             returncode=0,
-            stdout="https://github.com/tonythethompson/numan-registry/pull/99\n",
+            stdout="https://github.com/numan-cli/numan-registry/pull/99\n",
             stderr="",
         )
         merge_success = subprocess.CompletedProcess(
@@ -337,7 +337,7 @@ class TestStageHelpers(unittest.TestCase):
         create_args = run.call_args_list[0].args[0]
         merge_args = run.call_args_list[1].args[0]
         self.assertEqual(create_args[:2], ["pr", "create"])
-        self.assertEqual(merge_args, ["pr", "merge", "https://github.com/tonythethompson/numan-registry/pull/99", "--auto", "--squash"])
+        self.assertEqual(merge_args, ["pr", "merge", "https://github.com/numan-cli/numan-registry/pull/99", "--auto", "--squash"])
 
     def test_stage_open_pr_real_exits_when_gh_fails(self):
         spec = {"owner": "acme", "name": "pkg", "version": "1.0.0"}

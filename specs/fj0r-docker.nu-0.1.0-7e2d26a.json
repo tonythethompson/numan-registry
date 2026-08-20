@@ -13,7 +13,7 @@
   "nu_version": ">=0.114.0 <0.115.0",
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-fj0r-docker.nu-0.1.0-7e2d26a/fj0r-docker.nu-0.1.0-7e2d26a.tar.gz",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/archive-fj0r-docker.nu-0.1.0-7e2d26a/fj0r-docker.nu-0.1.0-7e2d26a.tar.gz",
     "entry": "docker/mod.nu",
     "sha256": "285c648cc9618f288b69e456970bc3b3b016ba3fc0d4a6c154de16dfbe1d109e"
   },

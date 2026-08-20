@@ -1,14 +1,14 @@
 # Numan Official Registry
 
-Curated registry index for the [Numan](https://github.com/tonythethompson/numan) Nushell package manager.
+Curated registry index for the [Numan](https://github.com/numan-cli/numan) Nushell package manager.
 
 This repository is **not** the package manager itself. It publishes the signed registry index that Numan clients download, verify, and install from.
 
 ## Status
 
-The official production registry is live at [tonythethompson.github.io/numan-registry](https://tonythethompson.github.io/numan-registry/) (human landing page) and signed with the `official-2026-07-01` trust root built into Numan. Clients sync [`index.json`](https://tonythethompson.github.io/numan-registry/index.json) and verify [`index.json.sig`](https://tonythethompson.github.io/numan-registry/index.json.sig); do not treat the HTML landing page as machine input.
+The official production registry is live at [numan-cli.github.io/numan-registry](https://numan-cli.github.io/numan-registry/) (human landing page) and signed with the `official-2026-07-01` trust root built into Numan. Clients sync [`index.json`](https://numan-cli.github.io/numan-registry/index.json) and verify [`index.json.sig`](https://numan-cli.github.io/numan-registry/index.json.sig); do not treat the HTML landing page as machine input.
 
-**Catalog (committed index):** **44** packages (26 plugins, 7 modules, 6 completions, 5 scripts). The public CDN updates after production signing/publish. See the generated master list with Nu constraints in [`docs/catalog-compat.md`](docs/catalog-compat.md). Demand-ranked *plugin candidates* still outside the catalog live in [`numan-plugins/docs/backlog.json`](https://github.com/tonythethompson/numan-plugins/blob/main/docs/backlog.json).
+**Catalog (committed index):** **44** packages (26 plugins, 7 modules, 6 completions, 5 scripts). The public CDN updates after production signing/publish. See the generated master list with Nu constraints in [`docs/catalog-compat.md`](docs/catalog-compat.md). Demand-ranked *plugin candidates* still outside the catalog live in [`numan-plugins/docs/backlog.json`](https://github.com/numan-cli/numan-plugins/blob/main/docs/backlog.json).
 
 This `main` branch is the catalog source. Its committed `registry/index.json.sig` is deliberately a placeholder: the protected production workflow signs the catalog with `NUMAN_REGISTRY_PRIVATE_KEY` and publishes the resulting detached signature to GitHub Pages. Do not use the source-tree signature for an install; use Numan's `official` registry URL.
 

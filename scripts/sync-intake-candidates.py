@@ -30,7 +30,7 @@ OUT_PATH = REPO_ROOT / "docs" / "intake-candidates.md"
 INDEX_PATH = REPO_ROOT / "registry" / "index.json"
 OUTREACH_DOC = REPO_ROOT / "docs" / "upstream-release-outreach.md"
 CHECKSUM_CACHE = REPO_ROOT / ".mrge" / "sync-checksums.json"
-REGISTRY_REPO = "tonythethompson/numan-registry"
+REGISTRY_REPO = "numan-cli/numan-registry"
 
 
 def load_json(path: Path) -> Any:
@@ -39,9 +39,13 @@ def load_json(path: Path) -> Any:
 
 def artifact_provenance(url: str) -> str:
     """Classify a pinned artifact URL as mirror, ci-built, upstream, or other."""
-    if "numan-registry/releases/download/" in url or "tonythethompson/numan-registry/releases/" in url:
+    if (
+        "numan-registry/releases/download/" in url
+        or "numan-cli/numan-registry/releases/" in url
+        or "tonythethompson/numan-registry/releases/" in url
+    ):
         return "mirror"
-    if "tonythethompson/numan-plugins/releases/" in url:
+    if "numan-plugins/releases/" in url or "tonythethompson/numan-plugins/releases/" in url or "numan-cli/numan-plugins/releases/" in url:
         return "ci-built"
     if url.startswith("http"):
         return "upstream"

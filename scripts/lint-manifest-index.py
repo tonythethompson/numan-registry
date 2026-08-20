@@ -29,7 +29,7 @@ from pathlib import Path
 from url_safety import ensure_http_url, http_opener
 
 DEFAULT_MANIFEST_URL = (
-    "https://raw.githubusercontent.com/tonythethompson/numan-plugins/"
+    "https://raw.githubusercontent.com/numan-cli/numan-plugins/"
     "master/manifest.json"
 )
 DEFAULT_INDEX = Path("registry/index.json")

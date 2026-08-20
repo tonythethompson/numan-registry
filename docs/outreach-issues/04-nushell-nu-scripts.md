@@ -1,6 +1,6 @@
 `nu_scripts` is a different beast from the single-module repos I've been onboarding. Wanted to ask how you think about **release artifacts** before I assume the wrong model.
 
-Context: [Numan](https://github.com/tonythethompson/numan) (package manager, hash-verified installs) now lists two slices of this repo, both pinned at **`f04cb44`**:
+Context: [Numan](https://github.com/numan-cli/numan) (package manager, hash-verified installs) now lists two slices of this repo, both pinned at **`f04cb44`**:
 
 | Registry name | What I packaged |
 |---------------|-----------------|

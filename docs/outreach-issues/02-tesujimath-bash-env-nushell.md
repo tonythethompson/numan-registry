@@ -1,6 +1,6 @@
 `bash-env-nushell` has effectively replaced the old `nu_plugin_bash_env` path for a lot of people. I'm pointing new installs at the module instead of the plugin.
 
-I'm listing **0.19.0** in the [Numan registry](https://github.com/tonythethompson/numan-registry). Because there's no release asset on the tag yet, I packaged the repo root myself and host that zip on the registry releases. It works, but I'd rather pin against something you own.
+I'm listing **0.19.0** in the [Numan registry](https://github.com/numan-cli/numan-registry). Because there's no release asset on the tag yet, I packaged the repo root myself and host that zip on the registry releases. It works, but I'd rather pin against something you own.
 
 The specific thing that makes me nervous about *not* having an uploaded asset: consumers that record `sha256(url)` will pick GitHub's auto-generated tag archive if I don't have anything else, and those archives aren't promised to stay byte-stable. One infrastructure change on GitHub's side and every pinned install looks corrupt.
 

@@ -261,10 +261,10 @@ def fetch_readme(path: Path | None, url: str = AWESOME_NU_DEFAULT_URL) -> str:
 
 
 DEFAULT_MANIFEST_URL = (
-    "https://raw.githubusercontent.com/tonythethompson/numan-plugins/main/manifest.json"
+    "https://raw.githubusercontent.com/numan-cli/numan-plugins/main/manifest.json"
 )
 DEFAULT_BACKLOG_URL = (
-    "https://raw.githubusercontent.com/tonythethompson/numan-plugins/main/docs/backlog.json"
+    "https://raw.githubusercontent.com/numan-cli/numan-plugins/main/docs/backlog.json"
 )
 
 

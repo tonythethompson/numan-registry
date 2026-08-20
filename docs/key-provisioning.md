@@ -2,7 +2,7 @@
 
 This document is the maintainer's manual procedure for provisioning the
 **production** Ed25519 signing key for the Numan official registry
-(`tonythethompson/numan-registry`). It is written for a maintainer working in
+(`numan-cli/numan-registry`). It is written for a maintainer working in
 **WSL** (Windows Subsystem for Linux) with `bash` and Python 3, who is
 comfortable with the command line and GitHub's web UI but is not a
 cryptography specialist.
@@ -54,7 +54,7 @@ Numan clients can verify signatures produced by the private half.
 ## What you need
 
 - A WSL shell (Ubuntu or similar) with Python 3.9+ and `pip`.
-- Owner access to `tonythethompson/numan-registry` on GitHub.
+- Owner access to `numan-cli/numan-registry` on GitHub.
 - Permission to configure GitHub Environments and Actions secrets on that
   repository.
 - A password manager or encrypted vault you already use and trust (1Password,
@@ -69,7 +69,7 @@ python3 -m pip install --user cryptography
 
 ## Step 1: Create the production GitHub Environment
 
-1. Open `https://github.com/tonythethompson/numan-registry` in a browser.
+1. Open `https://github.com/numan-cli/numan-registry` in a browser.
 2. Go to **Settings > Environments**.
 3. Click **New environment**, name it exactly `production`.
 4. Configure protection rules:
@@ -126,11 +126,11 @@ the three files above, and terminal output showing only public material.
    }
    ```
 
-3. Open a pull request against `tonythethompson/numan-registry` with just
+3. Open a pull request against `numan-cli/numan-registry` with just
    this change. `scripts/preflight.py` runs in CI on this PR and confirms
    the file is well-formed and no longer a placeholder.
 4. After this PR merges, update the built-in trust root in
-   `tonythethompson/numan`'s `src/core/official_registry.rs`. Do this only
+   `numan-cli/numan`'s `src/core/official_registry.rs`. Do this only
    after the public key is merged here. Use that repo's
    `scripts/update-official-trust-root.sh --from-pub-json keys/official.pub`
    instead of hand-editing the file — it reads the `key_id` and
@@ -153,7 +153,7 @@ and public key; CI is green.
 
 ## Step 4: Add the private key to GitHub Actions secrets
 
-1. In `tonythethompson/numan-registry`, go to **Settings > Environments >
+1. In `numan-cli/numan-registry`, go to **Settings > Environments >
    production**.
 2. Under **Environment secrets**, click **Add secret**.
 3. **Name**: `NUMAN_REGISTRY_PRIVATE_KEY`

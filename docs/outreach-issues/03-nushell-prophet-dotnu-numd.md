@@ -1,6 +1,6 @@
-Both **dotnu** and **numd** ship with `nupm.nuon` and proper tags. That made them easy candidates for the [Numan registry](https://github.com/tonythethompson/numan-registry). I've got them listed now at **0.0.18** and **0.4.0** respectively.
+Both **dotnu** and **numd** ship with `nupm.nuon` and proper tags. That made them easy candidates for the [Numan registry](https://github.com/numan-cli/numan-registry). I've got them listed now at **0.0.18** and **0.4.0** respectively.
 
-One gap: the GitHub releases have tags but no attached zips. For hash-verified installs I need a byte-stable artifact, so I'm currently mirroring each tag myself on [numan-registry releases](https://github.com/tonythethompson/numan-registry/releases) rather than pointing at upstream.
+One gap: the GitHub releases have tags but no attached zips. For hash-verified installs I need a byte-stable artifact, so I'm currently mirroring each tag myself on [numan-registry releases](https://github.com/numan-cli/numan-registry/releases) rather than pointing at upstream.
 
 I'd love to flip that to **your** release assets if you're willing. Per-tag zips, roughly:
 

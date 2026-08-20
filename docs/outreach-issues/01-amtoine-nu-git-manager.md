@@ -1,4 +1,4 @@
-Hi. I'm adding NGM to the [Numan](https://github.com/tonythethompson/numan) registry (same general idea as nupm: install from a curated index, verify artifacts by hash).
+Hi. I'm adding NGM to the [Numan](https://github.com/numan-cli/numan) registry (same general idea as nupm: install from a curated index, verify artifacts by hash).
 
 You're already listed in the [nupm registry](https://github.com/nushell/nupm) with git pins on `pkgs/nu-git-manager`. For Numan I need something with stable bytes per tag, so right now I'm hosting a mirror of **0.8.0** myself (`pkgs/nu-git-manager/` zipped as `nu-git-manager-0.8.0.zip`).
 

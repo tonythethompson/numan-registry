@@ -118,8 +118,8 @@ No compliant upstream release asset; pack a tag/commit snapshot as a registry-ho
 | 2026-07-31 | Intake drbrain/nu_plugin_prometheus@0.12.0 (ci-built via numan-plugins; 4 targets, linux aarch64 excluded — openssl cross) |
 | 2026-07-30 | Move idanarye/nu_plugin_skim@0.29.1 and FMotalleb/nu_plugin_desktop_notifications@0.114.1 from blocked/missing into ready (live CI-built registry entries). |
 | 2026-07-21 | Intake CI-built plugins from numan-plugins: cptpiepmatz/nu_plugin_highlight@1.4.15, fdncred/nu_plugin_regex@0.22.0, dead10ck/nu_plugin_dns@4.0.10 |
-| 2026-07-10 | Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/tonythethompson/numan-registry/pull/16)) |
+| 2026-07-10 | Switched tesujimath/bash-env-nushell@0.19.0 from registry mirror to upstream release asset (tesujimath/bash-env-nushell#50, #51; cutover in [#16](https://github.com/numan-cli/numan-registry/pull/16)) |
 | 2026-07-06 | Batch 3: plugins (format_pcap, ws, dialog), first script (nu_script_wttr), mirrors (git-manager-sugar, git-completions) |
-| 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/tonythethompson/numan-registry/pull/11) |
+| 2026-07-05 | Ready-now plugin batch in [#11](https://github.com/numan-cli/numan-registry/pull/11) |
 | 2026-07-05 | Initial list |
 | 2026-07-30 | Intake Wave 1 CI-built plugins: FMotalleb/nu_plugin_port_extension@0.113.1, FMotalleb/nu_plugin_image@0.112.2 |

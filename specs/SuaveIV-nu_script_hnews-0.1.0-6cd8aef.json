@@ -10,7 +10,7 @@
   "verified_with": ["0.113.1"],
   "artifact": {
     "kind": "archive",
-    "url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-SuaveIV-nu_script_hnews-6cd8aef/nu_script_hnews-6cd8aef.zip",
+    "url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-SuaveIV-nu_script_hnews-6cd8aef/nu_script_hnews-6cd8aef.zip",
     "entry": "hnews.nu",
     "archive_root": "nu_script_hnews-6cd8aef"
   }

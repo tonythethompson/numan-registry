@@ -79,19 +79,19 @@ class RenderCatalogCompatTests(unittest.TestCase):
     def test_provenance_hint(self):
         self.assertEqual(
             self.mod.provenance_hint(
-                {"url": "https://github.com/tonythethompson/numan-registry/releases/download/mirror-x/x.zip"}
+                {"url": "https://github.com/numan-cli/numan-registry/releases/download/mirror-x/x.zip"}
             ),
             "mirror",
         )
         self.assertEqual(
             self.mod.provenance_hint(
-                {"url": "https://github.com/tonythethompson/numan-registry/releases/download/archive-x/x.tar.gz"}
+                {"url": "https://github.com/numan-cli/numan-registry/releases/download/archive-x/x.tar.gz"}
             ),
             "mirror",
         )
         self.assertEqual(
             self.mod.provenance_hint(
-                {"url": "https://github.com/tonythethompson/numan-plugins/releases/download/p-1.0.0/p.tar.gz"}
+                {"url": "https://github.com/numan-cli/numan-plugins/releases/download/p-1.0.0/p.tar.gz"}
             ),
             "ci-built",
         )
